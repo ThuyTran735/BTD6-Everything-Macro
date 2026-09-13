@@ -3,10 +3,10 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 
-MonkeyMeadowPrimaryOnly() {
+InTheLoopPrimaryOnly() {
     global RunConfig := {
         category: "Beginner",
-        map: "Monkey Meadow",
+        map: "In The Loop",
         difficulty: "Easy",
         gameMode: "Primary Only",
 
@@ -23,8 +23,8 @@ MonkeyMeadowPrimaryOnly() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 495,
-            y: 504,
+            x: 318,
+            y: 833,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -32,8 +32,8 @@ MonkeyMeadowPrimaryOnly() {
 
         "Dart A", {
             type: "Dart",
-            x: 316,
-            y: 405,
+            x: 317,
+            y: 707,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -41,8 +41,8 @@ MonkeyMeadowPrimaryOnly() {
 
         "Dart B", {
             type: "Dart",
-            x: 316,
-            y: 260,
+            x: 529,
+            y: 704,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -50,8 +50,8 @@ MonkeyMeadowPrimaryOnly() {
 
         "Dart C", {
             type: "Dart",
-            x: 130,
-            y: 509,
+            x: 740,
+            y: 701,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -59,8 +59,8 @@ MonkeyMeadowPrimaryOnly() {
 
         "Dart D", {
             type: "Dart",
-            x: 255,
-            y: 604,
+            x: 742,
+            y: 978,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -68,8 +68,8 @@ MonkeyMeadowPrimaryOnly() {
 
         "Boomerang A", {
             type: "Boomerang",
-            x: 308,
-            y: 508,
+            x: 512,
+            y: 972,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -287,4 +287,4 @@ MonkeyMeadowPrimaryOnly() {
     return false
 }
 
-MonkeyMeadowPrimaryOnly()
+InTheLoopPrimaryOnly()

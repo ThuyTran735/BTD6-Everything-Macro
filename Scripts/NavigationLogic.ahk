@@ -20,6 +20,8 @@ global NavigationPatterns := Map(
 
     ; Game modes
     "Standard", "|<>*210$40.000000000000000000000000000000000000000000000000000000000001000000A000001k00000D000001w00000Dk00001z00000Tw00003zk0000Tz00003zw0000Tzk0003zz0000Tzw0003zzk000zzz0007zzy",
+    "Primary Only", "|<>*61$58.zzzy00Tzzzzzzy07zzzzzzzw1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzznzzzzzzzzwDzzzzzzzz0zzzzzzzzk3zzzzzzzw0Dzzzzzzzk0zzzzzzzzU3zzzzzzzz0Dzzzzzzzy0zzzzzzzzw3zzzzzzzzsDzzzzzzzzkzzzzzzzzzXzzzzzzzzzDzzzzzzzzyzzzzzzzzzzzzzyDzzzzzzzzkzzzzzzzzy1zzzzzzzzU3zzzzzzzw0DzzzzzzzU0Tzzzzzzs00zzzzzzz001zzzzzzw007zzzzzzU00Dzzzzzw000Tzzzzzk001zzzXzz0003zzUDzw0007zU0zzk000Ts1zzz0000s3zzzy00007zzzzy0007zzzzzzs0zzzzs",
+
 
     ; Map pages
     "NextPage", "|<>*180$41.y00007zw00007zs00007zk00007zU00007z000007y000007w000007s000007k00000DU00000T000000y000001w000003s00000Dk00000Tk00001zU00007z00000Ty00001zw00007zs0000Tzk0001zk",

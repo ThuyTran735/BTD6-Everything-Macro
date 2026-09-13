@@ -42,7 +42,7 @@ MonkeyMeadowEasy() {
         "Dart B", {
             type: "Dart",
             x: 316,
-            y: 200,
+            y: 260,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -146,11 +146,11 @@ MonkeyMeadowEasy() {
             "024"
         )],
 
-        [34, 0, () => PlaceTower(
+        [35, 0, () => PlaceTower(
             TowerSetup["Dart C"]
         )],
 
-        [34, 0, () => UpgradeTower(
+        [35, 0, () => UpgradeTower(
             TowerSetup["Dart C"],
             "024"
         )],
@@ -163,8 +163,6 @@ MonkeyMeadowEasy() {
             TowerSetup["Dart D"],
             "024"
         )],
-
-        [40, 0, () => UseAbility("1")]
     ]
 
 
@@ -289,5 +287,4 @@ MonkeyMeadowEasy() {
     return false
 }
 
-Sleep(3000)
 MonkeyMeadowEasy()

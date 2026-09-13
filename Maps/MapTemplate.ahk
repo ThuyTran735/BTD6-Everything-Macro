@@ -14,7 +14,8 @@ MapNameDifficultyMode() {
         gameMode: "Standard",
 
         ; Use false if this strategy does not need a hero.
-        ; Example:
+        ;
+        ; Examples:
         ; hero: "Quincy"
         ; hero: false
         hero: false,
@@ -23,7 +24,24 @@ MapNameDifficultyMode() {
         maxAttempts: 3,
 
         ; Set true if Wingmonkey Monkey Knowledge is enabled.
-        wingmonkeyMK: false
+        wingmonkeyMK: false,
+
+        ; Deflation only:
+        ;
+        ; Deflation starts on Round 31 and ends on Round 60.
+        ; Uncomment these when creating a Deflation strategy.
+        ;
+        ; Also change:
+        ; gameMode: "Standard",
+        ;
+        ; to:
+        ; gameMode: "Deflation",
+        ;
+        ; startRound: 31,
+        ; endRound: 60,
+        ;
+        ; Round 0 is still used for the initial Deflation setup.
+        ; After StartGame(), actual round tracking begins at Round 31.
     }
 
 
@@ -82,10 +100,22 @@ MapNameDifficultyMode() {
 
 
     strategy := [
-        ; Round 0 = before Round 1 starts.
+        ; Round 0 = before the first actual round starts.
+        ;
+        ; Normal Easy:
+        ; Round 0 -> setup
+        ; Round 1 -> first actual round
+        ; Round 40 -> final round
+        ;
+        ; Deflation:
+        ; Round 0 -> setup
+        ; Round 31 -> first actual round
+        ; Round 60 -> final round
+
 
         ; Hero placement example.
-        ; Place at Round 0:
+        ;
+        ; Place during Round 0:
         ;
         ; [0, 0, () => PlaceTower(
         ;     TowerSetup["Hero"]
@@ -98,49 +128,51 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Normal placement example
+        ; Normal tower placement
         [0, 0, () => PlaceTower(
             TowerSetup["Tower A"]
         )],
 
 
-        ; Normal upgrade example
+        ; Normal upgrade
         [3, 0, () => UpgradeTower(
             TowerSetup["Tower A"],
             "002"
         )],
 
 
-        ; Normal targeting example
+        ; Normal targeting
         [5, 0, () => SetTargeting(
             TowerSetup["Tower A"],
             "Last"
         )],
 
 
-        ; Another upgrade example
+        ; Another upgrade
         [7, 0, () => UpgradeTower(
             TowerSetup["Tower A"],
             "022"
         )],
 
 
-        ; Strong targeting example
+        ; Strong targeting
         [10, 0, () => SetTargeting(
             TowerSetup["Tower A"],
             "Strong"
         )],
 
 
-        ; Sniper placement example
+        ; Sniper placement
+        ;
         ; [0, 0, () => PlaceTower(
         ;     TowerSetup["Sniper A"]
         ; )],
 
 
-        ; Elite Sniper example
+        ; Elite Sniper
+        ;
         ; Once a Sniper reaches 050,
-        ; Elite targeting becomes available to Snipers.
+        ; Elite targeting becomes available.
         ;
         ; [30, 0, () => UpgradeTower(
         ;     TowerSetup["Sniper A"],
@@ -148,7 +180,7 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Elite targeting example
+        ; Elite targeting
         ;
         ; [31, 0, () => SetTargeting(
         ;     TowerSetup["Sniper A"],
@@ -156,21 +188,18 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Monkey Ace placement example
+        ; Monkey Ace placement
         ;
         ; [0, 0, () => PlaceTower(
         ;     TowerSetup["Ace A"]
         ; )],
 
 
-        ; Normal Ace targeting examples:
+        ; Normal Ace targeting:
         ;
         ; Circle
         ; Figure Infinite
         ; Figure Eight
-        ;
-        ; Wingmonkey is also available when:
-        ; wingmonkeyMK: true
         ;
         ; [5, 0, () => SetTargeting(
         ;     TowerSetup["Ace A"],
@@ -178,8 +207,9 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Centered Path example.
-        ; xx2 automatically changes the Ace
+        ; Centered Path
+        ;
+        ; xx2 automatically updates the tracked
         ; targeting state to Centered Path.
         ;
         ; [10, 0, () => UpgradeTower(
@@ -188,7 +218,7 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Change away from Centered Path later:
+        ; Change away from Centered Path
         ;
         ; [15, 0, () => SetTargeting(
         ;     TowerSetup["Ace A"],
@@ -196,8 +226,10 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Wingmonkey example:
-        ; Requires wingmonkeyMK: true
+        ; Wingmonkey
+        ;
+        ; Requires:
+        ; wingmonkeyMK: true
         ;
         ; [15, 0, () => SetTargeting(
         ;     TowerSetup["Ace A"],
@@ -205,7 +237,7 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Monkey Sub placement example
+        ; Monkey Sub placement
         ;
         ; [0, 0, () => PlaceTower(
         ;     TowerSetup["Sub A"]
@@ -220,7 +252,7 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Submerge with Page Down
+        ; Submerge
         ;
         ; [11, 0, () => SetSubmerge(
         ;     TowerSetup["Sub A"],
@@ -230,13 +262,18 @@ MapNameDifficultyMode() {
 
         ; Unsubmerge
         ;
+        ; The Sub returns to its previous targeting.
+        ;
         ; [20, 0, () => SetSubmerge(
         ;     TowerSetup["Sub A"],
         ;     false
         ; )],
 
 
-        ; Normal Sub targeting still works separately
+        ; Normal Sub targeting
+        ;
+        ; Do not change normal targeting while
+        ; the Sub is submerged.
         ;
         ; [21, 0, () => SetTargeting(
         ;     TowerSetup["Sub A"],
@@ -244,132 +281,33 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Mid-round action example.
-        ; This means 5000 ms into Round 20.
+        ; Mid-round action
+        ;
+        ; 5000 ms into Round 20:
+        ;
         ; [20, 5000, () => UseAbility("1")]
     ]
 
 
-    if !NavigateToMap(
-        RunConfig.category,
-        RunConfig.map,
-        RunConfig.difficulty,
-        RunConfig.gameMode,
-        RunConfig.hero
-    ) {
-        return false
-    }
+    ; MapRunner.ahk handles:
+    ;
+    ; - Navigation
+    ; - Game loading
+    ; - Round 0 strategy
+    ; - Starting the game
+    ; - Round tracking
+    ; - Strategy execution
+    ; - Victory
+    ; - Defeat
+    ; - Retries
+    ;
+    ; The map file only needs:
+    ;
+    ; - RunConfig
+    ; - TowerSetup
+    ; - strategy
 
-
-    if !WaitForGameLoad()
-        return false
-
-
-    maxAttempts := HasProp(RunConfig, "maxAttempts")
-        ? RunConfig.maxAttempts
-        : 3
-
-
-    Loop maxAttempts {
-        attempt := A_Index
-
-
-        ResetRoundTracking()
-        ResetTowerSetup()
-
-
-        ; All tower placement, including Hero placement,
-        ; is controlled by the strategy.
-        pregameResult := RunPregameStrategy(
-            strategy
-        )
-
-
-        if pregameResult = "Victory" {
-            if !HandleVictory()
-                return false
-
-            return true
-        }
-
-
-        if pregameResult = "Defeat" {
-            if attempt >= maxAttempts
-                return false
-
-
-            if !HandleDefeat()
-                return false
-
-
-            if !WaitForGameLoad()
-                return false
-
-
-            continue
-        }
-
-
-        if pregameResult = false
-            return false
-
-
-        ; Start clean tracking immediately
-        ; before Round 1 begins.
-        ResetRoundTracking()
-
-
-        if !StartGame()
-            return false
-
-
-        result := RunStrategy(
-            strategy
-        )
-
-
-        if result = "Victory" {
-            if !HandleVictory()
-                return false
-
-            return true
-        }
-
-
-        if result = "Defeat" {
-            if attempt >= maxAttempts {
-                ToolTip(
-                    "Maximum attempts reached."
-                    "`nAttempts: " attempt
-                )
-
-                Sleep(2000)
-                ToolTip()
-
-                return false
-            }
-
-
-            if !HandleDefeat()
-                return false
-
-
-            ; Restart puts us back at Round 1.
-            ; Wait for the in-game Settings
-            ; button again before rebuilding.
-            if !WaitForGameLoad()
-                return false
-
-
-            continue
-        }
-
-
-        return false
-    }
-
-
-    return false
+    return RunMapStrategy(strategy)
 }
 
 

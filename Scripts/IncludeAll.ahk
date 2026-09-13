@@ -24,3 +24,4 @@ global RunConfig := {
 #Include GameStateLogic.ahk
 #Include RoundLogic.ahk
 #Include StrategyLogic.ahk
+#Include MapRunner.ahk

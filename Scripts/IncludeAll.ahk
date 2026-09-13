@@ -2,10 +2,21 @@
 
 #Include ..\Lib\FindText.ahk
 
+global RunConfig := {
+    category: "",
+    map: "",
+    difficulty: "",
+    gameMode: "",
+    hero: ""
+}
+
 #Include TowerData.ahk
+#Include MapData.ahk
+
 #Include PlacementLogic.ahk
 #Include UpgradeLogic.ahk
 #Include HeroSelection.ahk
+#Include NavigationLogic.ahk
 #Include Logs.ahk
 #Include Setup.ahk
 #Include RoundLogic.ahk

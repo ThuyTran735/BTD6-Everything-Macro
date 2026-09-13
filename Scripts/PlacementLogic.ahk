@@ -1,7 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
 
-#Include TowerData.ahk
-
 PlaceTower(tower) {
     global TowerHotkeys
 
@@ -11,28 +9,28 @@ PlaceTower(tower) {
     if !HasProp(tower, "x") || !HasProp(tower, "y")
         throw Error("Tower is missing coordinates.")
 
-    if !TowerHotkeys.Has(tower.type) {
-        ToolTip("Unknown tower: " tower.type)
-        Sleep(1500)
-        ToolTip()
+    if !TowerHotkeys.Has(tower.type)
         return false
-    }
 
     hotkey := TowerHotkeys[tower.type]
 
-    ; Select tower
-    Send(hotkey)
-    Sleep(150)
+    ; Hero needs SendEvent for BTD6 to recognize the hotkey.
+    if tower.type = "Hero" {
+        SendEvent("{u down}")
+        Sleep(100)
+        SendEvent("{u up}")
+    } else {
+        Send(hotkey)
+    }
 
-    ; Move to placement location
-    MouseMove(tower.x, tower.y)
-    Sleep(100)
+    Sleep(250)
 
-    ; Place tower
-    Click()
-    Sleep(150)
+    MouseMove(tower.x, tower.y, 0)
+    Sleep(250)
 
-    ; Initialize tower state
+    Click(tower.x, tower.y)
+    Sleep(250)
+
     tower.placed := true
 
     if !HasProp(tower, "upgrades")

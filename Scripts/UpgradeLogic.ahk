@@ -89,6 +89,10 @@ UpgradeTower(tower, target) {
         tower.upgrades[3]++
     }
 
+    ; Close upgrade panel so the next upgrade can safely re-select the tower.
+    Send("{Esc}")
+    Sleep(200)
+
     return true
 }
 

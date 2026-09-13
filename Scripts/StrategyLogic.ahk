@@ -42,6 +42,18 @@ RunStrategy(actions) {
     return true
 }
 
+StartGame() {
+    ; First Space starts the first round.
+    Send("{Space}")
+    Sleep(200)
+
+    ; Second Space enables speedup.
+    Send("{Space}")
+    Sleep(200)
+
+    return true
+}
+
 WaitForRoundTime(targetMs) {
     Loop {
         elapsed := GetRoundElapsedTime()

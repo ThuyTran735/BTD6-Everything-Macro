@@ -229,4 +229,7 @@ FindAndClickHero(patterns) {
 
 ClickSelectButton() {
     Click(1100, 600)
+    Sleep(500)
+
+    return true
 }

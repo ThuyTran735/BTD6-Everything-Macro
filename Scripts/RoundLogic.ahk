@@ -1,7 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
 
-#Include IncludeAll.ahk
-
 global DifficultyRounds := Map(
     "Easy", 40,
     "Medium", 60,
@@ -73,6 +71,8 @@ global LastRound := 0
 global LastWeirdRead := 0
 global WeirdReadActive := false
 
+global RoundStartTick := 0
+global LastTrackedRound := 0
 
 GetRoundArea() {
     global RunConfig
@@ -86,7 +86,6 @@ GetRoundArea() {
     return RoundAreas[difficulty]
 }
 
-
 GetFinalRound() {
     global RunConfig
     global DifficultyRounds
@@ -98,7 +97,6 @@ GetFinalRound() {
 
     return DifficultyRounds[difficulty]
 }
-
 
 GetCurrentRound() {
     global RoundDigits
@@ -134,6 +132,16 @@ GetCurrentRound() {
     return Integer(roundText)
 }
 
+TrackRoundStart() {
+    global LastRound
+    global LastTrackedRound
+    global RoundStartTick
+
+    if LastTrackedRound != LastRound {
+        LastTrackedRound := LastRound
+        RoundStartTick := A_TickCount
+    }
+}
 
 ValidateRound(detectedRound) {
     global LastRound
@@ -145,6 +153,9 @@ ValidateRound(detectedRound) {
     ; First OCR reading
     if LastRound = 0 {
         LastRound := Min(detectedRound, finalRound)
+
+        TrackRoundStart()
+
         return LastRound
     }
 
@@ -161,6 +172,9 @@ ValidateRound(detectedRound) {
         ; Normal forward movement
         if difference > 0 && difference <= 5 {
             LastRound := Min(detectedRound, finalRound)
+
+            TrackRoundStart()
+
             return LastRound
         }
 
@@ -168,9 +182,12 @@ ValidateRound(detectedRound) {
         WeirdReadActive := true
         LastWeirdRead := detectedRound
 
-        ; Assume actual round advanced by one
-        if LastRound < finalRound
+        ; Assume the actual round advanced by one
+        if LastRound < finalRound {
             LastRound++
+
+            TrackRoundStart()
+        }
 
         return LastRound
     }
@@ -178,36 +195,55 @@ ValidateRound(detectedRound) {
 
     ; Weird mode
 
-    ; OCR recovered and now matches our tracked round
+    ; OCR recovered and matches our tracked round
     if detectedRound = LastRound {
         ResetWeirdReads()
+
         return LastRound
     }
 
     difference := detectedRound - LastRound
 
-    ; OCR recovered to a believable next round
+    ; OCR recovered to a believable future round
     if difference > 0 && difference <= 5 {
         LastRound := Min(detectedRound, finalRound)
+
+        TrackRoundStart()
         ResetWeirdReads()
+
         return LastRound
     }
 
-    ; Same weird OCR value as previous scan
-    ; Do not increment again
+    ; Same weird OCR value
+    ;
+    ; Example:
+    ;
+    ; 75
+    ; 75
+    ; 75
+    ;
+    ; Do NOT keep increasing the round.
     if detectedRound = LastWeirdRead
         return LastRound
 
-    ; Weird OCR value changed
-    ; Assume actual round advanced again
+
+    ; Weird OCR changed
+    ;
+    ; Example:
+    ;
+    ; 75 -> 82
+    ;
+    ; Assume the real round advanced by one.
     LastWeirdRead := detectedRound
 
-    if LastRound < finalRound
+    if LastRound < finalRound {
         LastRound++
+
+        TrackRoundStart()
+    }
 
     return LastRound
 }
-
 
 ResetWeirdReads() {
     global LastWeirdRead
@@ -216,7 +252,6 @@ ResetWeirdReads() {
     LastWeirdRead := 0
     WeirdReadActive := false
 }
-
 
 GetValidatedRound() {
     global LastRound
@@ -229,18 +264,18 @@ GetValidatedRound() {
     return ValidateRound(detectedRound)
 }
 
-
 WaitForRound(targetRound) {
     finalRound := GetFinalRound()
 
     if targetRound < 1
         throw Error("Round must be at least 1.")
 
-    if targetRound > finalRound
+    if targetRound > finalRound {
         throw Error(
             "Round " targetRound
             " does not exist on this difficulty."
         )
+    }
 
     Loop {
         currentRound := GetValidatedRound()
@@ -252,18 +287,30 @@ WaitForRound(targetRound) {
     }
 }
 
-
 WaitForFinalRound() {
     return WaitForRound(GetFinalRound())
 }
 
+GetRoundElapsedTime() {
+    global RoundStartTick
+
+    if RoundStartTick = 0
+        return 0
+
+    return A_TickCount - RoundStartTick
+}
 
 ResetRoundTracking() {
     global LastRound
     global LastWeirdRead
     global WeirdReadActive
+    global RoundStartTick
+    global LastTrackedRound
 
     LastRound := 0
     LastWeirdRead := 0
     WeirdReadActive := false
+
+    RoundStartTick := 0
+    LastTrackedRound := 0
 }

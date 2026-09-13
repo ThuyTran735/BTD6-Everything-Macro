@@ -10,38 +10,78 @@ global DifficultyRounds := Map(
 
 global RoundAreas := Map(
     "Easy", {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0
+        regular: {
+            x1: 1421,
+            y1: 33,
+            x2: 1489,
+            y2: 73
+        },
+        rightPanel: {
+            x1: 1027,
+            y1: 31,
+            x2: 1095,
+            y2: 74
+        }
     },
 
     "Medium", {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0
+        regular: {
+            x1: 1420,
+            y1: 30,
+            x2: 1490,
+            y2: 73
+        },
+        rightPanel: {
+            x1: 1030,
+            y1: 31,
+            x2: 1095,
+            y2: 76
+        }
     },
 
     "Hard", {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0
+        regular: {
+            x1: 1418,
+            y1: 32,
+            x2: 1489,
+            y2: 73
+        },
+        rightPanel: {
+            x1: 1015,
+            y1: 32,
+            x2: 1093,
+            y2: 73
+        }
     },
 
     "Impoppable", {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0
+        regular: {
+            x1: 1364,
+            y1: 30,
+            x2: 1468,
+            y2: 74
+        },
+        rightPanel: {
+            x1: 969,
+            y1: 30,
+            x2: 1075,
+            y2: 74
+        }
     },
 
     "CHIMPS", {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 0
+        regular: {
+            x1: 1364,
+            y1: 30,
+            x2: 1468,
+            y2: 74
+        },
+        rightPanel: {
+            x1: 969,
+            y1: 30,
+            x2: 1075,
+            y2: 74
+        }
     }
 )
 
@@ -101,35 +141,39 @@ GetFinalRound() {
 GetCurrentRound() {
     global RoundDigits
 
-    area := GetRoundArea()
+    areas := GetRoundArea()
 
-    ok := FindText(
-        &X,
-        &Y,
-        area.x1,
-        area.y1,
-        area.x2,
-        area.y2,
-        0,
-        0,
-        RoundDigits,
-        1,
-        1
-    )
+    for areaName in ["regular", "rightPanel"] {
+        area := areas.%areaName%
 
-    if !ok
-        return false
+        ok := FindText(
+            &X,
+            &Y,
+            area.x1,
+            area.y1,
+            area.x2,
+            area.y2,
+            0,
+            0,
+            RoundDigits,
+            1,
+            1
+        )
 
-    ok := FindText().Sort(ok)
+        if !ok
+            continue
 
-    result := FindText().Ocr(ok, 20, 20, 3)
+        ok := FindText().Sort(ok)
 
-    roundText := RegExReplace(result.text, "\D")
+        result := FindText().Ocr(ok, 20, 20, 3)
 
-    if roundText = ""
-        return false
+        roundText := RegExReplace(result.text, "\D")
 
-    return Integer(roundText)
+        if roundText != ""
+            return Integer(roundText)
+    }
+
+    return false
 }
 
 TrackRoundStart() {

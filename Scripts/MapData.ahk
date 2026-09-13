@@ -21,6 +21,18 @@ global MapData := Map(
         pattern: "|<>*153$36.TsTzzzDzTzzz7zzzzz3zzzzz7zzzzzLzzzzzrzzzyT7ztzyT3zUzk74Dkzs7s3tzwD01zzxT00zzzzs03zzzy01zzyw0kDzkw0E3z0w001w0y00080zU0000yk0000w00000k3U000k3s001s3y007lTzy6DzzzzzzTzzwzzzXzzjzT3zwlkzUTsjkw0TtzUy0zzzkDVXTzU3bVDzs3zUDzs3zmTz0DzqTz0DyDbzozzzrzyzzzzzzzzzzzzjzjvzzzzzzznU"
     },
 
+    "Skull Tweak", {
+        category: "Beginner",
+        page: 1,
+        pattern: "|<>*137$28.00000000080000U00030000A0000k00030000D0000y0003y0E7zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzw7zzs00zz003z000Dk000w0003k000D0000w0003U000C0000U"
+    },
+
+    "Three Mines 'Round", {
+        category: "Beginner",
+        page: 1,
+        pattern: "|<>*106$20.01y0000000000000300000000000000000000000s00Dk03zU0zz0Dzy3zzwzzynz40T007U00s00C003U00s00C001U00M007U01m00C003U00k00A007001k00Q006001U00Q007001s00T007U00s00C003U0U"
+    },
+
     "Intermediate Map", {
         category: "Intermediate",
         page: 6,

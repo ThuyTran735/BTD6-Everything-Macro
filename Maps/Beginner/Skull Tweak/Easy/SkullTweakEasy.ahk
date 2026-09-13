@@ -3,10 +3,10 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 
-InTheLoopEasy() {
+SkullTweakEasy() {
     global RunConfig := {
         category: "Beginner",
-        map: "In The Loop",
+        map: "Skull Tweak",
         difficulty: "Easy",
         gameMode: "Standard",
 
@@ -23,8 +23,8 @@ InTheLoopEasy() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 318,
-            y: 833,
+            x: 473,
+            y: 613,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -32,8 +32,8 @@ InTheLoopEasy() {
 
         "Dart A", {
             type: "Dart",
-            x: 317,
-            y: 707,
+            x: 381,
+            y: 811,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -41,8 +41,8 @@ InTheLoopEasy() {
 
         "Dart B", {
             type: "Dart",
-            x: 529,
-            y: 704,
+            x: 121,
+            y: 812,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -50,8 +50,8 @@ InTheLoopEasy() {
 
         "Dart C", {
             type: "Dart",
-            x: 740,
-            y: 701,
+            x: 299,
+            y: 949,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -59,8 +59,8 @@ InTheLoopEasy() {
 
         "Dart D", {
             type: "Dart",
-            x: 742,
-            y: 978,
+            x: 760,
+            y: 807,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -68,8 +68,8 @@ InTheLoopEasy() {
 
         "Boomerang A", {
             type: "Boomerang",
-            x: 512,
-            y: 972,
+            x: 478,
+            y: 803,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -287,4 +287,4 @@ InTheLoopEasy() {
     return false
 }
 
-InTheLoopEasy()
+SkullTweakEasy()

@@ -3,10 +3,10 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 
-InTheLoopEasy() {
+ThreeMinesRoundEasy() {
     global RunConfig := {
         category: "Beginner",
-        map: "In The Loop",
+        map: "Three Mines 'Round",
         difficulty: "Easy",
         gameMode: "Standard",
 
@@ -23,8 +23,8 @@ InTheLoopEasy() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 318,
-            y: 833,
+            x: 767,
+            y: 207,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -32,8 +32,8 @@ InTheLoopEasy() {
 
         "Dart A", {
             type: "Dart",
-            x: 317,
-            y: 707,
+            x: 585,
+            y: 185,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -41,8 +41,8 @@ InTheLoopEasy() {
 
         "Dart B", {
             type: "Dart",
-            x: 529,
-            y: 704,
+            x: 749,
+            y: 105,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -50,8 +50,8 @@ InTheLoopEasy() {
 
         "Dart C", {
             type: "Dart",
-            x: 740,
-            y: 701,
+            x: 543,
+            y: 435,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -59,8 +59,8 @@ InTheLoopEasy() {
 
         "Dart D", {
             type: "Dart",
-            x: 742,
-            y: 978,
+            x: 530,
+            y: 596,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -68,8 +68,8 @@ InTheLoopEasy() {
 
         "Boomerang A", {
             type: "Boomerang",
-            x: 512,
-            y: 972,
+            x: 594,
+            y: 311,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -287,4 +287,4 @@ InTheLoopEasy() {
     return false
 }
 
-InTheLoopEasy()
+ThreeMinesRoundEasy()

@@ -127,17 +127,30 @@ HandleDefeat() {
 
 ResetTowerSetup() {
     global TowerSetup
+    global EliteSniperActive
+
+
+    EliteSniperActive := false
 
 
     for name, tower in TowerSetup {
         tower.placed := false
 
-        tower.upgrades := [0, 0, 0]
+
+        if HasProp(tower, "upgrades")
+            tower.upgrades := [0, 0, 0]
 
 
-        ; Panel side must be rediscovered after a restart.
-        if HasProp(tower, "panelSide")
-            tower.panelSide := false
+        if tower.type = "Ace"
+            tower.targeting := "Circle"
+        else
+            tower.targeting := "First"
+
+
+        if tower.type = "Sub"
+            tower.targeting := "First"
+            tower.targetingBeforeSubmerge := "First"
+            tower.submerged := false
     }
 
 

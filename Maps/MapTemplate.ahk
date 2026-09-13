@@ -3,7 +3,8 @@
 #Include ..\Scripts\IncludeAll.ahk
 ; Delete this ^^^ Only here to stop error messages
 
-; #Include Location Of InlcudeAll.ahk
+; #Include Location Of IncludeAll.ahk
+
 
 MapNameDifficultyMode() {
     global RunConfig := {
@@ -11,7 +12,18 @@ MapNameDifficultyMode() {
         map: "MAP NAME",
         difficulty: "Easy",
         gameMode: "Standard",
-        hero: false
+
+        ; Use false if this strategy does not need a hero.
+        ; Example:
+        ; hero: "Quincy"
+        ; hero: false
+        hero: false,
+
+        ; Maximum number of attempts before giving up.
+        maxAttempts: 3,
+
+        ; Set true if Wingmonkey Monkey Knowledge is enabled.
+        wingmonkeyMK: false
     }
 
 
@@ -21,29 +33,206 @@ MapNameDifficultyMode() {
             x: 0,
             y: 0,
             placed: false,
-            upgrades: [0, 0, 0]
+            upgrades: [0, 0, 0],
+            targeting: "First"
         },
+
 
         "Tower A", {
             type: "Dart",
             x: 0,
             y: 0,
             placed: false,
-            upgrades: [0, 0, 0]
+            upgrades: [0, 0, 0],
+            targeting: "First"
+        },
+
+
+        "Sniper A", {
+            type: "Sniper",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "First"
+        },
+
+
+        "Ace A", {
+            type: "Ace",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "Circle"
+        },
+
+
+        "Sub A", {
+            type: "Sub",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "First",
+            targetingBeforeSubmerge: "First",
+            submerged: false
         }
     )
 
 
     strategy := [
-        ; Pregame
-        [0, 0, () => PlaceTower(TowerSetup["Tower A"])],
+        ; Round 0 = before Round 1 starts.
 
-        ; During game
-        [3, 0, () => UpgradeTower(TowerSetup["Tower A"], "002")],
-        [7, 0, () => UpgradeTower(TowerSetup["Tower A"], "022")],
+        ; Normal placement example
+        [0, 0, () => PlaceTower(
+            TowerSetup["Tower A"]
+        )],
 
-        ; Mid-round example
-        [20, 5000, () => UseAbility("1")]
+
+        ; Normal upgrade example
+        [3, 0, () => UpgradeTower(
+            TowerSetup["Tower A"],
+            "002"
+        )],
+
+
+        ; Normal targeting example
+        [5, 0, () => SetTargeting(
+            TowerSetup["Tower A"],
+            "Last"
+        )],
+
+
+        ; Another upgrade example
+        [7, 0, () => UpgradeTower(
+            TowerSetup["Tower A"],
+            "022"
+        )],
+
+
+        ; Strong targeting example
+        [10, 0, () => SetTargeting(
+            TowerSetup["Tower A"],
+            "Strong"
+        )],
+
+
+        ; Sniper placement example
+        ; [0, 0, () => PlaceTower(
+        ;     TowerSetup["Sniper A"]
+        ; )],
+
+
+        ; Elite Sniper example
+        ; Once a Sniper reaches 050,
+        ; Elite targeting becomes available to Snipers.
+        ;
+        ; [30, 0, () => UpgradeTower(
+        ;     TowerSetup["Sniper A"],
+        ;     "050"
+        ; )],
+
+
+        ; Elite targeting example
+        ;
+        ; [31, 0, () => SetTargeting(
+        ;     TowerSetup["Sniper A"],
+        ;     "Elite"
+        ; )],
+
+
+        ; Monkey Ace placement example
+        ;
+        ; [0, 0, () => PlaceTower(
+        ;     TowerSetup["Ace A"]
+        ; )],
+
+
+        ; Normal Ace targeting examples:
+        ;
+        ; Circle
+        ; Figure Infinite
+        ; Figure Eight
+        ;
+        ; Wingmonkey is also available when:
+        ; wingmonkeyMK: true
+        ;
+        ; [5, 0, () => SetTargeting(
+        ;     TowerSetup["Ace A"],
+        ;     "Figure Eight"
+        ; )],
+
+
+        ; Centered Path example.
+        ; xx2 automatically changes the Ace
+        ; targeting state to Centered Path.
+        ;
+        ; [10, 0, () => UpgradeTower(
+        ;     TowerSetup["Ace A"],
+        ;     "002"
+        ; )],
+
+
+        ; Change away from Centered Path later:
+        ;
+        ; [15, 0, () => SetTargeting(
+        ;     TowerSetup["Ace A"],
+        ;     "Circle"
+        ; )],
+
+
+        ; Wingmonkey example:
+        ; Requires wingmonkeyMK: true
+        ;
+        ; [15, 0, () => SetTargeting(
+        ;     TowerSetup["Ace A"],
+        ;     "Wingmonkey"
+        ; )],
+
+
+        ; Monkey Sub placement example
+        ;
+        ; [0, 0, () => PlaceTower(
+        ;     TowerSetup["Sub A"]
+        ; )],
+
+
+        ; Submerge becomes available at 3xx+
+        ;
+        ; [10, 0, () => UpgradeTower(
+        ;     TowerSetup["Sub A"],
+        ;     "300"
+        ; )],
+
+
+        ; Submerge with Page Down
+        ;
+        ; [11, 0, () => SetSubmerge(
+        ;     TowerSetup["Sub A"],
+        ;     true
+        ; )],
+
+
+        ; Unsubmerge
+        ;
+        ; [20, 0, () => SetSubmerge(
+        ;     TowerSetup["Sub A"],
+        ;     false
+        ; )],
+
+
+        ; Normal Sub targeting still works separately
+        ;
+        ; [21, 0, () => SetTargeting(
+        ;     TowerSetup["Sub A"],
+        ;     "Strong"
+        ; )],
+
+
+        ; Mid-round action example.
+        ; This means 5000 ms into Round 20.
+        ; [20, 5000, () => UseAbility("1")]
     ]
 
 
@@ -62,44 +251,66 @@ MapNameDifficultyMode() {
         return false
 
 
-    maxAttempts := 3
+    maxAttempts := HasProp(RunConfig, "maxAttempts")
+        ? RunConfig.maxAttempts
+        : 3
+
 
     Loop maxAttempts {
         attempt := A_Index
+
 
         ResetRoundTracking()
         ResetTowerSetup()
 
 
-        ; Place hero before Round 1.
-        heroResult := PlaceTower(TowerSetup["Hero"])
+        ; Only place the Hero when one is configured.
+        if RunConfig.hero {
+            heroResult := PlaceTower(
+                TowerSetup["Hero"]
+            )
 
-        if heroResult = "Victory" {
-            if !HandleVictory()
+
+            if heroResult = "Victory" {
+                if !HandleVictory()
+                    return false
+
+                return true
+            }
+
+
+            if heroResult = "Defeat" {
+                if attempt >= maxAttempts
+                    return false
+
+
+                if !HandleDefeat()
+                    return false
+
+
+                if !WaitForGameLoad()
+                    return false
+
+
+                continue
+            }
+
+
+            if heroResult = false
                 return false
-
-            return true
         }
 
-        if heroResult = "Defeat" {
-            if attempt >= maxAttempts
-                return false
 
-            if !HandleDefeat()
-                return false
+        ; Run every Round 0 action.
+        ;
+        ; Round 0 has:
+        ; - no round OCR
+        ; - no Victory checks
+        ; - no Defeat checks
+        pregameResult := RunPregameStrategy(
+            strategy
+        )
 
-            if !WaitForGameLoad()
-                return false
-
-            continue
-        }
-
-        if heroResult = false
-            return false
-
-
-        ; Execute Round 0 actions.
-        pregameResult := RunPregameStrategy(strategy)
 
         if pregameResult = "Victory" {
             if !HandleVictory()
@@ -108,24 +319,30 @@ MapNameDifficultyMode() {
             return true
         }
 
+
         if pregameResult = "Defeat" {
             if attempt >= maxAttempts
                 return false
 
+
             if !HandleDefeat()
                 return false
+
 
             if !WaitForGameLoad()
                 return false
 
+
             continue
         }
+
 
         if pregameResult = false
             return false
 
 
-        ; Start fresh round tracking immediately before Round 1.
+        ; Start clean tracking immediately
+        ; before Round 1 begins.
         ResetRoundTracking()
 
 
@@ -133,7 +350,9 @@ MapNameDifficultyMode() {
             return false
 
 
-        result := RunStrategy(strategy)
+        result := RunStrategy(
+            strategy
+        )
 
 
         if result = "Victory" {
@@ -146,18 +365,28 @@ MapNameDifficultyMode() {
 
         if result = "Defeat" {
             if attempt >= maxAttempts {
-                ToolTip("Maximum attempts reached.")
+                ToolTip(
+                    "Maximum attempts reached."
+                    "`nAttempts: " attempt
+                )
+
                 Sleep(2000)
                 ToolTip()
 
                 return false
             }
 
+
             if !HandleDefeat()
                 return false
 
+
+            ; Restart puts us back at Round 1.
+            ; Wait for the in-game Settings
+            ; button again before rebuilding.
             if !WaitForGameLoad()
                 return false
+
 
             continue
         }

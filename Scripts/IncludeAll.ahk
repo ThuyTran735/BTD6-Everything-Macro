@@ -15,6 +15,8 @@ global RunConfig := {
 
 #Include PlacementLogic.ahk
 #Include UpgradeLogic.ahk
+#Include TargetingLogic.ahk
+#Include SubMonkeyLogic.ahk
 #Include HeroSelection.ahk
 #Include NavigationLogic.ahk
 #Include Logs.ahk

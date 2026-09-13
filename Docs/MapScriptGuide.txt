@@ -1,0 +1,583 @@
+BTD6 EVERYTHING MACRO - STRATEGY WRITING GUIDE
+
+This guide explains how to correctly write map strategies using the current macro system.
+
+1. RUN CONFIG
+
+Example:
+
+global RunConfig := {
+    category: "Beginner",
+    map: "Monkey Meadow",
+    difficulty: "Easy",
+    gameMode: "Standard",
+    hero: false,
+    maxAttempts: 3,
+    wingmonkeyMK: false
+}
+
+category
+     - Map category: Beginner / Intermediate / Advanced / Expert
+
+map
+     - Exact map name used in MapData.ahk.
+
+difficulty
+     - Examples: Easy / Medium / Hard / Impoppable / CHIMPS
+
+gameMode
+     - Example: Standard
+
+hero
+     - Use a hero name when needed, for example: hero: "Quincy"
+     - Use hero: false when no hero is needed.
+
+maxAttempts
+     - Number of tries before giving up.
+     - Example: maxAttempts: 3
+
+wingmonkeyMK
+     - true if Wingmonkey Monkey Knowledge is enabled.
+     - false if it is not enabled.
+
+
+2. TOWER SETUP
+
+NORMAL TOWER
+
+"Dart A", {
+    type: "Dart",
+    x: 1598,
+    y: 282,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First"
+}
+
+x / y
+     - Placement coordinates.
+
+placed
+     - Always start false.
+     - PlaceTower() sets it true.
+
+upgrades
+     - Always start [0, 0, 0].
+     - Order is [Top, Middle, Bottom].
+
+Examples:
+     - [0, 0, 2] = 002
+     - [0, 2, 4] = 024
+     - [5, 2, 0] = 520
+
+targeting
+     - Normal towers usually start at "First".
+
+HERO
+
+"Hero", {
+    type: "Hero",
+    x: 629,
+    y: 504,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First"
+}
+
+SNIPER
+
+"Sniper A", {
+    type: "Sniper",
+    x: 500,
+    y: 500,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First"
+}
+
+MONKEY ACE
+
+"Ace A", {
+    type: "Ace",
+    x: 500,
+    y: 500,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "Circle"
+}
+
+MONKEY SUB
+
+"Sub A", {
+    type: "Sub",
+    x: 500,
+    y: 500,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First",
+    targetingBeforeSubmerge: "First",
+    submerged: false
+}
+
+
+3. STRATEGY FORMAT
+
+Every action uses:
+
+[round, delayMs, action]
+
+Example:
+
+[5, 0, () => UpgradeTower(TowerSetup["Dart A"], "002")]
+
+Meaning:
+     - Wait until Round 5.
+     - Wait 0 extra milliseconds.
+     - Upgrade Dart A to 002.
+
+MID-ROUND EXAMPLE
+
+[20, 5000, () => UseAbility("1")]
+
+Meaning:
+     - Round 20.
+     - 5000 ms into the round.
+     - Press ability hotkey 1.
+
+
+4. ROUND 0 / PREGAME
+
+Round 0 means BEFORE Round 1 starts.
+
+Example:
+
+[0, 0, () => PlaceTower(TowerSetup["Dart A"])]
+
+Use Round 0 when a tower must exist before starting the game.
+
+Round 0:
+     - No round OCR.
+     - No Victory checks.
+     - No Defeat checks.
+
+
+5. PLACING TOWERS
+
+Use:
+
+PlaceTower(TowerSetup["Tower Name"])
+
+Example:
+
+[0, 0, () => PlaceTower(TowerSetup["Dart A"])]
+
+Another example:
+
+[6, 0, () => PlaceTower(TowerSetup["Sniper A"])]
+
+The system:
+     - Presses the tower hotkey.
+     - Moves to the saved coordinates.
+     - Clicks the placement position.
+     - Sets tower.placed := true.
+
+Do not manually set placed := true in the strategy.
+
+
+6. UPGRADING TOWERS
+
+Use:
+
+UpgradeTower(TowerSetup["Tower Name"], "XYZ")
+
+X = Top path
+Y = Middle path
+Z = Bottom path
+
+Examples:
+     - "002" = bottom tier 2
+     - "022" = middle 2 / bottom 2
+     - "024" = middle 2 / bottom 4
+     - "025" = middle 2 / bottom 5
+     - "050" = middle tier 5
+     - "300" = top tier 3
+
+Example sequence:
+
+strategy := [
+    [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
+    [3, 0, () => UpgradeTower(TowerSetup["Dart A"], "002")],
+    [4, 0, () => UpgradeTower(TowerSetup["Dart A"], "022")],
+    [5, 0, () => UpgradeTower(TowerSetup["Dart A"], "024")],
+    [6, 0, () => UpgradeTower(TowerSetup["Dart A"], "025")]
+]
+
+The upgrade system:
+     - Clicks the tower.
+     - Waits 250 ms for the panel animation.
+     - Detects left/right panel side.
+     - Waits for affordability.
+     - Buys upgrades with hotkeys.
+     - Tracks upgrade state.
+     - Closes the panel with Esc afterward.
+
+
+7. NORMAL TARGETING
+
+Use:
+
+SetTargeting(TowerSetup["Tower Name"], "Target")
+
+Standard targets:
+     - First
+     - Last
+     - Close
+     - Strong
+
+Examples:
+
+[5, 0, () => SetTargeting(TowerSetup["Dart A"], "Last")]
+
+[10, 0, () => SetTargeting(TowerSetup["Dart A"], "Strong")]
+
+The targeting system:
+     - Clicks the tower.
+     - Waits 250 ms for the panel animation.
+     - Uses Tab forward.
+     - Uses Ctrl+Tab backward.
+     - Chooses the shorter direction.
+     - Tracks current targeting.
+     - Closes the panel afterward.
+
+
+8. SNIPER ELITE TARGETING
+
+Normal Sniper:
+     - First
+     - Last
+     - Close
+     - Strong
+
+After an Elite Sniper exists, Snipers gain:
+     - Elite
+
+Example:
+
+[30, 0, () => UpgradeTower(TowerSetup["Sniper A"], "050")]
+
+Then:
+
+[31, 0, () => SetTargeting(TowerSetup["Sniper B"], "Elite")]
+
+EliteSniperActive resets to false on retry.
+
+
+9. MONKEY ACE TARGETING
+
+Normal Ace without Wingmonkey MK:
+     - Circle
+     - Figure Infinite
+     - Figure Eight
+
+Normal Ace with Wingmonkey MK:
+     - Circle
+     - Figure Infinite
+     - Figure Eight
+     - Wingmonkey
+
+Ace with Centered Path, no Wingmonkey MK:
+     - Circle
+     - Figure Infinite
+     - Figure Eight
+     - Centered Path
+
+Ace with Centered Path + Wingmonkey MK:
+     - Circle
+     - Figure Infinite
+     - Figure Eight
+     - Centered Path
+     - Wingmonkey
+
+Centered Path example:
+
+[10, 0, () => UpgradeTower(TowerSetup["Ace A"], "002")]
+
+When bottom path reaches tier 2, the macro tracks:
+
+     targeting := "Centered Path"
+
+Later:
+
+[15, 0, () => SetTargeting(TowerSetup["Ace A"], "Circle")]
+
+Or with wingmonkeyMK: true:
+
+[15, 0, () => SetTargeting(TowerSetup["Ace A"], "Wingmonkey")]
+
+
+10. MONKEY SUB TARGETING
+
+Monkey Sub normal targeting:
+     - First
+     - Last
+     - Close
+     - Strong
+
+Submerge is separate from normal targeting.
+
+
+11. MONKEY SUB - SUBMERGE
+
+Monkey Sub must be 3xx or higher.
+
+Upgrade example:
+
+[10, 0, () => UpgradeTower(TowerSetup["Sub A"], "300")]
+
+Submerge:
+
+[11, 0, () => SetSubmerge(TowerSetup["Sub A"], true)]
+
+Unsubmerge:
+
+[20, 0, () => SetSubmerge(TowerSetup["Sub A"], false)]
+
+The macro uses Page Down (PgDn) to toggle Submerge / Unsubmerge.
+
+Targeting behavior:
+
+Strong
+-> Submerge
+-> Unsubmerge
+-> Strong
+
+The macro stores the previous mode in:
+
+     targetingBeforeSubmerge
+
+Do not change normal targeting while the Sub is submerged.
+
+
+12. ABILITIES
+
+Use:
+
+UseAbility("HOTKEY")
+
+Example:
+
+[20, 5000, () => UseAbility("1")]
+
+Meaning:
+     - Round 20.
+     - 5 seconds into the round.
+     - Press 1.
+
+
+13. HERO USAGE
+
+If needed:
+
+hero: "Quincy"
+
+Tower definition:
+
+"Hero", {
+    type: "Hero",
+    x: 629,
+    y: 504,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First"
+}
+
+If no hero is needed:
+
+hero: false
+
+Then hero navigation is skipped completely.
+
+
+14. RETRIES
+
+RunConfig:
+
+maxAttempts: 3
+
+Examples:
+     - 1 = one attempt
+     - 3 = three attempts
+     - 5 = five attempts
+
+On retry, reset includes:
+     - placed := false
+     - upgrades := [0, 0, 0]
+     - normal targeting := First
+     - Ace targeting := Circle
+     - Sub submerged := false
+     - Sub targetingBeforeSubmerge := First
+     - EliteSniperActive := false
+
+
+15. SIMPLE COMPLETE EXAMPLE
+
+global TowerSetup := Map(
+    "Dart A", {
+        type: "Dart",
+        x: 1598,
+        y: 282,
+        placed: false,
+        upgrades: [0, 0, 0],
+        targeting: "First"
+    }
+)
+
+strategy := [
+    [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
+    [3, 0, () => UpgradeTower(TowerSetup["Dart A"], "002")],
+    [4, 0, () => SetTargeting(TowerSetup["Dart A"], "Last")],
+    [5, 0, () => UpgradeTower(TowerSetup["Dart A"], "022")],
+    [7, 0, () => UpgradeTower(TowerSetup["Dart A"], "024")],
+    [8, 0, () => UpgradeTower(TowerSetup["Dart A"], "025")]
+]
+
+
+16. MONKEY SUB COMPLETE EXAMPLE
+
+global TowerSetup := Map(
+    "Sub A", {
+        type: "Sub",
+        x: 500,
+        y: 500,
+        placed: false,
+        upgrades: [0, 0, 0],
+        targeting: "First",
+        targetingBeforeSubmerge: "First",
+        submerged: false
+    }
+)
+
+strategy := [
+    [0, 0, () => PlaceTower(TowerSetup["Sub A"])],
+    [5, 0, () => SetTargeting(TowerSetup["Sub A"], "Strong")],
+    [10, 0, () => UpgradeTower(TowerSetup["Sub A"], "300")],
+    [11, 0, () => SetSubmerge(TowerSetup["Sub A"], true)],
+    [20, 0, () => SetSubmerge(TowerSetup["Sub A"], false)]
+]
+
+
+17. MONKEY ACE COMPLETE EXAMPLE
+
+RunConfig:
+
+wingmonkeyMK: true
+
+Tower:
+
+"Ace A", {
+    type: "Ace",
+    x: 500,
+    y: 500,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "Circle"
+}
+
+Strategy:
+
+strategy := [
+    [0, 0, () => PlaceTower(TowerSetup["Ace A"])],
+    [5, 0, () => SetTargeting(TowerSetup["Ace A"], "Figure Eight")],
+    [10, 0, () => UpgradeTower(TowerSetup["Ace A"], "002")],
+    [15, 0, () => SetTargeting(TowerSetup["Ace A"], "Wingmonkey")]
+]
+
+
+18. COMMON MISTAKES
+
+Wrong tower name:
+
+TowerSetup["Dart"]
+
+when the tower is named:
+
+"Dart A"
+
+Names must match exactly.
+
+Trying to upgrade before placement:
+     - UpgradeTower() requires tower.placed = true.
+
+Wrong upgrade format:
+     - Wrong: "02"
+     - Wrong: "0-2-4"
+     - Correct: "002"
+     - Correct: "024"
+     - Correct: "520"
+
+Wrong targeting capitalization:
+     - Wrong: "strong"
+     - Correct: "Strong"
+
+Using Elite before Elite Sniper exists.
+
+Using Wingmonkey while wingmonkeyMK is false.
+
+Trying to Submerge before 3xx.
+
+Trying to change a Sub's normal targeting while it is submerged.
+
+Forgetting Round 0 placement when the game needs a starting tower.
+
+Leaving sample actions enabled in MapTemplate.ahk.
+
+
+19. QUICK REFERENCE
+
+PLACE
+
+[0, 0, () => PlaceTower(TowerSetup["Dart A"])]
+
+UPGRADE
+
+[5, 0, () => UpgradeTower(TowerSetup["Dart A"], "024")]
+
+TARGET
+
+[5, 0, () => SetTargeting(TowerSetup["Dart A"], "Strong")]
+
+SUBMERGE
+
+[10, 0, () => SetSubmerge(TowerSetup["Sub A"], true)]
+
+UNSUBMERGE
+
+[20, 0, () => SetSubmerge(TowerSetup["Sub A"], false)]
+
+ABILITY
+
+[20, 5000, () => UseAbility("1")]
+
+ROUND 0
+
+[0, 0, () => PlaceTower(...)]
+
+MID-ROUND
+
+[20, 5000, () => SomeAction()]
+
+
+20. RECOMMENDED WORKFLOW FOR A NEW MAP
+
+1. Copy MapTemplate.ahk.
+2. Set RunConfig.
+3. Define every tower in TowerSetup.
+4. Set placement coordinates.
+5. Add Round 0 placements.
+6. Add upgrades in order.
+7. Add targeting changes.
+8. Add special controls such as Submerge, Ace targeting, Elite targeting, and abilities.
+9. Remove unused example actions.
+10. Test the map.
+11. If it loses, check placement timing, targeting, upgrade timing, and coordinates.
+12. Save the completed strategy once stable.

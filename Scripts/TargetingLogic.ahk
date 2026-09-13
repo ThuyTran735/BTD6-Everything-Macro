@@ -1,0 +1,222 @@
+﻿#Requires AutoHotkey v2.0
+
+
+global EliteSniperActive := false
+
+
+global TargetingProfiles := Map(
+    "Standard", [
+        "First",
+        "Last",
+        "Close",
+        "Strong"
+    ],
+
+    "SniperElite", [
+        "First",
+        "Last",
+        "Close",
+        "Strong",
+        "Elite"
+    ],
+
+    "AceNormal", [
+        "Circle",
+        "Figure Infinite",
+        "Figure Eight"
+    ],
+
+    "AceWingmonkey", [
+        "Circle",
+        "Figure Infinite",
+        "Figure Eight",
+        "Wingmonkey"
+    ],
+
+    "AceCentered", [
+        "Circle",
+        "Figure Infinite",
+        "Figure Eight",
+        "Centered Path"
+    ],
+
+    "AceCenteredWingmonkey", [
+        "Circle",
+        "Figure Infinite",
+        "Figure Eight",
+        "Centered Path",
+        "Wingmonkey"
+    ]
+)
+
+
+GetTargetingProfile(tower) {
+    global RunConfig
+    global EliteSniperActive
+
+
+    if tower.type = "Sniper" {
+        if EliteSniperActive
+            return "SniperElite"
+
+        return "Standard"
+    }
+
+
+    if tower.type = "Ace" {
+        hasCenteredPath := (
+            HasProp(tower, "upgrades")
+            && tower.upgrades[3] >= 2
+        )
+
+
+        hasWingmonkey := (
+            HasProp(RunConfig, "wingmonkeyMK")
+            && RunConfig.wingmonkeyMK
+        )
+
+
+        if hasCenteredPath {
+            if hasWingmonkey
+                return "AceCenteredWingmonkey"
+
+            return "AceCentered"
+        }
+
+
+        if hasWingmonkey
+            return "AceWingmonkey"
+
+
+        return "AceNormal"
+    }
+
+
+    return "Standard"
+}
+
+
+GetDefaultTargeting(tower) {
+    global TargetingProfiles
+
+
+    profileName := GetTargetingProfile(tower)
+
+
+    if !TargetingProfiles.Has(profileName)
+        throw Error("Unknown targeting profile: " profileName)
+
+
+    return TargetingProfiles[profileName][1]
+}
+
+
+SetTargeting(tower, targetMode) {
+    global TargetingProfiles
+
+    if !HasProp(tower, "placed") || !tower.placed
+        return false
+
+    ; A submerged Monkey Sub should be surfaced
+    ; before changing its normal targeting.
+    if tower.type = "Sub" {
+        if HasProp(tower, "submerged") && tower.submerged
+            return false
+    }
+
+    profileName := GetTargetingProfile(tower)
+
+
+    if !HasProp(tower, "placed") || !tower.placed
+        return false
+
+
+    profileName := GetTargetingProfile(tower)
+
+
+    if !TargetingProfiles.Has(profileName)
+        throw Error("Unknown targeting profile: " profileName)
+
+
+    targetingOrder := TargetingProfiles[profileName]
+
+
+    if !HasProp(tower, "targeting")
+        tower.targeting := targetingOrder[1]
+
+
+    currentIndex := 0
+    targetIndex := 0
+
+
+    for index, mode in targetingOrder {
+        if mode = tower.targeting
+            currentIndex := index
+
+        if mode = targetMode
+            targetIndex := index
+    }
+
+
+    if currentIndex = 0 {
+        throw Error(
+            "Current targeting mode '" tower.targeting
+            "' does not exist in profile '" profileName "'."
+        )
+    }
+
+
+    if targetIndex = 0 {
+        throw Error(
+            "Targeting mode '" targetMode
+            "' does not exist in profile '" profileName "'."
+        )
+    }
+
+
+    if currentIndex = targetIndex
+        return true
+
+
+    Click(tower.x, tower.y)
+
+    Sleep(250)
+
+
+    profileLength := targetingOrder.Length
+
+
+    forwardSteps := Mod(
+        targetIndex - currentIndex + profileLength,
+        profileLength
+    )
+
+
+    backwardSteps := Mod(
+        currentIndex - targetIndex + profileLength,
+        profileLength
+    )
+
+
+    if forwardSteps <= backwardSteps {
+        Loop forwardSteps {
+            Send("{Tab}")
+            Sleep(30)
+        }
+    } else {
+        Loop backwardSteps {
+            Send("^{Tab}")
+            Sleep(30)
+        }
+    }
+
+
+    tower.targeting := targetMode
+
+
+    Send("{Esc}")
+    Sleep(20)
+
+
+    return true
+}

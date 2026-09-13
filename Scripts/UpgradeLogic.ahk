@@ -33,11 +33,14 @@ global UpgradeHotkeys := Map(
 UpgradeTower(tower, target) {
     global IsPregame
 
+
     if !HasProp(tower, "placed") || !tower.placed
         return false
 
+
     if !HasProp(tower, "upgrades")
         tower.upgrades := [0, 0, 0]
+
 
     if StrLen(target) != 3
         throw Error("Upgrade target must be 3 digits, for example: 025")
@@ -48,21 +51,15 @@ UpgradeTower(tower, target) {
     targetBottom := Integer(SubStr(target, 3, 1))
 
 
-    ; Reselect tower.
     Click(tower.x, tower.y)
 
-
-    ; BTD6 has an animation when opening the upgrade panel.
-    ; Give it enough time to finish before detecting the panel.
     Sleep(250)
 
 
-    ; Automatically determine which side the panel opened on.
     panelSide := GetUpgradePanelSide()
 
 
     if !panelSide {
-        ; No game-state checks during Round 0.
         if !IsPregame {
             state := CheckGameState()
 
@@ -77,9 +74,12 @@ UpgradeTower(tower, target) {
     }
 
 
-    ; Top path.
     while tower.upgrades[1] < targetTop {
-        result := WaitForUpgrade("Top", panelSide)
+        result := WaitForUpgrade(
+            "Top",
+            panelSide
+        )
+
 
         if result = "Victory"
             return "Victory"
@@ -91,15 +91,26 @@ UpgradeTower(tower, target) {
             return false
 
 
-        BuyUpgrade("Top")
+        if !BuyUpgrade("Top")
+            return false
+
 
         tower.upgrades[1]++
+
+
+        UpdateTargetingAfterUpgrade(
+            tower,
+            "Top"
+        )
     }
 
 
-    ; Middle path.
     while tower.upgrades[2] < targetMiddle {
-        result := WaitForUpgrade("Middle", panelSide)
+        result := WaitForUpgrade(
+            "Middle",
+            panelSide
+        )
+
 
         if result = "Victory"
             return "Victory"
@@ -111,15 +122,26 @@ UpgradeTower(tower, target) {
             return false
 
 
-        BuyUpgrade("Middle")
+        if !BuyUpgrade("Middle")
+            return false
+
 
         tower.upgrades[2]++
+
+
+        UpdateTargetingAfterUpgrade(
+            tower,
+            "Middle"
+        )
     }
 
 
-    ; Bottom path.
     while tower.upgrades[3] < targetBottom {
-        result := WaitForUpgrade("Bottom", panelSide)
+        result := WaitForUpgrade(
+            "Bottom",
+            panelSide
+        )
+
 
         if result = "Victory"
             return "Victory"
@@ -131,16 +153,21 @@ UpgradeTower(tower, target) {
             return false
 
 
-        BuyUpgrade("Bottom")
+        if !BuyUpgrade("Bottom")
+            return false
+
 
         tower.upgrades[3]++
+
+
+        UpdateTargetingAfterUpgrade(
+            tower,
+            "Bottom"
+        )
     }
 
 
-    ; Close upgrade panel so the next action
-    ; can safely reselect this or another tower.
     Send("{Esc}")
-
     Sleep(20)
 
 
@@ -167,9 +194,9 @@ GetUpgradePanelSide() {
     }
 
 
-    ; Sell button on left half means panel is on left.
-    ; Sell button on right half means panel is on right.
-    return X < A_ScreenWidth // 2 ? "Left" : "Right"
+    return X < A_ScreenWidth // 2
+        ? "Left"
+        : "Right"
 }
 
 
@@ -193,23 +220,15 @@ WaitForUpgrade(path, panelSide) {
 
 
     Loop {
-        ; PixelGetColor is cheap.
-        ;
-        ; Check affordability first so we buy
-        ; immediately if the upgrade is available.
-        if IsUpgradeGreen(point[1], point[2])
+        if IsUpgradeGreen(
+            point[1],
+            point[2]
+        ) {
             return true
+        }
 
 
-        ; Round 0:
-        ;
-        ; No Victory detection.
-        ; No Defeat detection.
-        ; No FindText game-state scans.
         if !IsPregame {
-
-            ; During actual gameplay only run the
-            ; expensive game-state scan every 200 ms.
             if A_TickCount - lastStateCheck >= 200 {
                 lastStateCheck := A_TickCount
 
@@ -227,7 +246,6 @@ WaitForUpgrade(path, panelSide) {
         }
 
 
-        ; Fast affordability polling.
         Sleep(10)
     }
 }
@@ -268,10 +286,37 @@ BuyUpgrade(path) {
 
     Send(UpgradeHotkeys[path])
 
-
-    ; Small delay so BTD6 registers the purchase
-    ; before another upgrade hotkey is sent.
     Sleep(20)
+
+
+    return true
+}
+
+
+UpdateTargetingAfterUpgrade(tower, upgradedPath) {
+    global EliteSniperActive
+
+
+    if tower.type = "Sniper" {
+        if (
+            upgradedPath = "Middle"
+            && tower.upgrades[2] = 5
+        ) {
+            EliteSniperActive := true
+
+            tower.targeting := "Elite"
+        }
+    }
+
+
+    if tower.type = "Ace" {
+        if (
+            upgradedPath = "Bottom"
+            && tower.upgrades[3] = 2
+        ) {
+            tower.targeting := "Centered Path"
+        }
+    }
 
 
     return true

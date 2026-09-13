@@ -2,7 +2,6 @@
 
 #Include TowerData.ahk
 
-
 PlaceTower(tower) {
     global TowerHotkeys
 

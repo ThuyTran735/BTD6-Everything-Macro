@@ -6,3 +6,6 @@
 #Include HeroSelection.ahk
 #Include Logs.ahk
 #Include Setup.ahk
+#Include RoundLogic.ahk
+
+#Include ..\Lib\FindText.ahk

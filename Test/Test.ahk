@@ -4,30 +4,41 @@
 #Include ..\Scripts\IncludeAll.ahk
 
 
-; Test code
-Sleep(3000)
-TowerSetup := Map(
-    "Druid A", {
-        type: "Druid",
-        x: 919,
-        y: 440,
-        placed: false,
-        upgrades: [0, 0, 0]
-    },
+TestRoundOCR() {
+    global RoundDigits
 
-    "Sniper", {
-        type: "Sniper",
-        x: 1276,
-        y: 826,
-        placed: false,
-        upgrades: [0, 0, 0]
+    area := GetRoundArea()
+
+    ok := FindText(
+        &X,
+        &Y,
+        area.x1,
+        area.y1,
+        area.x2,
+        area.y2,
+        0.05,
+        0.05,
+        RoundDigits,
+        1,
+        1
+    )
+
+    if !ok {
+        MsgBox("No digits found")
+        return
     }
-)
 
-PlaceTower(TowerSetup["Druid A"])
-UpgradeTower(TowerSetup["Druid A"], "100")
+    ok := FindText().Sort(ok)
+    result := FindText().Ocr(ok, 20, 20, 3)
 
-PlaceTower(TowerSetup["Sniper"])
-UpgradeTower(TowerSetup["Sniper"], "102")
+    MsgBox(
+        "OCR: " result.text
+        "`nX: " result.x
+        "`nY: " result.y
+        "`nW: " result.w
+        "`nH: " result.h
+    )
+}
 
-UpgradeTower(TowerSetup["Druid A"], "130")
+Sleep(3000)
+TestRoundOCR()

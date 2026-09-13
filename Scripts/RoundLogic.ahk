@@ -321,13 +321,30 @@ WaitForRound(targetRound) {
         )
     }
 
+    lastStateCheck := A_TickCount
+
     Loop {
         currentRound := GetValidatedRound()
 
         if currentRound >= targetRound
             return true
 
-        Sleep(200)
+
+        ; Only check Victory/Defeat every 200 ms.
+        if A_TickCount - lastStateCheck >= 200 {
+            lastStateCheck := A_TickCount
+
+            state := CheckGameState()
+
+            if state = "Victory"
+                return "Victory"
+
+            if state = "Defeat"
+                return "Defeat"
+        }
+
+
+        Sleep(50)
     }
 }
 

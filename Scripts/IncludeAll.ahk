@@ -19,5 +19,6 @@ global RunConfig := {
 #Include NavigationLogic.ahk
 #Include Logs.ahk
 #Include Setup.ahk
+#Include GameStateLogic.ahk
 #Include RoundLogic.ahk
 #Include StrategyLogic.ahk

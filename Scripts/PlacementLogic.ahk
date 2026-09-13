@@ -1,5 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 
+
 PlaceTower(tower) {
     global TowerHotkeys
 
@@ -12,29 +13,46 @@ PlaceTower(tower) {
     if !TowerHotkeys.Has(tower.type)
         return false
 
+
     hotkey := TowerHotkeys[tower.type]
 
-    ; Hero needs SendEvent for BTD6 to recognize the hotkey.
+
+    ; Hero requires SendEvent in BTD6.
     if tower.type = "Hero" {
         SendEvent("{u down}")
-        Sleep(100)
+        Sleep(35)
         SendEvent("{u up}")
+
+        Sleep(70)
     } else {
+        ; Normal tower.
         Send(hotkey)
+
+        Sleep(40)
     }
 
-    Sleep(250)
 
     MouseMove(tower.x, tower.y, 0)
-    Sleep(250)
+
+    Sleep(20)
 
     Click(tower.x, tower.y)
-    Sleep(250)
+
+    Sleep(40)
+
 
     tower.placed := true
 
+
     if !HasProp(tower, "upgrades")
         tower.upgrades := [0, 0, 0]
+
+
+    ; Forget any old panel-side information.
+    ; This matters after a restart/replacement.
+    if HasProp(tower, "panelSide")
+        tower.panelSide := false
+
 
     return true
 }

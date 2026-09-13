@@ -8,23 +8,15 @@ RunConfig := {
     map: "Monkey Meadow",
     difficulty: "Easy",
     gameMode: "Standard",
-    hero: "Quincy"
+    hero: false
 }
 
 
 global TowerSetup := Map(
-    "Hero", {
-        type: "Hero",
-        x: 629,
-        y: 504,
-        placed: false,
-        upgrades: [0, 0, 0]
-    },
-
     "Dart A", {
         type: "Dart",
-        x: 353,
-        y: 409,
+        x: 1598,
+        y: 282,
         placed: false,
         upgrades: [0, 0, 0]
     }
@@ -32,16 +24,14 @@ global TowerSetup := Map(
 
 
 strategy := [
-    [0, 0, () => PlaceTower(TowerSetup["Hero"])],
-    [3, 0, () => PlaceTower(TowerSetup["Dart A"])],
-    [5, 0, () => UpgradeTower(TowerSetup["Dart A"], "002")],
-    [7, 0, () => UpgradeTower(TowerSetup["Dart A"], "022")],
-    [8, 0, () => UpgradeTower(TowerSetup["Dart A"], "024")]
+    [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
+
+    [1, 0, () => UpgradeTower(TowerSetup["Dart A"], "005")],
 ]
 
 
 ToolTip("Starting navigation test...")
-Sleep(1000)
+Sleep(500)
 ToolTip()
 
 
@@ -57,22 +47,41 @@ if !NavigateToMap(
 }
 
 
-ToolTip("Waiting for game to load...")
-
 if !WaitForGameLoad() {
     MsgBox("Game load detection failed.")
     ExitApp()
 }
 
-ToolTip()
+
+ResetRoundTracking()
+ResetTowerSetup()
+
+
+pregameResult := RunPregameStrategy(strategy)
+
+
+if pregameResult = "Victory" {
+    if !HandleVictory()
+        MsgBox("Victory handling failed.")
+
+    ExitApp()
+}
+
+
+if pregameResult = "Defeat" {
+    MsgBox("Defeat detected during pregame.")
+    ExitApp()
+}
+
+
+if pregameResult = false {
+    MsgBox("Pregame strategy failed.")
+    ExitApp()
+}
 
 
 ResetRoundTracking()
 
-
-ToolTip("Starting game...")
-Sleep(500)
-ToolTip()
 
 if !StartGame() {
     MsgBox("Could not start game.")
@@ -80,10 +89,30 @@ if !StartGame() {
 }
 
 
-if !RunStrategy(strategy) {
+result := RunStrategy(strategy)
+
+
+if result = "Victory" {
+    if !HandleVictory() {
+        MsgBox("Victory handling failed.")
+        ExitApp()
+    }
+
+    MsgBox("Victory.")
+    ExitApp()
+}
+
+
+if result = "Defeat" {
+    MsgBox("Defeat detected.")
+    ExitApp()
+}
+
+
+if result = false {
     MsgBox("Strategy failed.")
     ExitApp()
 }
 
 
-MsgBox("Test completed successfully.")
+MsgBox("Test completed.")

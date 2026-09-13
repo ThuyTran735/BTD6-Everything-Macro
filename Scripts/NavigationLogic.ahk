@@ -36,51 +36,82 @@ global NavigationPatterns := Map(
 global CurrentMapPage := 0
 
 
-NavigateToMap(category, mapName, difficulty, gameMode, hero) {
+NavigateToMap(category, mapName, difficulty, gameMode, hero := false) {
     if !OpenPlayMenu() {
         ToolTip("Could not reach map selection screen.")
         return false
     }
 
-    if !OpenHeroSelection() {
-        ToolTip("Could not open hero selection.")
-        return false
+
+    ; Only enter hero selection when a hero was requested.
+    if hero {
+        if !OpenHeroSelection() {
+            ToolTip("Could not open hero selection.")
+            return false
+        }
+
+        if !SelectHero(hero) {
+            ToolTip("Could not select hero: " hero)
+            return false
+        }
+
+        ; Return to map selection.
+        Send("{Esc}")
+
+        ; Give map screen time to return.
+        Sleep(1000)
     }
 
-    if !SelectHero(hero) {
-        ToolTip("Could not select hero: " hero)
-        return false
+
+    ; Check the current page first.
+    ;
+    ; If the requested map is already visible,
+    ; click it without touching the category button.
+    if !TryClickCurrentMap(mapName) {
+
+        ; Map isn't visible.
+        ; Click its category to return to that
+        ; category's starting page.
+        if !ResetToCategory(category) {
+            ToolTip("Could not reset to category: " category)
+            return false
+        }
+
+
+        ; Navigate forward to the map's configured page
+        ; and select it.
+        if !FindAndClickMap(mapName) {
+            ToolTip("Could not find map: " mapName)
+            return false
+        }
     }
 
-    Send("{Esc}")
-    Sleep(1000)
 
-    if !SelectMapCategory(category) {
-        ToolTip("Could not select category: " category)
-        return false
-    }
-
-    if !FindAndClickMap(mapName) {
-        ToolTip("Could not find map: " mapName)
-        return false
-    }
-
+    ; Wait for difficulty screen.
     Sleep(500)
+
 
     if !SelectDifficulty(difficulty) {
         ToolTip("Could not select difficulty: " difficulty)
         return false
     }
 
+
+    ; Wait for game-mode screen.
     Sleep(500)
+
 
     if !SelectGameMode(gameMode) {
         ToolTip("Could not select game mode: " gameMode)
         return false
     }
 
+
+    ; Some maps may have an existing saved game.
+    ; If the OK prompt appears, handle it.
     if !HandleSavePrompt()
         return false
+
 
     return true
 }
@@ -143,7 +174,38 @@ OpenHeroSelection() {
 }
 
 
-SelectMapCategory(category) {
+TryClickCurrentMap(mapName) {
+    global MapData
+
+    if !MapData.Has(mapName) {
+        ToolTip("Unknown map: " mapName)
+        return false
+    }
+
+    mapPattern := MapData[mapName].pattern
+
+    if FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        mapPattern
+    ) {
+        Click(X, Y)
+        Sleep(600)
+
+        return true
+    }
+
+    return false
+}
+
+
+ResetToCategory(category) {
     global NavigationPatterns
     global CategoryStartPages
     global CurrentMapPage
@@ -176,10 +238,9 @@ SelectMapCategory(category) {
     }
 
     Click(X, Y)
+    Sleep(1000)
 
     CurrentMapPage := CategoryStartPages[category]
-
-    Sleep(1000)
 
     return true
 }
@@ -246,7 +307,8 @@ FindAndClickMap(mapName) {
     ToolTip(
         "Map was not found on expected page."
         "`nMap: " mapName
-        "`nPage: " targetPage
+        "`nCurrent Page: " CurrentMapPage
+        "`nTarget Page: " targetPage
     )
 
     return false
@@ -397,8 +459,13 @@ WaitForGameLoad(timeout := 15000) {
     startTime := A_TickCount
 
     Loop {
-        if PatternExists(pattern)
+        if PatternExists(pattern) {
+            ; Settings is visible, so we're in-game.
+            ; Give the map/UI another second to fully settle.
+            Sleep(1000)
+
             return true
+        }
 
         if A_TickCount - startTime >= timeout {
             ToolTip("Game failed to load.")

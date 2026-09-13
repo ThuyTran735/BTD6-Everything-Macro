@@ -1,7 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
-
 MonkeyMeadowEasy() {
     global RunConfig := {
         category: "Beginner",
@@ -11,43 +10,16 @@ MonkeyMeadowEasy() {
         hero: "Quincy"
     }
 
-
     global TowerSetup := Map(
-        "Hero", {
-            type: "Hero",
-            x: 800,
-            y: 500,
-            placed: false,
-            upgrades: [0, 0, 0]
-        },
-
-        "Dart A", {
-            type: "Dart",
-            x: 700,
-            y: 550,
-            placed: false,
-            upgrades: [0, 0, 0]
-        }
+        ; your towers...
     )
 
-
     strategy := [
-        ; Place Hero on Round 1
-        [1, 0, () => PlaceTower(TowerSetup["Hero"])],
-
-        ; Place Dart on Round 3
-        [3, 0, () => PlaceTower(TowerSetup["Dart A"])],
-
-        ; Upgrade Dart to 2-0-0 on Round 8
-        [8, 0, () => UpgradeTower(TowerSetup["Dart A"], "200")],
-
-        ; Upgrade Dart to 2-0-3 on Round 15
-        [15, 0, () => UpgradeTower(TowerSetup["Dart A"], "203")]
+        ; your strategy...
     ]
 
 
-    ; Navigate:
-    ; Play -> Hero -> Beginner -> Monkey Meadow -> Easy -> Standard
+    ; Navigate to the game.
     if !NavigateToMap(
         RunConfig.category,
         RunConfig.map,
@@ -59,27 +31,48 @@ MonkeyMeadowEasy() {
     }
 
 
-    ; Wait until the map has actually loaded.
+    ; Wait until the map loads.
     if !WaitForGameLoad()
         return false
 
 
-    ; Clear any previous round tracking.
-    ResetRoundTracking()
+    ; Retry the strategy if we lose.
+    maxAttempts := 3
 
+    Loop maxAttempts {
+        attempt := A_Index
 
-    ; Enable auto-start and begin the game.
-    if !StartGame()
+        ResetRoundTracking()
+        ResetTowerSetup()
+
+        if !StartGame()
+            return false
+
+        result := RunStrategy(strategy)
+
+        if result = "Victory" {
+            HandleVictory()
+            return true
+        }
+
+        if result = "Defeat" {
+            if attempt >= maxAttempts {
+                ToolTip("Maximum attempts reached.")
+                Sleep(2000)
+                return false
+            }
+
+            if !HandleDefeat()
+                return false
+
+            continue
+        }
+
+        ToolTip("Strategy stopped unexpectedly.")
         return false
+    }
 
-
-    ; Run all scheduled placements/upgrades/abilities.
-    if !RunStrategy(strategy)
-        return false
-
-
-    return true
+    return false
 }
-
 
 MonkeyMeadowEasy()

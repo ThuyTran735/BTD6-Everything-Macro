@@ -12,7 +12,7 @@ global MapData := Map(
     "Monkey Meadow", {
         category: "Beginner",
         page: 1,
-        pattern: "|<>*148$39.070D0Q01s1k3U0D0C0Q03s1k3U1z0C0Q0zs1k3Uzz0C0Q7zzzzzUzzzzzzzzzzzzzzzzvzzzzVU00zzw0E207zm3000zzzk004"
+        pattern: "|<>*159$22.zzU3zw0Dzw0zzs3zk0Dk00zU03y00Dw00zkk3zzzzzzzzzzzzzzkTzs1kDU3000Q000k003000Q001k007000Q011k0Tz3zzzzzzzzwM008"
     },
 
     "Intermediate Map", {

@@ -13,15 +13,25 @@ global RunConfig := {
 #Include TowerData.ahk
 #Include MapData.ahk
 
+
 #Include PlacementLogic.ahk
 #Include UpgradeLogic.ahk
 #Include TargetingLogic.ahk
 #Include SubMonkeyLogic.ahk
+
+
 #Include HeroSelection.ahk
 #Include NavigationLogic.ahk
+
+
 #Include Logs.ahk
 #Include Setup.ahk
+
+
 #Include GameStateLogic.ahk
 #Include RoundLogic.ahk
 #Include StrategyLogic.ahk
+
+
+#Include GameModeUnlockLogic.ahk
 #Include MapRunner.ahk

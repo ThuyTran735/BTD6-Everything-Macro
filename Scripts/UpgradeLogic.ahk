@@ -168,7 +168,7 @@ UpgradeTower(tower, target) {
 
 
     Send("{Esc}")
-    Sleep(20)
+    Sleep(200)
 
 
     return true
@@ -286,7 +286,7 @@ BuyUpgrade(path) {
 
     Send(UpgradeHotkeys[path])
 
-    Sleep(20)
+    Sleep(200)
 
 
     return true

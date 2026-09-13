@@ -23,12 +23,12 @@ PlaceTower(tower) {
         Sleep(35)
         SendEvent("{u up}")
 
-        Sleep(70)
+        Sleep(200)
     } else {
         ; Normal tower.
         Send(hotkey)
 
-        Sleep(40)
+        Sleep(200)
     }
 
 
@@ -38,7 +38,7 @@ PlaceTower(tower) {
 
     Click(tower.x, tower.y)
 
-    Sleep(40)
+    Sleep(100)
 
 
     tower.placed := true

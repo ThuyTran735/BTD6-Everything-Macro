@@ -84,6 +84,20 @@ MapNameDifficultyMode() {
     strategy := [
         ; Round 0 = before Round 1 starts.
 
+        ; Hero placement example.
+        ; Place at Round 0:
+        ;
+        ; [0, 0, () => PlaceTower(
+        ;     TowerSetup["Hero"]
+        ; )],
+        ;
+        ; Or place later:
+        ;
+        ; [6, 0, () => PlaceTower(
+        ;     TowerSetup["Hero"]
+        ; )],
+
+
         ; Normal placement example
         [0, 0, () => PlaceTower(
             TowerSetup["Tower A"]
@@ -264,49 +278,8 @@ MapNameDifficultyMode() {
         ResetTowerSetup()
 
 
-        ; Only place the Hero when one is configured.
-        if RunConfig.hero {
-            heroResult := PlaceTower(
-                TowerSetup["Hero"]
-            )
-
-
-            if heroResult = "Victory" {
-                if !HandleVictory()
-                    return false
-
-                return true
-            }
-
-
-            if heroResult = "Defeat" {
-                if attempt >= maxAttempts
-                    return false
-
-
-                if !HandleDefeat()
-                    return false
-
-
-                if !WaitForGameLoad()
-                    return false
-
-
-                continue
-            }
-
-
-            if heroResult = false
-                return false
-        }
-
-
-        ; Run every Round 0 action.
-        ;
-        ; Round 0 has:
-        ; - no round OCR
-        ; - no Victory checks
-        ; - no Defeat checks
+        ; All tower placement, including Hero placement,
+        ; is controlled by the strategy.
         pregameResult := RunPregameStrategy(
             strategy
         )

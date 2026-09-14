@@ -4,32 +4,54 @@
 
 
 global TowerSetup := Map(
-    "Desperado A", {
-        type: "Desperado",
-        x: 834,
-        y: 673,
+    "Hero", {
+        type: "Hero",
+        x: 1532,
+        y: 595,
         placed: false,
         upgrades: [0, 0, 0],
         targeting: "First"
     },
 
-    "Desperado B", {
-        type: "Desperado",
-        x: 1290,
-        y: 568,
+
+    "Ace A", {
+        type: "Ace",
+        x: 1373,
+        y: 592,
         placed: false,
         upgrades: [0, 0, 0],
         targeting: "First"
     },
 
-    "Desperado C", {
-        type: "Desperado",
-        x: 839,
-        y: 324,
+
+    "Ace B", {
+        type: "Ace",
+        x: 1373,
+        y: 498,
         placed: false,
         upgrades: [0, 0, 0],
         targeting: "First"
     },
+
+
+    "Village A", {
+        type: "Village",
+        x: 1517,
+        y: 464,
+        placed: false,
+        upgrades: [0, 0, 0],
+        targeting: "First"
+    },
+
+
+    "Alchemist A", {
+        type: "Alchemist",
+        x: 1383,
+        y: 424,
+        placed: false,
+        upgrades: [0, 0, 0],
+        targeting: "First"
+    }
 )
 
 

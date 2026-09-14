@@ -157,11 +157,14 @@ NavigateToMap(
     }
 
 
-    ; Quick save check before selecting the mode.
+    ; Quick overwrite-save check before
+    ; selecting the game mode.
     ;
-    ; We don't wait several seconds here anymore.
-    ; This keeps CHIMPS selection fast.
-    HandleSavePrompt(700)
+    ; Keep this short so mode selection
+    ; does not unnecessarily wait.
+    HandleSavePrompt(
+        700
+    )
 
 
     Sleep(150)
@@ -196,20 +199,26 @@ NavigateToMap(
     }
 
 
-    ; Check again after clicking the mode.
+    ; Check again after selecting the mode.
     ;
-    ; This catches an overwrite-data prompt
-    ; that appears late.
-    HandleSavePrompt(4000)
+    ; This catches an overwrite-data
+    ; confirmation that appears late.
+    HandleSavePrompt(
+        4000
+    )
 
 
-    ; CHIMPS has its own separate confirmation.
+    ; Deflation and CHIMPS both show the same
+    ; special confirmation screen.
     ;
-    ; This happens only on the initial entry.
-    ; Restart does not use this confirmation.
-    if gameMode = "CHIMPS" {
-        if !HandleCHIMPSPrompt()
-            return false
+    ; Both use NavigationPatterns["CHIMPS OK"].
+    ;
+    ; This happens only during initial entry.
+    ; Do NOT call this again after Restart.
+    if !HandleModePrompt(
+        gameMode
+    ) {
+        return false
     }
 
 
@@ -319,7 +328,9 @@ OpenHeroSelection() {
 }
 
 
-TryClickCurrentMap(mapName) {
+TryClickCurrentMap(
+    mapName
+) {
     global MapData
 
 
@@ -372,7 +383,9 @@ TryClickCurrentMap(mapName) {
 }
 
 
-ResetToCategory(category) {
+ResetToCategory(
+    category
+) {
     global NavigationPatterns
     global CategoryStartPages
     global CurrentMapPage
@@ -443,7 +456,9 @@ ResetToCategory(category) {
 }
 
 
-FindAndClickMap(mapName) {
+FindAndClickMap(
+    mapName
+) {
     global MapData
     global CurrentMapPage
 
@@ -508,10 +523,11 @@ FindAndClickMap(mapName) {
 
     while CurrentMapPage < targetPage {
 
-        ; Before flipping ANY page, scan again.
+        ; Before flipping ANY page,
+        ; scan for the map again.
         ;
-        ; This helps if a Golden Bloon or another
-        ; temporary object covered the map earlier.
+        ; This protects against temporary
+        ; Golden Bloon obstruction.
         Loop 4 {
             if FindText(
                 &X,
@@ -543,8 +559,8 @@ FindAndClickMap(mapName) {
 
     ; Expected page reached.
     ;
-    ; Scan longer instead of immediately failing
-    ; if something temporarily covers the map.
+    ; Scan longer before failing in case
+    ; something temporarily covers the map.
     Loop 10 {
         if FindText(
             &X,
@@ -639,7 +655,9 @@ GoToNextMapPage() {
 }
 
 
-SelectDifficulty(difficulty) {
+SelectDifficulty(
+    difficulty
+) {
     global NavigationPatterns
 
 
@@ -690,7 +708,9 @@ SelectDifficulty(difficulty) {
 }
 
 
-SelectGameMode(gameMode) {
+SelectGameMode(
+    gameMode
+) {
     global NavigationPatterns
 
 
@@ -715,11 +735,9 @@ SelectGameMode(gameMode) {
     lockedHits := 0
 
 
-    ; Try for several seconds, but unlocked
-    ; mode always gets priority.
+    ; Always prioritize the unlocked mode.
     Loop 30 {
 
-        ; Always check the real game mode first.
         if FindText(
             &X,
             &Y,
@@ -739,20 +757,22 @@ SelectGameMode(gameMode) {
         }
 
 
-        ; Don't immediately decide the mode is
-        ; locked on one failed scan.
+        ; Do not classify the mode as locked
+        ; immediately after one failed scan.
         if A_Index >= 5 {
+
             if IsGameModeLocked(
                 gameMode
             ) {
                 lockedHits++
 
 
-                ; Require several consecutive
-                ; locked detections.
+                ; Require multiple consecutive
+                ; lock detections.
                 if lockedHits >= 3
                     return "Locked"
-            } else {
+            }
+            else {
                 lockedHits := 0
             }
         }
@@ -772,7 +792,9 @@ SelectGameMode(gameMode) {
 }
 
 
-IsGameModeLocked(gameMode) {
+IsGameModeLocked(
+    gameMode
+) {
     global GameModeLockPatterns
 
 
@@ -831,6 +853,7 @@ HandleSavePrompt(
 
 
     Loop {
+
         if FindText(
             &X,
             &Y,
@@ -845,8 +868,8 @@ HandleSavePrompt(
             Click(X, Y)
 
 
-            ; Make sure the popup actually closes
-            ; before continuing.
+            ; Make sure the overwrite popup
+            ; actually disappears.
             Loop 20 {
                 Sleep(100)
 
@@ -869,8 +892,8 @@ HandleSavePrompt(
             }
 
 
-            ; If it somehow stayed visible,
-            ; click it one more time.
+            ; If the popup somehow remained
+            ; visible, click it again.
             Click(X, Y)
 
             Sleep(500)
@@ -893,15 +916,33 @@ HandleSavePrompt(
 }
 
 
-HandleCHIMPSPrompt() {
+HandleModePrompt(
+    gameMode
+) {
     global NavigationPatterns
 
 
+    ; Only Deflation and CHIMPS use
+    ; this special confirmation.
+    if (
+        gameMode != "Deflation"
+        && gameMode != "CHIMPS"
+    ) {
+        return true
+    }
+
+
+    ; Both modes use the SAME FindText pattern.
+    ;
+    ; Keep using the existing "CHIMPS OK"
+    ; key so you do not need to duplicate
+    ; or recapture the pattern.
     if !NavigationPatterns.Has(
         "CHIMPS OK"
     ) {
         ToolTip(
-            "CHIMPS OK pattern is missing."
+            "Mode confirmation OK pattern "
+            "is missing."
         )
 
         return false
@@ -914,10 +955,13 @@ HandleCHIMPSPrompt() {
         ]
 
 
+    ; Give the confirmation screen time
+    ; to appear after selecting the mode.
     Sleep(250)
 
 
     Loop 30 {
+
         if FindText(
             &X,
             &Y,
@@ -942,8 +986,9 @@ HandleCHIMPSPrompt() {
 
 
     ToolTip(
-        "Could not find CHIMPS "
-        "confirmation OK."
+        "Could not find "
+        . gameMode
+        . " confirmation OK."
     )
 
 
@@ -984,6 +1029,7 @@ WaitForGameLoad(
 
 
     Loop {
+
         if PatternExists(
             pattern
         ) {
@@ -1011,7 +1057,9 @@ WaitForGameLoad(
 }
 
 
-PatternExists(pattern) {
+PatternExists(
+    pattern
+) {
     return !!FindText(
         &X,
         &Y,

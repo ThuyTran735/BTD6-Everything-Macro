@@ -21,13 +21,6 @@ global GuiHeight := 390
 global GuiX := 0
 global GuiY := 0
 
-; Stores all discovered categories and their maps.
-;
-; Example:
-;
-; CategoryData["Beginner"].directories["In The Loop"]
-; ->
-; C:\...\Maps\Beginner\In The Loop
 global CategoryData := Map()
 
 
@@ -70,7 +63,7 @@ CreateLauncherUI() {
     )
 
 
-    ; Title.
+    ; Main title.
     LauncherGui.SetFont(
         "s16 Bold",
         "Segoe UI"
@@ -153,7 +146,6 @@ CreateLauncherUI() {
     )
 
 
-    ; Get maps for initially selected category.
     initialMaps := []
 
 
@@ -216,7 +208,7 @@ CreateLauncherUI() {
     )
 
 
-    ; Config / Logs buttons.
+    ; Config and Logs buttons.
     LauncherGui.SetFont(
         "s9 Bold",
         "Segoe UI"
@@ -241,7 +233,7 @@ CreateLauncherUI() {
     LogsButton.Enabled := false
 
 
-    ; Status.
+    ; Status display.
     StatusText := LauncherGui.Add(
         "Text",
         "x20 y356 w350 h20 Center c22C55E BackgroundTrans",
@@ -256,6 +248,7 @@ CreateLauncherUI() {
 
 
     ; Create the window invisibly first.
+    ; This lets us measure its real outer size.
     LauncherGui.Show(
         "Hide w" GuiWidth
         . " h" GuiHeight
@@ -294,7 +287,7 @@ GetConfiguredCategories() {
     }
 
 
-    ; Keep the normal BTD6 category order.
+    ; Normal BTD6 category order.
     preferredCategories := [
         "Beginner",
         "Intermediate",
@@ -305,7 +298,10 @@ GetConfiguredCategories() {
 
     for categoryName in preferredCategories {
 
-        categoryDirectory := mapsRoot "\" categoryName
+        categoryDirectory :=
+            mapsRoot
+            . "\"
+            . categoryName
 
 
         if !DirExist(
@@ -320,7 +316,8 @@ GetConfiguredCategories() {
         )
 
 
-        ; Do not show completely empty categories.
+        ; Hide categories that currently
+        ; contain no runnable map scripts.
         if data.names.Length = 0 {
             continue
         }
@@ -337,12 +334,14 @@ GetConfiguredCategories() {
     }
 
 
-    ; Also support any additional category folder
-    ; that may be added later.
+    ; Also allow additional category folders
+    ; to be discovered automatically.
     Loop Files mapsRoot "\*", "D" {
 
         categoryName := A_LoopFileName
-        categoryDirectory := A_LoopFileFullPath
+
+        categoryDirectory :=
+            A_LoopFileFullPath
 
 
         if CategoryData.Has(
@@ -392,16 +391,19 @@ BuildCategoryData(
     mapDirectories := Map()
 
 
-    ; Every direct folder under a category
-    ; is treated as a map.
+    ; Every direct folder underneath the
+    ; category folder is treated as a map.
     Loop Files categoryDirectory "\*", "D" {
 
         mapName := A_LoopFileName
-        mapDirectory := A_LoopFileFullPath
+
+        mapDirectory :=
+            A_LoopFileFullPath
 
 
-        ; Only display maps that actually
-        ; contain runnable strategies.
+        ; Only show maps with at least one
+        ; .ahk strategy under Easy, Medium,
+        ; or Hard.
         if !MapHasRunnableScripts(
             mapDirectory
         ) {
@@ -465,7 +467,8 @@ OnCategoryChanged(*) {
     global MapDropdown
 
 
-    categoryName := CategoryDropdown.Text
+    categoryName :=
+        CategoryDropdown.Text
 
 
     maps := GetMapNamesForCategory(
@@ -516,7 +519,10 @@ MapHasRunnableScripts(
 
     for difficulty in difficulties {
 
-        difficultyDirectory := mapDirectory "\" difficulty
+        difficultyDirectory :=
+            mapDirectory
+            . "\"
+            . difficulty
 
 
         if !DirExist(
@@ -526,6 +532,8 @@ MapHasRunnableScripts(
         }
 
 
+        ; Search recursively so mode-specific
+        ; subfolders are supported later too.
         Loop Files difficultyDirectory "\*.ahk", "R" {
 
             return true
@@ -556,7 +564,10 @@ GetMapScripts(
 
     for difficulty in difficulties {
 
-        difficultyDirectory := mapDirectory "\" difficulty
+        difficultyDirectory :=
+            mapDirectory
+            . "\"
+            . difficulty
 
 
         if !DirExist(
@@ -590,9 +601,19 @@ CountMapScripts(
     total := 0
 
 
-    total += scripts["Easy"].Length
-    total += scripts["Medium"].Length
-    total += scripts["Hard"].Length
+    total += scripts[
+        "Easy"
+    ].Length
+
+
+    total += scripts[
+        "Medium"
+    ].Length
+
+
+    total += scripts[
+        "Hard"
+    ].Length
 
 
     return total
@@ -611,9 +632,13 @@ GetOnlyMapScript(
 
     for difficulty in difficulties {
 
-        if scripts[difficulty].Length = 1 {
+        if scripts[
+            difficulty
+        ].Length = 1 {
 
-            return scripts[difficulty][1]
+            return scripts[
+                difficulty
+            ][1]
         }
     }
 
@@ -627,7 +652,8 @@ RefreshLauncherLists() {
     global MapDropdown
 
 
-    categories := GetConfiguredCategories()
+    categories :=
+        GetConfiguredCategories()
 
 
     CategoryDropdown.Delete()
@@ -650,7 +676,6 @@ RefreshLauncherLists() {
         categories.Length > 0
         && categories[1] != "No configured categories"
     ) {
-
         maps := GetMapNamesForCategory(
             categories[1]
         )
@@ -692,8 +717,12 @@ PositionLauncher() {
     global GuiY
 
 
-    ; This project is designed only for
-    ; a 1920 x 1080 desktop.
+    ; This project uses only 1920 x 1080.
+    ;
+    ; We intentionally use the physical
+    ; screen dimensions instead of the
+    ; Windows work area so the launcher
+    ; sits flush with the bottom-right.
     screenLeft := 0
     screenTop := 0
     screenRight := 1920
@@ -704,8 +733,8 @@ PositionLauncher() {
     windowHeight := GuiHeight
 
 
-    ; Get actual outside window size,
-    ; including the title bar and borders.
+    ; Get the real outside dimensions,
+    ; including title bar and borders.
     rect := Buffer(
         16,
         0
@@ -752,29 +781,38 @@ PositionLauncher() {
         )
 
 
-        measuredWidth := rectRight - rectLeft
+        measuredWidth :=
+            rectRight - rectLeft
 
-        measuredHeight := rectBottom - rectTop
+
+        measuredHeight :=
+            rectBottom - rectTop
 
 
         if measuredWidth > 0 {
 
-            windowWidth := measuredWidth
+            windowWidth :=
+                measuredWidth
         }
 
 
         if measuredHeight > 0 {
 
-            windowHeight := measuredHeight
+            windowHeight :=
+                measuredHeight
         }
     }
 
 
-    ; Flush against bottom-right of
-    ; the physical 1920 x 1080 screen.
-    GuiX := screenRight - windowWidth
+    ; Flush with physical bottom-right.
+    GuiX :=
+        screenRight
+        - windowWidth
 
-    GuiY := screenBottom - windowHeight
+
+    GuiY :=
+        screenBottom
+        - windowHeight
 
 
     ; Safety clamps.
@@ -786,12 +824,26 @@ PositionLauncher() {
         GuiY := screenTop
 
 
-    if GuiX + windowWidth > screenRight
-        GuiX := screenRight - windowWidth
+    if (
+        GuiX
+        + windowWidth
+        > screenRight
+    ) {
+        GuiX :=
+            screenRight
+            - windowWidth
+    }
 
 
-    if GuiY + windowHeight > screenBottom
-        GuiY := screenBottom - windowHeight
+    if (
+        GuiY
+        + windowHeight
+        > screenBottom
+    ) {
+        GuiY :=
+            screenBottom
+            - windowHeight
+    }
 
 
     GuiX := Round(
@@ -820,7 +872,8 @@ ShowLauncher(
     PositionLauncher()
 
 
-    options := "x" GuiX
+    options :=
+        "x" GuiX
         . " y" GuiY
         . " w" GuiWidth
         . " h" GuiHeight
@@ -828,7 +881,9 @@ ShowLauncher(
 
     if !activate {
 
-        options := "NA " options
+        options :=
+            "NA "
+            . options
     }
 
 
@@ -851,6 +906,7 @@ ApplyModernWindowStyle() {
     global LauncherGui
 
 
+    ; Dark Windows title bar.
     try {
 
         darkMode := Buffer(
@@ -881,6 +937,7 @@ ApplyModernWindowStyle() {
     }
 
 
+    ; Rounded Windows 11 corners.
     try {
 
         cornerPreference := Buffer(
@@ -914,6 +971,7 @@ ApplyModernWindowStyle() {
 
 RunSelectedMap(*) {
     global MacroRunning
+
     global CategoryDropdown
     global MapDropdown
     global CategoryData
@@ -923,9 +981,12 @@ RunSelectedMap(*) {
         return
 
 
-    categoryName := CategoryDropdown.Text
+    categoryName :=
+        CategoryDropdown.Text
 
-    mapName := MapDropdown.Text
+
+    mapName :=
+        MapDropdown.Text
 
 
     if (
@@ -958,8 +1019,8 @@ RunSelectedMap(*) {
     }
 
 
-    ; Rebuild the directory index if
-    ; something changed on disk.
+    ; Rebuild directory information if
+    ; something changed since launch.
     if !CategoryData.Has(
         categoryName
     ) {
@@ -982,9 +1043,10 @@ RunSelectedMap(*) {
     }
 
 
-    category := CategoryData[
-        categoryName
-    ]
+    category :=
+        CategoryData[
+            categoryName
+        ]
 
 
     if !category.directories.Has(
@@ -992,7 +1054,8 @@ RunSelectedMap(*) {
     ) {
 
         ; Rebuild once in case a new map
-        ; was just added.
+        ; was added while the launcher
+        ; was already open.
         GetConfiguredCategories()
 
 
@@ -1010,9 +1073,10 @@ RunSelectedMap(*) {
         }
 
 
-        category := CategoryData[
-            categoryName
-        ]
+        category :=
+            CategoryData[
+                categoryName
+            ]
 
 
         if !category.directories.Has(
@@ -1030,9 +1094,10 @@ RunSelectedMap(*) {
     }
 
 
-    mapDirectory := category.directories[
-        mapName
-    ]
+    mapDirectory :=
+        category.directories[
+            mapName
+        ]
 
 
     if !DirExist(
@@ -1054,9 +1119,10 @@ RunSelectedMap(*) {
     )
 
 
-    scriptCount := CountMapScripts(
-        scripts
-    )
+    scriptCount :=
+        CountMapScripts(
+            scripts
+        )
 
 
     if scriptCount = 0 {
@@ -1083,13 +1149,14 @@ RunSelectedMap(*) {
     }
 
 
-    ; If the selected map only has one script,
-    ; run it immediately.
+    ; If only one script exists across
+    ; Easy / Medium / Hard, run it directly.
     if scriptCount = 1 {
 
-        script := GetOnlyMapScript(
-            scripts
-        )
+        script :=
+            GetOnlyMapScript(
+                scripts
+            )
 
 
         if script {
@@ -1104,7 +1171,7 @@ RunSelectedMap(*) {
     }
 
 
-    ; Multiple strategies exist.
+    ; Multiple scripts exist.
     ShowScriptPicker(
         mapName,
         mapDirectory,
@@ -1122,7 +1189,8 @@ ShowScriptPicker(
     global ScriptPickerState
 
 
-    ; Destroy any old picker.
+    ; Destroy an old picker if one
+    ; somehow still exists.
     try {
 
         if ScriptPickerGui
@@ -1139,7 +1207,9 @@ ShowScriptPicker(
         "Hard"
     ] {
 
-        if scripts[difficulty].Length > 0 {
+        if scripts[
+            difficulty
+        ].Length > 0 {
 
             availableDifficulties.Push(
                 difficulty
@@ -1158,11 +1228,13 @@ ShowScriptPicker(
     )
 
 
-    ScriptPickerGui.BackColor := "0F172A"
+    ScriptPickerGui.BackColor :=
+        "0F172A"
 
 
+    ; Map title.
     ScriptPickerGui.SetFont(
-        "s14 Bold",
+        "s14 Bold cF8FAFC",
         "Segoe UI"
     )
 
@@ -1174,8 +1246,9 @@ ShowScriptPicker(
     )
 
 
+    ; Subtitle.
     ScriptPickerGui.SetFont(
-        "s9 Norm",
+        "s9 Norm c94A3B8",
         "Segoe UI"
     )
 
@@ -1198,11 +1271,35 @@ ShowScriptPicker(
     }
 
 
+    ; Difficulty tabs.
+    ScriptPickerGui.SetFont(
+        "s9 Bold cF8FAFC",
+        "Segoe UI"
+    )
+
+
     tabs := ScriptPickerGui.Add(
         "Tab3",
-        "x20 y78 w460 h250",
+        "x20 y78 w460 h250 Background0F172A cF8FAFC",
         tabNames
     )
+
+
+    ; Disable the normal Windows theme
+    ; for the difficulty tabs so the text
+    ; doesn't appear as plain black.
+    try {
+
+        DllCall(
+            "uxtheme\SetWindowTheme",
+            "Ptr",
+            tabs.Hwnd,
+            "Str",
+            "",
+            "Str",
+            ""
+        )
+    }
 
 
     listControls := Map()
@@ -1224,7 +1321,9 @@ ShowScriptPicker(
         names := []
 
 
-        for script in scripts[difficulty] {
+        for script in scripts[
+            difficulty
+        ] {
 
             names.Push(
                 script.name
@@ -1232,11 +1331,29 @@ ShowScriptPicker(
         }
 
 
-        listControl := ScriptPickerGui.Add(
-            "ListBox",
-            "x40 y120 w420 h170 Choose1",
-            names
+        ; IMPORTANT:
+        ;
+        ; Tab text is white, but the native
+        ; ListBox background is light.
+        ;
+        ; Explicitly switch the font back to
+        ; BLACK before creating each ListBox.
+        ;
+        ; Without this, only the selected file
+        ; appears visible because the other
+        ; filenames become white-on-white.
+        ScriptPickerGui.SetFont(
+            "s9 Norm c000000",
+            "Segoe UI"
         )
+
+
+        listControl :=
+            ScriptPickerGui.Add(
+                "ListBox",
+                "x40 y120 w420 h170 Choose1",
+                names
+            )
 
 
         listControl.OnEvent(
@@ -1254,31 +1371,36 @@ ShowScriptPicker(
     tabs.UseTab()
 
 
+    ; Native buttons have light backgrounds,
+    ; so reset text to black here as well.
     ScriptPickerGui.SetFont(
-        "s9 Bold",
+        "s9 Bold c000000",
         "Segoe UI"
     )
 
 
-    runSelectedButton := ScriptPickerGui.Add(
-        "Button",
-        "x20 y345 w220 h38 Default",
-        "RUN SELECTED"
-    )
+    runSelectedButton :=
+        ScriptPickerGui.Add(
+            "Button",
+            "x20 y345 w220 h38 Default",
+            "RUN SELECTED"
+        )
 
 
-    openFolderButton := ScriptPickerGui.Add(
-        "Button",
-        "x260 y345 w220 h38",
-        "OPEN MAP FOLDER"
-    )
+    openFolderButton :=
+        ScriptPickerGui.Add(
+            "Button",
+            "x260 y345 w220 h38",
+            "OPEN MAP FOLDER"
+        )
 
 
-    cancelButton := ScriptPickerGui.Add(
-        "Button",
-        "x20 y393 w460 h34",
-        "CANCEL"
-    )
+    cancelButton :=
+        ScriptPickerGui.Add(
+            "Button",
+            "x20 y393 w460 h34",
+            "CANCEL"
+        )
 
 
     ScriptPickerState := {
@@ -1315,6 +1437,13 @@ ShowScriptPicker(
     )
 
 
+    ; Create it invisibly first so the
+    ; window exists before DWM styling.
+    ScriptPickerGui.Show(
+        "Hide w500 h445"
+    )
+
+
     ApplyScriptPickerStyle()
 
 
@@ -1331,37 +1460,46 @@ RunPickedScript(*) {
     if !IsObject(
         ScriptPickerState
     ) {
+
         return
     }
 
 
-    tabIndex := ScriptPickerState.tabs.Value
+    tabIndex :=
+        ScriptPickerState.tabs.Value
 
 
     if (
         tabIndex < 1
         || tabIndex > ScriptPickerState.difficulties.Length
     ) {
+
         return
     }
 
 
-    difficulty := ScriptPickerState.difficulties[
-        tabIndex
-    ]
+    difficulty :=
+        ScriptPickerState.difficulties[
+            tabIndex
+        ]
 
 
-    listControl := ScriptPickerState.lists[
-        difficulty
-    ]
+    listControl :=
+        ScriptPickerState.lists[
+            difficulty
+        ]
 
 
-    selectedIndex := listControl.Value
+    selectedIndex :=
+        listControl.Value
 
 
     if (
         selectedIndex < 1
-        || selectedIndex > ScriptPickerState.scripts[difficulty].Length
+        || selectedIndex
+            > ScriptPickerState.scripts[
+                difficulty
+            ].Length
     ) {
 
         ToolTip(
@@ -1379,11 +1517,12 @@ RunPickedScript(*) {
     }
 
 
-    script := ScriptPickerState.scripts[
-        difficulty
-    ][
-        selectedIndex
-    ]
+    script :=
+        ScriptPickerState.scripts[
+            difficulty
+        ][
+            selectedIndex
+        ]
 
 
     CloseScriptPicker()
@@ -1402,25 +1541,32 @@ OpenSelectedMapFolder(*) {
     if !IsObject(
         ScriptPickerState
     ) {
+
         return
     }
 
 
-    mapDirectory := ScriptPickerState.mapDirectory
+    mapDirectory :=
+        ScriptPickerState.mapDirectory
 
 
     if !DirExist(
         mapDirectory
     ) {
+
         return
     }
 
 
-    Run(
+    command :=
         "explorer.exe "
         . Chr(34)
         . mapDirectory
         . Chr(34)
+
+
+    Run(
+        command
     )
 }
 
@@ -1447,6 +1593,7 @@ ApplyScriptPickerStyle() {
     global ScriptPickerGui
 
 
+    ; Dark Windows title bar.
     try {
 
         darkMode := Buffer(
@@ -1477,6 +1624,7 @@ ApplyScriptPickerStyle() {
     }
 
 
+    ; Rounded Windows 11 corners.
     try {
 
         cornerPreference := Buffer(
@@ -1543,10 +1691,14 @@ LaunchMapScript(
     MacroRunning := true
 
 
+    ; Hide launcher before starting
+    ; the strategy so it cannot interfere
+    ; with FindText.
     LauncherGui.Hide()
 
 
-    command := Chr(34)
+    command :=
+        Chr(34)
         . A_AhkPath
         . Chr(34)
         . " "
@@ -1597,8 +1749,11 @@ MonitorLauncherState() {
     global LauncherGui
 
 
+    ; Strategy launched from this UI
+    ; is currently running.
     if MacroRunning {
 
+        ; Child script finished.
         if (
             RunningPid
             && !ProcessExist(
@@ -1618,6 +1773,8 @@ MonitorLauncherState() {
         }
         else {
 
+            ; Keep the launcher hidden while
+            ; the child strategy is running.
             if IsLauncherVisible()
                 LauncherGui.Hide()
 
@@ -1627,6 +1784,8 @@ MonitorLauncherState() {
     }
 
 
+    ; Hide launcher while BTD6 is
+    ; actually inside a game.
     if IsInGameScreen() {
 
         if IsLauncherVisible()
@@ -1637,6 +1796,7 @@ MonitorLauncherState() {
     }
 
 
+    ; Show launcher again outside of a game.
     if !IsLauncherVisible() {
 
         ShowLauncher(
@@ -1698,5 +1858,6 @@ UpdateStatus(
     )
 
 
-    StatusText.Text := text
+    StatusText.Text :=
+        text
 }

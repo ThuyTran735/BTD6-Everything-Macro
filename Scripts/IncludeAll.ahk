@@ -35,3 +35,5 @@ global RunConfig := {
 
 #Include GameModeUnlockLogic.ahk
 #Include MapRunner.ahk
+
+#Include DailyChestLogic.ahk

@@ -46,10 +46,15 @@ global MapData := Map(
         pattern: "|<>YOUR_ADVANCED_MAP_PATTERN"
     },
 
+    "#Ouch", {
+        category: "Expert",
+        page: 17,
+        pattern: "|<>*78$17.zzzzzzzzzzzzzzzzzzzzzzzzzzzzrzza20S01Yk0700600A00M00800800A00A00A00DU"
+    },
 
     "Expert Map", {
         category: "Expert",
         page: 0,
         pattern: "|<>YOUR_EXPERT_MAP_PATTERN"
-    }
+    },
 )

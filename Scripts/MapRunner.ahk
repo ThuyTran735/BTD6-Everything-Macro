@@ -23,7 +23,8 @@ RunMapStrategy(strategy) {
         if !prerequisite {
             ToolTip(
                 "Game mode is locked."
-                "`nMode: " RunConfig.gameMode
+                "`nMode: "
+                RunConfig.gameMode
                 "`nNo automatic prerequisite exists."
             )
 
@@ -34,8 +35,6 @@ RunMapStrategy(strategy) {
         }
 
 
-        ; Return to a known menu before starting
-        ; the separate prerequisite strategy.
         Send("{Esc}")
 
         Sleep(500)
@@ -48,10 +47,6 @@ RunMapStrategy(strategy) {
         }
 
 
-        ; The prerequisite script should have
-        ; completed and returned to Home.
-        ;
-        ; Try the originally requested mode again.
         navigationResult := NavigateToMap(
             RunConfig.category,
             RunConfig.map,
@@ -64,7 +59,8 @@ RunMapStrategy(strategy) {
         if navigationResult = "Locked" {
             ToolTip(
                 "Game mode is still locked."
-                "`nRequested: " RunConfig.gameMode
+                "`nRequested: "
+                RunConfig.gameMode
                 "`nCompleted prerequisite: "
                 prerequisite
             )
@@ -85,9 +81,9 @@ RunMapStrategy(strategy) {
         return false
 
 
+    ; First load into the selected game.
     if !WaitForGameLoad()
         return false
-
 
     maxAttempts := HasProp(
         RunConfig,
@@ -114,20 +110,30 @@ RunMapStrategy(strategy) {
             if !HandleVictory()
                 return false
 
-
             return true
         }
 
 
         if pregameResult = "Defeat" {
-            if attempt >= maxAttempts
+            if attempt >= maxAttempts {
+                ToolTip(
+                    "Maximum attempts reached."
+                    "`nAttempts: "
+                    attempt
+                )
+
+                Sleep(2000)
+                ToolTip()
+
                 return false
+            }
 
 
             if !HandleDefeat()
                 return false
 
 
+            ; No CHIMPS OK after restarting.
             if !WaitForGameLoad()
                 return false
 
@@ -156,7 +162,6 @@ RunMapStrategy(strategy) {
             if !HandleVictory()
                 return false
 
-
             return true
         }
 
@@ -165,7 +170,8 @@ RunMapStrategy(strategy) {
             if attempt >= maxAttempts {
                 ToolTip(
                     "Maximum attempts reached."
-                    "`nAttempts: " attempt
+                    "`nAttempts: "
+                    attempt
                 )
 
                 Sleep(2000)
@@ -179,6 +185,8 @@ RunMapStrategy(strategy) {
                 return false
 
 
+            ; Restart goes directly back into CHIMPS.
+            ; Do not search for CHIMPS OK again.
             if !WaitForGameLoad()
                 return false
 

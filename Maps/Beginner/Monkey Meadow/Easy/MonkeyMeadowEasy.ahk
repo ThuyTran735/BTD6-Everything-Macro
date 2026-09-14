@@ -168,4 +168,5 @@ MonkeyMeadowEasy() {
     return RunMapStrategy(strategy)
 }
 
+Sleep(3000)
 MonkeyMeadowEasy()

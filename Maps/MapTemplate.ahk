@@ -288,27 +288,25 @@ MapNameDifficultyMode() {
         ; [20, 5000, () => UseAbility("1")]
     ]
 
-
-    ; MapRunner.ahk handles:
-    ;
-    ; - Navigation
-    ; - Game loading
-    ; - Round 0 strategy
-    ; - Starting the game
-    ; - Round tracking
-    ; - Strategy execution
-    ; - Victory
-    ; - Defeat
-    ; - Retries
-    ;
-    ; The map file only needs:
-    ;
-    ; - RunConfig
-    ; - TowerSetup
-    ; - strategy
-
     return RunMapStrategy(strategy)
 }
 
+; MapRunner.ahk handles:
+;
+; - Navigation
+; - Game loading
+; - Round 0 strategy
+; - Starting the game
+; - Round tracking
+; - Strategy execution
+; - Victory
+; - Defeat
+; - Retries
+;
+; The map file only needs:
+;
+; - RunConfig
+; - TowerSetup
+; - strategy}
 
 MapNameDifficultyMode()

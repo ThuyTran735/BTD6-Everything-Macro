@@ -3,10 +3,8 @@
 
 PositionLauncher() {
     global LauncherGui
-
     global GuiWidth
     global GuiHeight
-
     global GuiX
     global GuiY
 
@@ -17,76 +15,94 @@ PositionLauncher() {
     screenBottom := 1080
 
 
-    windowWidth := GuiWidth
-    windowHeight := GuiHeight
+    windowWidth :=
+        GuiWidth
 
 
-    rect := Buffer(
-        16,
-        0
-    )
+    windowHeight :=
+        GuiHeight
 
 
-    gotRect := DllCall(
-        "GetWindowRect",
-        "Ptr",
-        LauncherGui.Hwnd,
-        "Ptr",
-        rect.Ptr,
-        "Int"
-    )
+    rect :=
+        Buffer(
+            16,
+            0
+        )
+
+
+    gotRect :=
+        DllCall(
+            "GetWindowRect",
+            "Ptr",
+            LauncherGui.Hwnd,
+            "Ptr",
+            rect.Ptr,
+            "Int"
+        )
 
 
     if gotRect {
 
-        rectLeft := NumGet(
-            rect,
-            0,
-            "Int"
-        )
+        rectLeft :=
+            NumGet(
+                rect,
+                0,
+                "Int"
+            )
 
 
-        rectTop := NumGet(
-            rect,
-            4,
-            "Int"
-        )
+        rectTop :=
+            NumGet(
+                rect,
+                4,
+                "Int"
+            )
 
 
-        rectRight := NumGet(
-            rect,
-            8,
-            "Int"
-        )
+        rectRight :=
+            NumGet(
+                rect,
+                8,
+                "Int"
+            )
 
 
-        rectBottom := NumGet(
-            rect,
-            12,
-            "Int"
-        )
+        rectBottom :=
+            NumGet(
+                rect,
+                12,
+                "Int"
+            )
 
 
         measuredWidth :=
-            rectRight - rectLeft
+            rectRight
+            - rectLeft
 
 
         measuredHeight :=
-            rectBottom - rectTop
+            rectBottom
+            - rectTop
 
 
         if measuredWidth > 0 {
-            windowWidth := measuredWidth
+
+            windowWidth :=
+                measuredWidth
         }
 
 
         if measuredHeight > 0 {
-            windowHeight := measuredHeight
+
+            windowHeight :=
+                measuredHeight
         }
     }
 
 
-    GuiX := screenLeft
+    GuiX :=
+        screenLeft
+
 
     GuiY :=
         screenBottom
@@ -94,45 +110,45 @@ PositionLauncher() {
 
 
     if GuiX < screenLeft {
-        GuiX := screenLeft
+
+        GuiX :=
+            screenLeft
     }
 
 
     if GuiY < screenTop {
-        GuiY := screenTop
+
+        GuiY :=
+            screenTop
     }
 
 
-    if (
-        GuiX
-        + windowWidth
-        > screenRight
-    ) {
+    if GuiX + windowWidth > screenRight {
+
         GuiX :=
             screenRight
             - windowWidth
     }
 
 
-    if (
-        GuiY
-        + windowHeight
-        > screenBottom
-    ) {
+    if GuiY + windowHeight > screenBottom {
+
         GuiY :=
             screenBottom
             - windowHeight
     }
 
 
-    GuiX := Round(
-        GuiX
-    )
+    GuiX :=
+        Round(
+            GuiX
+        )
 
 
-    GuiY := Round(
-        GuiY
-    )
+    GuiY :=
+        Round(
+            GuiY
+        )
 }
 
 
@@ -140,10 +156,8 @@ ShowLauncher(
     activate := false
 ) {
     global LauncherGui
-
     global GuiWidth
     global GuiHeight
-
     global GuiX
     global GuiY
 
@@ -163,6 +177,7 @@ ShowLauncher(
 
 
     if !activate {
+
         options :=
             "NA "
             . options
@@ -180,6 +195,7 @@ HideLauncher() {
 
 
     if IsLauncherVisible() {
+
         LauncherGui.Hide()
     }
 }
@@ -190,6 +206,7 @@ IsLauncherVisible() {
 
 
     if !LauncherGui {
+
         return false
     }
 
@@ -216,10 +233,12 @@ ApplyDarkWindowStyle(
     guiObject
 ) {
     try {
-        darkMode := Buffer(
-            4,
-            0
-        )
+
+        darkMode :=
+            Buffer(
+                4,
+                0
+            )
 
 
         NumPut(
@@ -245,10 +264,12 @@ ApplyDarkWindowStyle(
 
 
     try {
-        cornerPreference := Buffer(
-            4,
-            0
-        )
+
+        cornerPreference :=
+            Buffer(
+                4,
+                0
+            )
 
 
         NumPut(
@@ -278,11 +299,13 @@ ApplyDarkControlTheme(
     control
 ) {
     if !control {
+
         return
     }
 
 
     try {
+
         DllCall(
             "uxtheme\SetWindowTheme",
             "Ptr",
@@ -296,6 +319,7 @@ ApplyDarkControlTheme(
 
 
     try {
+
         DllCall(
             "RedrawWindow",
             "Ptr",
@@ -320,12 +344,15 @@ UpdateStatus(
 
 
     if !StatusText {
+
         return
     }
 
 
     if color = "" {
-        color := UIColorSuccess
+
+        color :=
+            UIColorSuccess
     }
 
 
@@ -335,7 +362,8 @@ UpdateStatus(
     )
 
 
-    StatusText.Text := text
+    StatusText.Text :=
+        text
 }
 
 
@@ -346,6 +374,7 @@ IsInGameScreen() {
     if !NavigationPatterns.Has(
         "Settings"
     ) {
+
         return false
     }
 
@@ -358,12 +387,92 @@ IsInGameScreen() {
 }
 
 
+GetCycleStopRequestPath() {
+    return A_Temp
+        . "\BTD6EverythingMacro_StopCycles.flag"
+}
+
+
+ClearCycleStopRequest() {
+    stopFile :=
+        GetCycleStopRequestPath()
+
+
+    try {
+        FileDelete(
+            stopFile
+        )
+    }
+}
+
+
+ConsumeCycleStopRequest() {
+    stopFile :=
+        GetCycleStopRequestPath()
+
+
+    if !FileExist(
+        stopFile
+    ) {
+
+        return false
+    }
+
+
+    try {
+        FileDelete(
+            stopFile
+        )
+    }
+
+
+    return true
+}
+
+
 MonitorLauncherState() {
     global MacroRunning
     global RunningPid
+
+    global RepeatRunTotal
+    global RepeatRunRemaining
+    global RepeatRunCompleted
+
+    global ForceLauncherVisible
+    global StartupLoadingActive
+
     global LauncherGui
 
     global UIColorSuccess
+    global UIColorError
+
+
+    ; Do not let the normal launcher appear on top
+    ; of the fake startup loading screen.
+    if StartupLoadingActive {
+
+        if IsLauncherVisible() {
+
+            LauncherGui.Hide()
+        }
+
+
+        return
+    }
+
+
+    if ForceLauncherVisible {
+
+        if !IsLauncherVisible() {
+
+            ShowLauncher(
+                false
+            )
+        }
+
+
+        return
+    }
 
 
     if MacroRunning {
@@ -374,18 +483,123 @@ MonitorLauncherState() {
                 RunningPid
             )
         ) {
-            MacroRunning := false
-            RunningPid := 0
+
+            RunningPid :=
+                0
 
 
-            UpdateStatus(
-                "READY",
-                UIColorSuccess
+            if ConsumeCycleStopRequest() {
+
+                MacroRunning :=
+                    false
+
+
+                HideCycleStatusUI()
+
+
+                ClearRepeatRunState()
+
+
+                ForceLauncherVisible :=
+                    true
+
+
+                UpdateStatus(
+                    "MAP SEARCH STOPPED",
+                    UIColorError
+                )
+
+
+                ShowLauncher(
+                    true
+                )
+
+
+                return
+            }
+
+
+            RepeatRunCompleted++
+
+
+            UpdateCycleStatusUI()
+
+
+            if RepeatRunRemaining > 0 {
+
+                nextRun :=
+                    RepeatRunCompleted
+                    + 1
+
+
+                UpdateStatus(
+                    "RUN "
+                    . nextRun
+                    . " OF "
+                    . RepeatRunTotal,
+                    UIColorSuccess
+                )
+
+
+                ; Give the main menu one full second
+                ; to finish loading before the next cycle.
+                SetTimer(
+                    StartNextQueuedRun,
+                    -1000
+                )
+
+
+                return
+            }
+
+
+            completedRuns :=
+                RepeatRunCompleted
+
+
+            MacroRunning :=
+                false
+
+
+            CompleteCycleStatusUI()
+
+
+            Sleep(
+                400
             )
+
+
+            HideCycleStatusUI()
+
+
+            ClearRepeatRunState()
+            ClearCycleStopRequest()
+
+
+            if completedRuns = 1 {
+
+                UpdateStatus(
+                    "COMPLETED 1 RUN",
+                    UIColorSuccess
+                )
+            }
+            else {
+
+                UpdateStatus(
+                    "COMPLETED "
+                    . completedRuns
+                    . " RUNS",
+                    UIColorSuccess
+                )
+            }
         }
         else {
 
+            UpdateCycleStatusUI()
+
+
             if IsLauncherVisible() {
+
                 LauncherGui.Hide()
             }
 
@@ -398,6 +612,7 @@ MonitorLauncherState() {
     if IsInGameScreen() {
 
         if IsLauncherVisible() {
+
             LauncherGui.Hide()
         }
 
@@ -407,6 +622,7 @@ MonitorLauncherState() {
 
 
     if !IsLauncherVisible() {
+
         ShowLauncher(
             false
         )

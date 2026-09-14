@@ -263,8 +263,12 @@ CreateLauncherUI() {
         )
 
 
-    ConfigButton.Enabled := false
-    LogsButton.Enabled := false
+    ConfigButton.Enabled :=
+        false
+
+
+    LogsButton.Enabled :=
+        false
 
 
     ModeButton.OnEvent(
@@ -412,8 +416,10 @@ RunDefaultMode() {
     global UIColorError
 
 
-    if MacroRunning
+    if MacroRunning {
+
         return
+    }
 
 
     categoryName :=
@@ -456,12 +462,9 @@ RunDefaultMode() {
     }
 
 
-    if !CategoryData.Has(
-        categoryName
-    ) {
-
-        GetConfiguredCategories()
-    }
+    ; Refresh discovery every run so newly added
+    ; strategy scripts are picked up automatically.
+    GetConfiguredCategories()
 
 
     if !CategoryData.Has(
@@ -488,41 +491,13 @@ RunDefaultMode() {
         mapName
     ) {
 
-        GetConfiguredCategories()
+        UpdateStatus(
+            "MAP FOLDER NOT FOUND",
+            UIColorError
+        )
 
 
-        if !CategoryData.Has(
-            categoryName
-        ) {
-
-            UpdateStatus(
-                "MAP FOLDER NOT FOUND",
-                UIColorError
-            )
-
-
-            return
-        }
-
-
-        category :=
-            CategoryData[
-                categoryName
-            ]
-
-
-        if !category.directories.Has(
-            mapName
-        ) {
-
-            UpdateStatus(
-                "MAP FOLDER NOT FOUND",
-                UIColorError
-            )
-
-
-            return
-        }
+        return
     }
 
 
@@ -610,19 +585,31 @@ RunDefaultMode() {
 }
 
 
+PromptForRunCount() {
+    return ShowCycleInputPrompt()
+}
+
+
 LaunchMapScript(
     scriptPath
 ) {
     global MacroRunning
-    global RunningPid
     global LauncherGui
 
-    global UIColorWarning
+    global RepeatScriptPath
+    global RepeatRunTotal
+    global RepeatRunRemaining
+    global RepeatRunCompleted
+
+    global ForceLauncherVisible
+
     global UIColorError
 
 
-    if MacroRunning
-        return
+    if MacroRunning {
+
+        return false
+    }
 
 
     if !FileExist(
@@ -635,14 +622,41 @@ LaunchMapScript(
         )
 
 
-        return
+        return false
     }
 
 
-    UpdateStatus(
-        "STARTING...",
-        UIColorWarning
-    )
+    runCount :=
+        PromptForRunCount()
+
+
+    if runCount = 0 {
+
+        return false
+    }
+
+
+    ClearCycleStopRequest()
+
+
+    RepeatScriptPath :=
+        scriptPath
+
+
+    RepeatRunTotal :=
+        runCount
+
+
+    RepeatRunRemaining :=
+        runCount
+
+
+    RepeatRunCompleted :=
+        0
+
+
+    ForceLauncherVisible :=
+        false
 
 
     CloseAllDarkDropdowns()
@@ -650,7 +664,100 @@ LaunchMapScript(
     CloseScriptPicker()
 
 
-    MacroRunning := true
+    ; Replace the launcher with the fake loading
+    ; screen before cycle 1 begins.
+    LauncherGui.Hide()
+
+
+    RunStartupLoadingAnimation()
+
+
+    MacroRunning :=
+        true
+
+
+    ShowCycleStatusUI()
+
+
+    return StartNextQueuedRun()
+}
+
+
+StartNextQueuedRun() {
+    global MacroRunning
+    global RunningPid
+    global LauncherGui
+
+    global RepeatScriptPath
+    global RepeatRunTotal
+    global RepeatRunRemaining
+    global RepeatRunCompleted
+
+    global UIColorWarning
+    global UIColorError
+
+
+    if !MacroRunning {
+
+        return false
+    }
+
+
+    if RepeatRunRemaining < 1 {
+
+        return false
+    }
+
+
+    if !FileExist(
+        RepeatScriptPath
+    ) {
+
+        MacroRunning :=
+            false
+
+
+        RunningPid :=
+            0
+
+
+        HideCycleStatusUI()
+
+
+        ClearRepeatRunState()
+
+
+        UpdateStatus(
+            "SCRIPT NOT FOUND",
+            UIColorError
+        )
+
+
+        ShowLauncher(
+            true
+        )
+
+
+        return false
+    }
+
+
+    currentRun :=
+        RepeatRunCompleted
+        + 1
+
+
+    UpdateStatus(
+        "STARTING RUN "
+        . currentRun
+        . " OF "
+        . RepeatRunTotal
+        . "...",
+        UIColorWarning
+    )
+
+
+    UpdateCycleStatusUI()
 
 
     LauncherGui.Hide()
@@ -662,7 +769,7 @@ LaunchMapScript(
         . Chr(34)
         . " "
         . Chr(34)
-        . scriptPath
+        . RepeatScriptPath
         . Chr(34)
 
 
@@ -674,11 +781,28 @@ LaunchMapScript(
             ,
             &RunningPid
         )
+
+
+        RepeatRunRemaining--
+
+
+        return true
     }
     catch Error as err {
 
-        MacroRunning := false
-        RunningPid := 0
+        MacroRunning :=
+            false
+
+
+        RunningPid :=
+            0
+
+
+        HideCycleStatusUI()
+
+
+        ClearRepeatRunState()
+        ClearCycleStopRequest()
 
 
         UpdateStatus(
@@ -697,5 +821,32 @@ LaunchMapScript(
             . err.Message,
             "BTD6 Macro"
         )
+
+
+        return false
     }
+}
+
+
+ClearRepeatRunState() {
+    global RepeatScriptPath
+    global RepeatRunTotal
+    global RepeatRunRemaining
+    global RepeatRunCompleted
+
+
+    RepeatScriptPath :=
+        ""
+
+
+    RepeatRunTotal :=
+        0
+
+
+    RepeatRunRemaining :=
+        0
+
+
+    RepeatRunCompleted :=
+        0
 }

@@ -72,9 +72,6 @@ global GameModeLockPatterns := Map(
 )
 
 
-global CurrentMapPage := 0
-
-
 NavigateToMap(
     category,
     mapName,
@@ -90,7 +87,6 @@ NavigateToMap(
         return false
     }
 
-
     if hero {
         if !OpenHeroSelection() {
             ToolTip(
@@ -99,7 +95,6 @@ NavigateToMap(
 
             return false
         }
-
 
         if !SelectHero(hero) {
             ToolTip(
@@ -110,42 +105,20 @@ NavigateToMap(
             return false
         }
 
-
         Send("{Esc}")
 
         Sleep(1000)
     }
 
-
-    mapResult := TryClickCurrentMap(
-        mapName
-    )
-
-
-    if !mapResult {
-        if !ResetToCategory(category) {
-            ToolTip(
-                "Could not reset to category: "
-                category
-            )
-
-            return false
-        }
-
-
-        if !FindAndClickMap(mapName) {
-            ToolTip(
-                "Could not find map: "
-                mapName
-            )
-
-            return false
-        }
+    if !FindAndClickMap(
+        category,
+        mapName,
+        15
+    ) {
+        return false
     }
 
-
     Sleep(500)
-
 
     if !SelectDifficulty(difficulty) {
         ToolTip(
@@ -156,24 +129,13 @@ NavigateToMap(
         return false
     }
 
-
-    ; Quick overwrite-save check before
-    ; selecting the game mode.
-    ;
-    ; Keep this short so mode selection
-    ; does not unnecessarily wait.
-    HandleSavePrompt(
-        700
-    )
-
+    HandleSavePrompt(700)
 
     Sleep(150)
-
 
     modeResult := SelectGameMode(
         gameMode
     )
-
 
     if modeResult = "Locked" {
         ToolTip(
@@ -188,7 +150,6 @@ NavigateToMap(
         return "Locked"
     }
 
-
     if modeResult = false {
         ToolTip(
             "Could not select game mode: "
@@ -198,37 +159,19 @@ NavigateToMap(
         return false
     }
 
+    HandleSavePrompt(4000)
 
-    ; Check again after selecting the mode.
-    ;
-    ; This catches an overwrite-data
-    ; confirmation that appears late.
-    HandleSavePrompt(
-        4000
-    )
-
-
-    ; Deflation and CHIMPS both show the same
-    ; special confirmation screen.
-    ;
-    ; Both use NavigationPatterns["CHIMPS OK"].
-    ;
-    ; This happens only during initial entry.
-    ; Do NOT call this again after Restart.
     if !HandleModePrompt(
         gameMode
     ) {
         return false
     }
 
-
     return true
 }
 
-
 OpenPlayMenu() {
     global NavigationPatterns
-
 
     if NavigationPatterns.Has(
         "MapScreen"
@@ -242,7 +185,6 @@ OpenPlayMenu() {
         }
     }
 
-
     if !NavigationPatterns.Has(
         "Play"
     ) {
@@ -253,12 +195,10 @@ OpenPlayMenu() {
         return false
     }
 
-
     playPattern :=
         NavigationPatterns[
             "Play"
         ]
-
 
     if !FindText(
         &X,
@@ -278,11 +218,9 @@ OpenPlayMenu() {
         return false
     }
 
-
     Click(X, Y)
 
     Sleep(700)
-
 
     if NavigationPatterns.Has(
         "MapScreen"
@@ -296,10 +234,8 @@ OpenPlayMenu() {
                 return true
             }
 
-
             Sleep(200)
         }
-
 
         ToolTip(
             "Play was clicked, but map screen "
@@ -309,10 +245,8 @@ OpenPlayMenu() {
         return false
     }
 
-
     return true
 }
-
 
 OpenHeroSelection() {
     Click(
@@ -320,19 +254,13 @@ OpenHeroSelection() {
         991
     )
 
-
     Sleep(500)
-
 
     return true
 }
 
-
-TryClickCurrentMap(
-    mapName
-) {
+TryClickCurrentMap(mapName) {
     global MapData
-
 
     if !MapData.Has(
         mapName
@@ -345,16 +273,11 @@ TryClickCurrentMap(
         return false
     }
 
-
     mapPattern :=
         MapData[
             mapName
         ].pattern
 
-
-    ; Scan several times because temporary
-    ; objects like the Golden Bloon can block
-    ; part of the map pattern.
     Loop 4 {
         if FindText(
             &X,
@@ -374,195 +297,70 @@ TryClickCurrentMap(
             return true
         }
 
-
         Sleep(200)
     }
-
 
     return false
 }
 
-
-ResetToCategory(
-    category
-) {
-    global NavigationPatterns
-    global CategoryStartPages
-    global CurrentMapPage
-
-
-    if !NavigationPatterns.Has(
-        category
-    ) {
-        ToolTip(
-            "Unknown map category: "
-            category
-        )
-
-        return false
-    }
-
-
-    if !CategoryStartPages.Has(
-        category
-    ) {
-        ToolTip(
-            "No starting page configured for: "
-            category
-        )
-
-        return false
-    }
-
-
-    pattern :=
-        NavigationPatterns[
-            category
-        ]
-
-
-    if !FindText(
-        &X,
-        &Y,
-        0,
-        0,
-        A_ScreenWidth,
-        A_ScreenHeight,
-        0,
-        0,
-        pattern
-    ) {
-        ToolTip(
-            "Could not find category: "
-            category
-        )
-
-        return false
-    }
-
-
-    Click(X, Y)
-
-    Sleep(1000)
-
-
-    CurrentMapPage :=
-        CategoryStartPages[
-            category
-        ]
-
-
-    return true
-}
-
-
 FindAndClickMap(
-    mapName
+    category,
+    mapName,
+    maxPageChanges := 15
 ) {
     global MapData
-    global CurrentMapPage
-
+    global NavigationPatterns
 
     if !MapData.Has(
         mapName
     ) {
         ToolTip(
             "Unknown map: "
-            mapName
+            . mapName
         )
+
+        RequestLauncherCycleStop()
+
+        Sleep(1800)
+        ToolTip()
 
         return false
     }
 
+    if !NavigationPatterns.Has(
+        category
+    ) {
+        ToolTip(
+            "Could not find map category control."
+            . "`nCategory: "
+            . category
+        )
 
-    mapInfo :=
-        MapData[
-            mapName
+        RequestLauncherCycleStop()
+
+        Sleep(1800)
+        ToolTip()
+
+        return false
+    }
+
+    ; Search the page the user is currently on first.
+    if TryClickCurrentMap(
+        mapName
+    ) {
+        return true
+    }
+
+    categoryPattern :=
+        NavigationPatterns[
+            category
         ]
 
-
-    if mapInfo.page <= 0 {
-        ToolTip(
-            "No page configured for map: "
-            mapName
-        )
-
-        return false
-    }
-
-
-    targetPage :=
-        mapInfo.page
-
-
-    mapPattern :=
-        mapInfo.pattern
-
-
-    if CurrentMapPage = 0 {
-        ToolTip(
-            "Current map page is unknown."
-        )
-
-        return false
-    }
-
-
-    if CurrentMapPage > targetPage {
-        ToolTip(
-            "Map page error."
-            "`nCurrent page: "
-            CurrentMapPage
-            "`nTarget page: "
-            targetPage
-        )
-
-        return false
-    }
-
-
-    while CurrentMapPage < targetPage {
-
-        ; Before flipping ANY page,
-        ; scan for the map again.
-        ;
-        ; This protects against temporary
-        ; Golden Bloon obstruction.
-        Loop 4 {
-            if FindText(
-                &X,
-                &Y,
-                0,
-                0,
-                A_ScreenWidth,
-                A_ScreenHeight,
-                0,
-                0,
-                mapPattern
-            ) {
-                Click(X, Y)
-
-                Sleep(600)
-
-                return true
-            }
-
-
-            Sleep(200)
-        }
-
-
-        if !GoToNextMapPage()
-            return false
-    }
-
-
-    ; Expected page reached.
-    ;
-    ; Scan longer before failing in case
-    ; something temporarily covers the map.
-    Loop 10 {
-        if FindText(
+    ; Never use the left/right map arrows.
+    ; Clicking the category icon cycles through
+    ; that category's map pages and wraps around.
+    Loop maxPageChanges {
+        if !FindText(
             &X,
             &Y,
             0,
@@ -571,95 +369,50 @@ FindAndClickMap(
             A_ScreenHeight,
             0,
             0,
-            mapPattern
+            categoryPattern
         ) {
-            Click(X, Y)
+            ToolTip(
+                "Could not find category button: "
+                . category
+            )
 
-            Sleep(600)
+            RequestLauncherCycleStop()
 
-            return true
+            Sleep(1800)
+            ToolTip()
+
+            return false
         }
 
+        Click(X, Y)
 
-        Sleep(200)
+        Sleep(550)
+
+        if TryClickCurrentMap(
+            mapName
+        ) {
+            return true
+        }
     }
 
-
     ToolTip(
-        "Map was not found on expected page."
-        "`nMap: "
-        mapName
-        "`nCurrent Page: "
-        CurrentMapPage
-        "`nTarget Page: "
-        targetPage
+        "Could not find map: "
+        . mapName
+        . "`nStopped after "
+        . maxPageChanges
+        . " page changes."
     )
 
+    RequestLauncherCycleStop()
+
+    Sleep(2200)
+    ToolTip()
 
     return false
 }
 
-
-GoToNextMapPage() {
+SelectDifficulty(difficulty) {
     global NavigationPatterns
-    global CurrentMapPage
-
-
-    if !NavigationPatterns.Has(
-        "NextPage"
-    ) {
-        ToolTip(
-            "Next-page pattern is missing."
-        )
-
-        return false
-    }
-
-
-    nextPattern :=
-        NavigationPatterns[
-            "NextPage"
-        ]
-
-
-    if !FindText(
-        &X,
-        &Y,
-        0,
-        0,
-        A_ScreenWidth,
-        A_ScreenHeight,
-        0,
-        0,
-        nextPattern
-    ) {
-        ToolTip(
-            "Could not find Next Page button."
-            "`nCurrent page: "
-            CurrentMapPage
-        )
-
-        return false
-    }
-
-
-    Click(X, Y)
-
-    Sleep(500)
-
-
-    CurrentMapPage++
-
-
-    return true
-}
-
-
-SelectDifficulty(
-    difficulty
-) {
-    global NavigationPatterns
-
 
     if !NavigationPatterns.Has(
         difficulty
@@ -672,12 +425,10 @@ SelectDifficulty(
         return false
     }
 
-
     pattern :=
         NavigationPatterns[
             difficulty
         ]
-
 
     if !FindText(
         &X,
@@ -698,21 +449,15 @@ SelectDifficulty(
         return false
     }
 
-
     Click(X, Y)
 
     Sleep(500)
 
-
     return true
 }
 
-
-SelectGameMode(
-    gameMode
-) {
+SelectGameMode(gameMode) {
     global NavigationPatterns
-
 
     if !NavigationPatterns.Has(
         gameMode
@@ -725,19 +470,14 @@ SelectGameMode(
         return false
     }
 
-
     pattern :=
         NavigationPatterns[
             gameMode
         ]
 
-
     lockedHits := 0
 
-
-    ; Always prioritize the unlocked mode.
     Loop 30 {
-
         if FindText(
             &X,
             &Y,
@@ -756,19 +496,12 @@ SelectGameMode(
             return true
         }
 
-
-        ; Do not classify the mode as locked
-        ; immediately after one failed scan.
         if A_Index >= 5 {
-
             if IsGameModeLocked(
                 gameMode
             ) {
                 lockedHits++
 
-
-                ; Require multiple consecutive
-                ; lock detections.
                 if lockedHits >= 3
                     return "Locked"
             }
@@ -777,26 +510,19 @@ SelectGameMode(
             }
         }
 
-
         Sleep(150)
     }
-
 
     ToolTip(
         "Could not find game mode: "
         gameMode
     )
 
-
     return false
 }
 
-
-IsGameModeLocked(
-    gameMode
-) {
+IsGameModeLocked(gameMode) {
     global GameModeLockPatterns
-
 
     if !GameModeLockPatterns.Has(
         gameMode
@@ -804,16 +530,13 @@ IsGameModeLocked(
         return false
     }
 
-
     pattern :=
         GameModeLockPatterns[
             gameMode
         ]
 
-
     if pattern = ""
         return false
-
 
     return !!FindText(
         &X,
@@ -828,12 +551,10 @@ IsGameModeLocked(
     )
 }
 
-
 HandleSavePrompt(
     timeout := 4000
 ) {
     global NavigationPatterns
-
 
     if !NavigationPatterns.Has(
         "OK"
@@ -841,19 +562,15 @@ HandleSavePrompt(
         return true
     }
 
-
     pattern :=
         NavigationPatterns[
             "OK"
         ]
 
-
     startTime :=
         A_TickCount
 
-
     Loop {
-
         if FindText(
             &X,
             &Y,
@@ -867,12 +584,8 @@ HandleSavePrompt(
         ) {
             Click(X, Y)
 
-
-            ; Make sure the overwrite popup
-            ; actually disappears.
             Loop 20 {
                 Sleep(100)
-
 
                 if !FindText(
                     &CheckX,
@@ -891,16 +604,12 @@ HandleSavePrompt(
                 }
             }
 
-
-            ; If the popup somehow remained
-            ; visible, click it again.
             Click(X, Y)
 
             Sleep(500)
 
             return true
         }
-
 
         if (
             A_TickCount
@@ -910,58 +619,38 @@ HandleSavePrompt(
             return true
         }
 
-
         Sleep(100)
     }
 }
 
-
-HandleModePrompt(
-    gameMode
-) {
+HandleModePrompt(gameMode) {
     global NavigationPatterns
 
-
-    ; Only Deflation and CHIMPS use
-    ; this special confirmation.
     if (
-        gameMode != "Deflation"
-        && gameMode != "CHIMPS"
+        gameMode != "CHIMPS"
+        && gameMode != "Deflation"
     ) {
         return true
     }
 
-
-    ; Both modes use the SAME FindText pattern.
-    ;
-    ; Keep using the existing "CHIMPS OK"
-    ; key so you do not need to duplicate
-    ; or recapture the pattern.
     if !NavigationPatterns.Has(
         "CHIMPS OK"
     ) {
         ToolTip(
-            "Mode confirmation OK pattern "
-            "is missing."
+            "Mode confirmation pattern is missing."
         )
 
         return false
     }
-
 
     pattern :=
         NavigationPatterns[
             "CHIMPS OK"
         ]
 
-
-    ; Give the confirmation screen time
-    ; to appear after selecting the mode.
     Sleep(250)
 
-
     Loop 30 {
-
         if FindText(
             &X,
             &Y,
@@ -980,32 +669,26 @@ HandleModePrompt(
             return true
         }
 
-
         Sleep(150)
     }
 
-
     ToolTip(
-        "Could not find "
+        "Could not find mode confirmation OK."
+        . "`nMode: "
         . gameMode
-        . " confirmation OK."
     )
-
 
     Sleep(1500)
 
     ToolTip()
 
-
     return false
 }
-
 
 WaitForGameLoad(
     timeout := 15000
 ) {
     global NavigationPatterns
-
 
     if !NavigationPatterns.Has(
         "Settings"
@@ -1017,19 +700,15 @@ WaitForGameLoad(
         return false
     }
 
-
     pattern :=
         NavigationPatterns[
             "Settings"
         ]
 
-
     startTime :=
         A_TickCount
 
-
     Loop {
-
         if PatternExists(
             pattern
         ) {
@@ -1037,7 +716,6 @@ WaitForGameLoad(
 
             return true
         }
-
 
         if (
             A_TickCount
@@ -1051,15 +729,31 @@ WaitForGameLoad(
             return false
         }
 
-
         Sleep(200)
     }
 }
 
+RequestLauncherCycleStop() {
+    stopFile :=
+        A_Temp
+        . "\BTD6EverythingMacro_StopCycles.flag"
 
-PatternExists(
-    pattern
-) {
+    try {
+        FileDelete(
+            stopFile
+        )
+    }
+
+    try {
+        FileAppend(
+            "STOP",
+            stopFile,
+            "UTF-8"
+        )
+    }
+}
+
+PatternExists(pattern) {
     return !!FindText(
         &X,
         &Y,
@@ -1072,7 +766,6 @@ PatternExists(
         pattern
     )
 }
-
 
 ClickPattern(
     pattern,
@@ -1092,11 +785,9 @@ ClickPattern(
         return false
     }
 
-
     Click(X, Y)
 
     Sleep(delay)
-
 
     return true
 }

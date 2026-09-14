@@ -2,7 +2,7 @@
 #SingleInstance Force
 
 #Include Scripts\IncludeAll.ahk
-#Include Scripts\UI.ahk
+#Include Scripts\UI\UI.ahk
 
 
 CreateLauncherUI()
@@ -14,8 +14,7 @@ SetTimer(
 )
 
 
-; Ctrl + Shift + P
-^+p::RunSelectedMap()
+^+p::RunCurrentMode()
 
 
 return

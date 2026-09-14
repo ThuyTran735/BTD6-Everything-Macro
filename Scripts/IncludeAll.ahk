@@ -12,6 +12,9 @@ global RunConfig := {
 }
 
 
+; Empty default so shared logic can safely
+; reference TowerSetup before a map strategy
+; replaces it with its real setup.
 global TowerSetup := Map()
 
 

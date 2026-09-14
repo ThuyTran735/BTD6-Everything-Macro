@@ -545,7 +545,7 @@ MonitorLauncherState() {
                 ; to finish loading before the next cycle.
                 SetTimer(
                     StartNextQueuedRun,
-                    -1000
+                    -7000
                 )
 
 

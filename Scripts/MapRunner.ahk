@@ -4,6 +4,11 @@
 RunMapStrategy(strategy) {
     global RunConfig
 
+    ; Every new cycle starts with completely fresh
+    ; internal tower and round tracking state.
+    ResetRoundTracking()
+    ResetTowerSetup()
+
     if !SwitchToFullscreen()
         return false
 

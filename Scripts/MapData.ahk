@@ -46,6 +46,12 @@ global MapData := Map(
         pattern: "|<>YOUR_ADVANCED_MAP_PATTERN"
     },
 
+    "Dark Castle", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*114$24.D0003U003k000s000Q000C00kC00sC00y7U0y7w0z3w0z0y0zkS0zkD0zs3Uzw3kzw4Mzy0Mzy0Mzz0szz0szzUwzzUQzzkyzzkzzzsTzzw7zzy7zzy3TzzUU"
+    },
+
     "#Ouch", {
         category: "Expert",
         page: 17,

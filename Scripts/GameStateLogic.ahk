@@ -64,11 +64,21 @@ HandleVictory() {
     }
 
 
+    ; Make absolutely sure no modifier keys
+    ; are logically stuck before clicking.
+    ReleaseMacroModifierKeys()
+
+
     Click(X, Y)
-    Sleep(700)
+
+
+    Sleep(
+        700
+    )
 
 
     Loop 30 {
+
         if FindText(
             &X,
             &Y,
@@ -80,18 +90,41 @@ HandleVictory() {
             0,
             GameStatePatterns["VictoryHome"]
         ) {
+
+            ; Release modifiers again before Home.
+            ReleaseMacroModifierKeys()
+
+
             Click(X, Y)
 
-            Sleep(1000)
+
+            ; Give BTD6 time to fully return to
+            ; and render the main menu.
+            Sleep(
+                1000
+            )
+
+
+            ; Important:
+            ; clear Alt/Ctrl/Shift/Win again before
+            ; this strategy process finishes.
+            ReleaseMacroModifierKeys()
+
 
             return true
         }
 
-        Sleep(200)
+
+        Sleep(
+            200
+        )
     }
 
 
-    ToolTip("Could not find Home button after victory.")
+    ToolTip(
+        "Could not find Home button after victory."
+    )
+
 
     return false
 }
@@ -205,4 +238,22 @@ ResetTowerSetup() {
 
 
     return true
+}
+
+ReleaseMacroModifierKeys() {
+    SendEvent(
+        "{LAlt Up}"
+        . "{RAlt Up}"
+        . "{LCtrl Up}"
+        . "{RCtrl Up}"
+        . "{LShift Up}"
+        . "{RShift Up}"
+        . "{LWin Up}"
+        . "{RWin Up}"
+    )
+
+
+    Sleep(
+        50
+    )
 }

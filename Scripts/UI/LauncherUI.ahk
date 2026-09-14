@@ -775,6 +775,24 @@ StartNextQueuedRun() {
 
     try {
 
+        ; Clean modifier state before a new strategy
+        ; process is started.
+        SendEvent(
+            "{LAlt Up}"
+            . "{RAlt Up}"
+            . "{LCtrl Up}"
+            . "{RCtrl Up}"
+            . "{LShift Up}"
+            . "{RShift Up}"
+            . "{LWin Up}"
+            . "{RWin Up}"
+        )
+
+
+        Sleep(
+            50
+        )
+
         Run(
             command,
             A_ScriptDir,

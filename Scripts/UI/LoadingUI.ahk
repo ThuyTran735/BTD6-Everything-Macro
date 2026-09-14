@@ -36,7 +36,6 @@ CreateStartupLoadingUI(
     StartupLoadingProgress := ""
 
 
-    ; Use the exact same window style as the main launcher.
     StartupLoadingGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
@@ -200,8 +199,6 @@ CreateStartupLoadingUI(
     )
 
 
-    ; Create it hidden at the exact same client size
-    ; as the main launcher.
     StartupLoadingGui.Show(
         "Hide w"
         . GuiWidth
@@ -393,10 +390,8 @@ ShowStartupLoadingUI() {
     )
 
 
-    ; Let Windows paint the full window before
-    ; starting the animation.
     Sleep(
-        100
+        10
     )
 }
 
@@ -487,10 +482,18 @@ RunFakeLoadingAnimation(
         1
 
 
-    Loop 101 {
+    Loop 21 {
 
         percent :=
-            A_Index - 1
+            (A_Index - 1)
+            * 5
+
+
+        if percent > 100 {
+
+            percent :=
+                100
+        }
 
 
         StartupLoadingProgress.Value :=
@@ -531,13 +534,13 @@ RunFakeLoadingAnimation(
 
 
         Sleep(
-            25
+            5
         )
     }
 
 
     Sleep(
-        450
+        25
     )
 
 
@@ -614,7 +617,7 @@ RunStartupLoadingAnimation() {
             text: "INITIALIZING MACRO..."
         },
         {
-            percent: 12,
+            percent: 10,
             text: "LOADING STRATEGY..."
         },
         {
@@ -622,19 +625,19 @@ RunStartupLoadingAnimation() {
             text: "CHECKING MAP DATA..."
         },
         {
-            percent: 38,
+            percent: 40,
             text: "SYNCING CONTROLS..."
         },
         {
-            percent: 51,
+            percent: 50,
             text: "COUNTING BANANAS..."
         },
         {
-            percent: 64,
+            percent: 65,
             text: "POLISHING DARTS..."
         },
         {
-            percent: 77,
+            percent: 80,
             text: "GETTING MONKEYS READY..."
         },
         {

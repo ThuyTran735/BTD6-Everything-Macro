@@ -127,20 +127,36 @@ global WeirdReadActive := false
 global RoundStartTick := 0
 global LastTrackedRound := 0
 
+global RoundReadMissingSince := 0
+global RoundReadTimeoutMs := 10000
+
+global RoundRecoveryX := 1598
+global RoundRecoveryY := 1043
+
 
 GetRoundArea() {
     global RunConfig
     global RoundAreas
 
 
-    difficulty := RunConfig.difficulty
+    difficulty :=
+        RunConfig.difficulty
 
 
-    if !RoundAreas.Has(difficulty)
-        throw Error("No round area configured for: " difficulty)
+    if !RoundAreas.Has(
+        difficulty
+    ) {
+
+        throw Error(
+            "No round area configured for: "
+            . difficulty
+        )
+    }
 
 
-    return RoundAreas[difficulty]
+    return RoundAreas[
+        difficulty
+    ]
 }
 
 
@@ -148,10 +164,13 @@ GetStartingRound() {
     global RunConfig
 
 
-    ; Modes such as Deflation can override
-    ; the normal starting round.
-    if HasProp(RunConfig, "startRound")
+    if HasProp(
+        RunConfig,
+        "startRound"
+    ) {
+
         return RunConfig.startRound
+    }
 
 
     return 1
@@ -163,20 +182,33 @@ GetFinalRound() {
     global DifficultyRounds
 
 
-    ; Modes such as Deflation can override
-    ; the normal final round.
-    if HasProp(RunConfig, "endRound")
+    if HasProp(
+        RunConfig,
+        "endRound"
+    ) {
+
         return RunConfig.endRound
+    }
 
 
-    difficulty := RunConfig.difficulty
+    difficulty :=
+        RunConfig.difficulty
 
 
-    if !DifficultyRounds.Has(difficulty)
-        throw Error("Unknown difficulty: " difficulty)
+    if !DifficultyRounds.Has(
+        difficulty
+    ) {
+
+        throw Error(
+            "Unknown difficulty: "
+            . difficulty
+        )
+    }
 
 
-    return DifficultyRounds[difficulty]
+    return DifficultyRounds[
+        difficulty
+    ]
 }
 
 
@@ -184,51 +216,68 @@ GetCurrentRound() {
     global RoundDigits
 
 
-    areas := GetRoundArea()
+    areas :=
+        GetRoundArea()
 
 
-    for areaName in ["regular", "rightPanel"] {
-        area := areas.%areaName%
+    for areaName in [
+        "regular",
+        "rightPanel"
+    ] {
+
+        area :=
+            areas.%areaName%
 
 
-        ok := FindText(
-            &X,
-            &Y,
-            area.x1,
-            area.y1,
-            area.x2,
-            area.y2,
-            0,
-            0,
-            RoundDigits,
-            1,
-            1
-        )
+        ok :=
+            FindText(
+                &X,
+                &Y,
+                area.x1,
+                area.y1,
+                area.x2,
+                area.y2,
+                0,
+                0,
+                RoundDigits,
+                1,
+                1
+            )
 
 
-        if !ok
+        if !ok {
             continue
+        }
 
 
-        ok := FindText().Sort(ok)
+        ok :=
+            FindText().Sort(
+                ok
+            )
 
 
-        result := FindText().Ocr(
-            ok,
-            20,
-            20,
-            3
-        )
+        result :=
+            FindText().Ocr(
+                ok,
+                20,
+                20,
+                3
+            )
 
 
-        roundText := RegExReplace(
-            result.text,
-            "\D"
-        )
+        roundText :=
+            RegExReplace(
+                result.text,
+                "\D"
+            )
 
 
-        if roundText != ""
-            return Integer(roundText)
+        if roundText != "" {
+
+            return Integer(
+                roundText
+            )
+        }
     }
 
 
@@ -243,123 +292,153 @@ TrackRoundStart() {
 
 
     if LastTrackedRound != LastRound {
-        LastTrackedRound := LastRound
-        RoundStartTick := A_TickCount
+
+        LastTrackedRound :=
+            LastRound
+
+
+        RoundStartTick :=
+            A_TickCount
     }
 }
 
 
-ValidateRound(detectedRound) {
+ValidateRound(
+    detectedRound
+) {
     global LastRound
     global LastWeirdRead
     global WeirdReadActive
 
 
-    finalRound := GetFinalRound()
-    startingRound := GetStartingRound()
+    finalRound :=
+        GetFinalRound()
 
 
-    ; Standard modes begin tracking from 0,
-    ; so their first OCR result initializes normally.
-    ;
-    ; Custom-start modes such as Deflation begin
-    ; tracking at startRound - 1.
+    startingRound :=
+        GetStartingRound()
+
+
     if LastRound < startingRound {
+
         if (
             detectedRound >= startingRound
             && detectedRound <= finalRound
         ) {
-            LastRound := detectedRound
+
+            LastRound :=
+                detectedRound
+
 
             TrackRoundStart()
+
 
             return LastRound
         }
     }
 
 
-    difference := detectedRound - LastRound
+    difference :=
+        detectedRound
+        - LastRound
 
 
-    ; Normal mode.
     if !WeirdReadActive {
 
-        ; Same round.
-        if difference = 0
+        if difference = 0 {
             return LastRound
+        }
 
 
-        ; Normal forward movement.
-        if difference > 0 && difference <= 5 {
-            LastRound := Min(
+        if (
+            difference > 0
+            && difference <= 5
+        ) {
+
+            LastRound :=
+                Min(
+                    detectedRound,
+                    finalRound
+                )
+
+
+            TrackRoundStart()
+
+
+            return LastRound
+        }
+
+
+        WeirdReadActive :=
+            true
+
+
+        LastWeirdRead :=
+            detectedRound
+
+
+        if LastRound < finalRound {
+
+            LastRound++
+
+
+            TrackRoundStart()
+        }
+
+
+        return LastRound
+    }
+
+
+    if detectedRound = LastRound {
+
+        ResetWeirdReads()
+
+
+        return LastRound
+    }
+
+
+    difference :=
+        detectedRound
+        - LastRound
+
+
+    if (
+        difference > 0
+        && difference <= 5
+    ) {
+
+        LastRound :=
+            Min(
                 detectedRound,
                 finalRound
             )
 
-            TrackRoundStart()
-
-            return LastRound
-        }
-
-
-        ; Weird OCR reading detected.
-        WeirdReadActive := true
-        LastWeirdRead := detectedRound
-
-
-        ; Assume the actual round advanced by one.
-        if LastRound < finalRound {
-            LastRound++
-
-            TrackRoundStart()
-        }
-
-
-        return LastRound
-    }
-
-
-    ; OCR recovered and matches our tracked round.
-    if detectedRound = LastRound {
-        ResetWeirdReads()
-
-        return LastRound
-    }
-
-
-    difference := detectedRound - LastRound
-
-
-    ; OCR recovered to a believable future round.
-    if difference > 0 && difference <= 5 {
-        LastRound := Min(
-            detectedRound,
-            finalRound
-        )
 
         TrackRoundStart()
 
+
         ResetWeirdReads()
+
 
         return LastRound
     }
 
 
-    ; Same weird OCR value.
-    ;
-    ; Do not continuously increase the tracked round.
-    if detectedRound = LastWeirdRead
+    if detectedRound = LastWeirdRead {
         return LastRound
+    }
 
 
-    ; Weird OCR value changed.
-    ;
-    ; Assume the real round advanced by one.
-    LastWeirdRead := detectedRound
+    LastWeirdRead :=
+        detectedRound
 
 
     if LastRound < finalRound {
+
         LastRound++
+
 
         TrackRoundStart()
     }
@@ -374,8 +453,12 @@ ResetWeirdReads() {
     global WeirdReadActive
 
 
-    LastWeirdRead := 0
-    WeirdReadActive := false
+    LastWeirdRead :=
+        0
+
+
+    WeirdReadActive :=
+        false
 }
 
 
@@ -383,69 +466,226 @@ GetValidatedRound() {
     global LastRound
 
 
-    detectedRound := GetCurrentRound()
+    detectedRound :=
+        GetCurrentRound()
 
 
-    if !detectedRound
+    if !detectedRound {
+
+        HandleMissingRoundRead()
+
+
         return LastRound
+    }
 
 
-    return ValidateRound(detectedRound)
+    ResetRoundReadFailureTracking()
+
+
+    return ValidateRound(
+        detectedRound
+    )
 }
 
 
-WaitForRound(targetRound) {
-    startingRound := GetStartingRound()
-    finalRound := GetFinalRound()
+CheckRoundReadRecovery() {
+    detectedRound :=
+        GetCurrentRound()
+
+
+    if detectedRound {
+
+        ResetRoundReadFailureTracking()
+
+
+        ValidateRound(
+            detectedRound
+        )
+
+
+        return "Readable"
+    }
+
+
+    if HandleMissingRoundRead() {
+
+        return "Recovered"
+    }
+
+
+    return "Waiting"
+}
+
+
+HandleMissingRoundRead() {
+    global RoundReadMissingSince
+    global RoundReadTimeoutMs
+
+
+    if RoundReadMissingSince = 0 {
+
+        RoundReadMissingSince :=
+            A_TickCount
+
+
+        return false
+    }
+
+
+    if (
+        A_TickCount
+        - RoundReadMissingSince
+        < RoundReadTimeoutMs
+    ) {
+
+        return false
+    }
+
+
+    DismissUnknownRoundBlockingPopup()
+
+
+    ; Prevent click spam if the first recovery attempt
+    ; did not clear whatever blocked the round display.
+    RoundReadMissingSince :=
+        A_TickCount
+
+
+    return true
+}
+
+
+DismissUnknownRoundBlockingPopup() {
+    global RoundRecoveryX
+    global RoundRecoveryY
+
+
+    oldMouseMode :=
+        A_CoordModeMouse
+
+
+    CoordMode(
+        "Mouse",
+        "Screen"
+    )
+
+
+    Loop 3 {
+
+        Click(
+            RoundRecoveryX,
+            RoundRecoveryY
+        )
+
+
+        Sleep(
+            300
+        )
+    }
+
+
+    CoordMode(
+        "Mouse",
+        oldMouseMode
+    )
+
+
+    Sleep(
+        400
+    )
+
+
+    return true
+}
+
+
+ResetRoundReadFailureTracking() {
+    global RoundReadMissingSince
+
+
+    RoundReadMissingSince :=
+        0
+}
+
+
+WaitForRound(
+    targetRound
+) {
+    startingRound :=
+        GetStartingRound()
+
+
+    finalRound :=
+        GetFinalRound()
 
 
     if targetRound < startingRound {
+
         throw Error(
-            "Round " targetRound
-            " is before this mode's starting round "
-            startingRound "."
+            "Round "
+            . targetRound
+            . " is before this mode's starting round "
+            . startingRound
+            . "."
         )
     }
 
 
     if targetRound > finalRound {
+
         throw Error(
-            "Round " targetRound
-            " is after this mode's final round "
-            finalRound "."
+            "Round "
+            . targetRound
+            . " is after this mode's final round "
+            . finalRound
+            . "."
         )
     }
 
 
-    lastStateCheck := A_TickCount
+    lastStateCheck :=
+        A_TickCount
 
 
     Loop {
-        currentRound := GetValidatedRound()
+
+        currentRound :=
+            GetValidatedRound()
 
 
-        if currentRound >= targetRound
+        if currentRound >= targetRound {
             return true
-
-
-        ; Only check Victory/Defeat every 200 ms.
-        if A_TickCount - lastStateCheck >= 200 {
-            lastStateCheck := A_TickCount
-
-
-            state := CheckGameState()
-
-
-            if state = "Victory"
-                return "Victory"
-
-
-            if state = "Defeat"
-                return "Defeat"
         }
 
 
-        Sleep(50)
+        if (
+            A_TickCount
+            - lastStateCheck
+            >= 200
+        ) {
+
+            lastStateCheck :=
+                A_TickCount
+
+
+            state :=
+                CheckGameState()
+
+
+            if state = "Victory" {
+                return "Victory"
+            }
+
+
+            if state = "Defeat" {
+                return "Defeat"
+            }
+        }
+
+
+        Sleep(
+            50
+        )
     }
 }
 
@@ -461,11 +701,13 @@ GetRoundElapsedTime() {
     global RoundStartTick
 
 
-    if RoundStartTick = 0
+    if RoundStartTick = 0 {
         return 0
+    }
 
 
-    return A_TickCount - RoundStartTick
+    return A_TickCount
+        - RoundStartTick
 }
 
 
@@ -475,22 +717,30 @@ ResetRoundTracking() {
     global WeirdReadActive
     global RoundStartTick
     global LastTrackedRound
+    global RoundReadMissingSince
 
 
-    ; Standard:
-    ; startRound = 1
-    ; LastRound = 0
-    ;
-    ; Deflation:
-    ; startRound = 31
-    ; LastRound = 30
-    LastRound := GetStartingRound() - 1
+    LastRound :=
+        GetStartingRound()
+        - 1
 
 
-    LastWeirdRead := 0
-    WeirdReadActive := false
+    LastWeirdRead :=
+        0
 
 
-    RoundStartTick := 0
-    LastTrackedRound := LastRound
+    WeirdReadActive :=
+        false
+
+
+    RoundStartTick :=
+        0
+
+
+    LastTrackedRound :=
+        LastRound
+
+
+    RoundReadMissingSince :=
+        0
 }

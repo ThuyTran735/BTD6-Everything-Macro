@@ -4,6 +4,9 @@
 RunMapStrategy(strategy) {
     global RunConfig
 
+    if !SwitchToFullscreen()
+        return false
+
 
     navigationResult := NavigateToMap(
         RunConfig.category,

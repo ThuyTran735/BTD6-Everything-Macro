@@ -2,6 +2,7 @@
 
 #Include ..\Lib\FindText.ahk
 
+
 global RunConfig := {
     category: "",
     map: "",
@@ -9,6 +10,10 @@ global RunConfig := {
     gameMode: "",
     hero: ""
 }
+
+
+global TowerSetup := Map()
+
 
 #Include TowerData.ahk
 #Include MapData.ahk
@@ -35,5 +40,6 @@ global RunConfig := {
 
 #Include GameModeUnlockLogic.ahk
 #Include MapRunner.ahk
+
 
 #Include DailyChestLogic.ahk

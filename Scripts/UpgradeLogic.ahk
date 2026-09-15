@@ -512,7 +512,7 @@ WaitForUpgrade(
 
                 if lastRoundHealth = "Recovered" {
 
-                    ; The three fallback clicks will have
+                    ; The five fallback clicks will have
                     ; closed the currently selected panel.
                     ;
                     ; Immediately reselect THIS monkey.
@@ -576,7 +576,7 @@ WaitForUpgrade(
                 ; popup may be covering the screen.
                 ;
                 ; In that specific case, wait for the
-                ; 10-second fallback instead of clicking
+                ; 7500 ms fallback instead of clicking
                 ; random locations behind the popup.
                 if (
                     !IsPregame
@@ -751,7 +751,7 @@ EnsureUpgradePanelOpen(
         if roundHealth = "Recovered" {
 
             ; Unknown popup recovery just clicked
-            ; 1598,1043 three times.
+            ; 1598,1043 five times.
             ;
             ; Re-select the monkey immediately.
             Click(
@@ -826,7 +826,7 @@ EnsureUpgradePanelOpen(
 
         ; If roundHealth = "Waiting", do not click
         ; behind a likely unknown popup. The round
-        ; recovery timer will clear it after 10 seconds.
+        ; recovery timer will clear it after 7500 ms.
         if (
             A_TickCount
             - startTick

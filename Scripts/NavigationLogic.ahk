@@ -173,6 +173,11 @@ NavigateToMap(
 OpenPlayMenu() {
     global NavigationPatterns
 
+    ; Clear Home-menu interruptions before trying Play.
+    ; This returns immediately when no configured popup
+    ; pattern is visible.
+    HandleHomeMenuInterruptions()
+
     if NavigationPatterns.Has(
         "MapScreen"
     ) {

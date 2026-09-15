@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 
 PositionLauncher() {
@@ -545,7 +545,7 @@ MonitorLauncherState() {
                 ; to finish loading before the next cycle.
                 SetTimer(
                     StartNextQueuedRun,
-                    -2000
+                    -7000
                 )
 
 

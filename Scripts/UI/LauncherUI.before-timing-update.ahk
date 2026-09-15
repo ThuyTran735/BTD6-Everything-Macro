@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 
 CreateLauncherUI() {
@@ -549,7 +549,7 @@ RunDefaultMode() {
 
         SetTimer(
             () => ToolTip(),
-            -2000
+            -2500
         )
 
 

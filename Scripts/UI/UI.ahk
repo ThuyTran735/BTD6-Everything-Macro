@@ -12,8 +12,8 @@ global MapDropdown := ""
 
 global HotkeyText := ""
 
-global ParagonTitle := ""
-global ParagonDescription := ""
+global MonkeyExpTitle := ""
+global MonkeyExpDescription := ""
 
 global StatusText := ""
 

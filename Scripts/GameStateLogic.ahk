@@ -14,6 +14,11 @@
     "NewBloonOK", "|<>*154$120.0000000003y1y00000000000000007zzzy0000000000000A0Dzzzz0000000000003zsDzzzz000000000000DzyC0T0D000000000000zzzC0S0D000000000001y0Ti0S0T000000000003s07y0Q0T000000000003k01y0M0y000000000007U00y0M1w00000000000D000y0E3s00000000000D000S003s00000000000C000C007k00000000000S0A0C00DU00000000000Q0z0C00DU00000000000Q0z0C00T000000000000Q1zUC00S000000000000Q1zUC00S000000000000Q1zUC00D000000000000Q0zUC00D000000000000Q0z0C007U00000000000S0S0C003U00000000000S000S003k00000000000S000S0U1s000000zzzzzz000y0k1zzzzzzzzzzzzzU01y0s0zzzzzzzzzzzzzk03y0s0zzzzzzzzzzzzzs07y0w0Tzzzzzzzzzzzzy0Ty0y0Tzzzzzzzzzzzzzzzy0y3zzzzzzzzzzzzzzzzy0zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzU",
 
     "LoginNotNow", "|<>*173$169.DzkTy000000003zwDzU0000000w0DzwzzUTw3zzzw3zzDzsDz01z00zz7zzTztzzVzzzy3zzjzwTzsTzzzzzrU3y0xzzxs007Vk1z0CTzzTzzzwTzU1y0Dw0Ts001ks0TU7y07zkTzy0Tk0T07s03w000sQ0Dk3y01z0DUD0Ds0DU7s00y000QC03s1y00DU3k7U7Q03k3s00D000C701w0y003k1k3k3i01s1s003U0073U0S0S001s0s1s1r00Q0w001k003Vk0D0C000S0Q0w0vU0C0Q000s003ks03U7000D0C0C0Rk030C0A0Ts0zsQ01k70303U7060Ss01U60TUDy0TsC00M3U7k1k3U30CQ00E70Dk3z0Dw700A1k7w0s1U1U7C0003U7w1zU7w3U000s3y0Q0E0k3b0801k7y0zk3U1k200Q1zUD08081nU400s1z0Ss1k0s100C0vU7U4040tk300Q0zUDQ0s0Q0k070Tk3k2020ws1U0C0TU7C0Q0C0M03U7s1s0000SQ0s07U7U3b0C070A01k1s1w01U0CC0Q01k003nU703U700w000z00k0770D00s001tk3U3k3U0S000TU0M03XU7U0S001ss1k1s1s0DU00Tk0A01lk3k0DU00wQ0s0w0w07s00Ts0701ss1w0Ds00wC0Q0S0S03w00TQ03U0sQ0y07y01y70C0C0TU1zU0TC03k0QC0T03zk3y3U7070Dk0zw0zbU1s0C70Dkzzzzy1k7U3k7wDxzzzXk0w073zzzztzzy0zzk1zzzzyTzzUzzz03VzzzzwDzy0Tzk0zzzzz7zz0Tzzzzkzzzzw1zw0Dzs0Dzvzz0zy0DzzzzkDznzU07U03zs07zwzs01s07zzzzs00000000000000000000001zyTzw4",
+    "CloseDLC", "|<>*135$186.zk001s0007zw00TzU0U0Tk0007U0Tw0zk001s0003zs007zU000Dk0007U0Tk0zk001s0001zk003zU0007k0007U0Tk0zk001s0001zU001zU0007k0007U0zU0zk001s0000z0000zU0007k0007U0z00zk001s0D00y0000zU0803k0007U0z00zk0Dzs0TU0y0000TU0Q03k0007U0y00zk0Tzs0Tk0w0000TU0y03k0007U0y01zk0Tzs0Tk0w0000D00y03k00DzU0w07zk0Dzs0Tk0s07k0D00y03zs0DzU0w0Dzk003s0Tk1s0Ds0D01y03zs0DzU0w0Dzk003s0Tk1s0Tw0D01y03zs0DzU0w0Dzk003s0TU1s0Tw0D01y03zs0DzU0s0Dzk003s0T01s0zw0D01y01zs0DzU1s00zk003s0A01s0zw0D01y01zs0DzU1s00zk003s0001s0zw0D01y01zs0DzU1s00zk003s0003s0Tw0D01y01zs0DzU1s00zk0Dzs0007s0Tw0D01y01zs0DzU1s00zk0Tzs000Ds0Ds0D01y01zs0DzU1s03zk0Tzs000Ts0Dk0D01y01zs0DzU1s0DU",
+    "BossRush", "|<>FFFFFF-0.90$45.000060600001y1z0000DkTs3zU1y3y1zz0DkzUTzw1y7w7zzkDlz1zzy1yTkDzzsDny3z3z1zzUTkDsDzs3w0zVzy0TU7wDzk7w0zXzy0zU7wTzs3w0zXzzUTU7sTzw3y1z3zzkTsTsTry1zzy3wTsDzzkTXz0zzw3wDw3zz0TUzkDzk3w7y0Ds0TUTk0003w1k0000D004",
+
+    "MonkeyMoney", "|<>*138$299.0C3k1y000z07k0s1U0z000zy0Dzzw0M707s003w0T03k00DzU00S7U3y003y0DU1k3U0y003zw0Tzzs0sS0Ds00Ds0y07k00Tz000wD07y00Dw0S03U7U1y007zs0zzzk1kw0Ts00zk1w0DU00zy001wy0Dz01zk0w070D01y00Dzk1zzzU3ls0zw03zU3k0TU01zw003zw0TzUDzU1s0C0T03y00TzU3zzz07zk1zy0zz07U0zU03zs00Dzs0zzzzz03s0Q0z07y00zzUDzzy0zzU3zzzzy0DU1zU0Dzs1zzzszzzzzzzzzzs1z3zz07zzzzzzzzzzXzzzzzzzzzzzk1zzzz",
+    "MKBook", "|<>*221$42.zzzzzzzzzzzzzzzzzzzzzzzzzk3zzzzzU1zzzzzU0zzzzz00zzzzy00Tzzzw00TDzzs00D3zzk00D1zzU00D0zzU00D0TzU00D0DzU00D0DzU00D0Dz000D0Dz000D0Dz000D0Dz000T0Dz000T0Dz000z0Dz000z0Dz001z0Tz003z0TzU07z0TzU0Tz0zzw3zz0zzzzzz0zzzzzz3zzzzzz7zzzzzzTzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzU",
 )
 
 
@@ -21,14 +26,24 @@ CheckGameState() {
     global GameStatePatterns
 
 
-    ; These interruptions can happen while the macro
-    ; is simply waiting for rounds to pass.
+    ; Mid-game interruption screens can appear while
+    ; waiting for rounds or while upgrading.
     if HandleLevelUpPopup() {
         return "Playing"
     }
 
 
     if HandleNewBloonPopup() {
+        return "Playing"
+    }
+
+
+    if HandleMonkeyMoneyPopup() {
+        return "Playing"
+    }
+
+
+    if HandleMKBookPopup() {
         return "Playing"
     }
 
@@ -102,7 +117,6 @@ HandleLevelUpPopup() {
     }
 
 
-    ; Click the level-up screen itself.
     Click(
         X,
         Y
@@ -114,12 +128,9 @@ HandleLevelUpPopup() {
     )
 
 
-    ; New players may immediately receive a monkey
-    ; unlock screen afterward.
     HandleMonkeyUnlockAfterLevelUp()
 
 
-    ; Allow normal gameplay to finish returning.
     WaitForGameplayAfterPopup(
         4000
     )
@@ -153,8 +164,6 @@ HandleMonkeyUnlockAfterLevelUp() {
 
     Loop 30 {
 
-        ; Once Settings is visible again, normal
-        ; gameplay has returned.
         if IsGameplayScreenVisible() {
             return true
         }
@@ -208,11 +217,11 @@ HandleNewBloonPopup() {
     }
 
 
-    newBloonPattern :=
+    pattern :=
         GameStatePatterns["NewBloonOK"]
 
 
-    if newBloonPattern = "" {
+    if pattern = "" {
         return false
     }
 
@@ -226,7 +235,7 @@ HandleNewBloonPopup() {
         A_ScreenHeight,
         0,
         0,
-        newBloonPattern
+        pattern
     ) {
         return false
     }
@@ -234,10 +243,122 @@ HandleNewBloonPopup() {
 
     ; Only dismiss the popup here.
     ;
-    ; GameStateLogic never opens an upgrade panel.
-    ; If this occurred while UpgradeTower() was active,
-    ; UpgradeLogic is responsible for reselecting the
-    ; tower and restoring its panel.
+    ; If this happened during UpgradeTower(),
+    ; UpgradeLogic will restore the same tower's
+    ; upgrade panel afterward.
+    Click(
+        X,
+        Y
+    )
+
+
+    Sleep(
+        500
+    )
+
+
+    return true
+}
+
+
+HandleMonkeyMoneyPopup() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has(
+        "MonkeyMoney"
+    ) {
+        return false
+    }
+
+
+    pattern :=
+        GameStatePatterns["MonkeyMoney"]
+
+
+    if pattern = "" {
+        return false
+    }
+
+
+    if !FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0.08,
+        0.08,
+        pattern
+    ) {
+        return false
+    }
+
+
+    ; Allow a small amount of capture variation so the
+    ; Monkey Money pattern does not require a pixel-perfect
+    ; match. Click the detected pattern itself.
+    ;
+    ; Only dismiss the Monkey Money popup here.
+    ;
+    ; Do not select a tower in GameStateLogic.
+    ; UpgradeLogic handles restoring the currently
+    ; selected tower only when an upgrade is active.
+    Click(
+        X,
+        Y
+    )
+
+
+    Sleep(
+        500
+    )
+
+
+    return true
+}
+
+
+HandleMKBookPopup() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has(
+        "MKBook"
+    ) {
+        return false
+    }
+
+
+    pattern :=
+        GameStatePatterns["MKBook"]
+
+
+    ; Keep this empty until an actual MK Book FindText
+    ; capture is supplied. Do not fabricate a pattern.
+    if pattern = "" {
+        return false
+    }
+
+
+    if !FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0.08,
+        0.08,
+        pattern
+    ) {
+        return false
+    }
+
+
+    ; MK Book behaves like Monkey Money: there is no
+    ; separate button, so click the detected pattern itself.
     Click(
         X,
         Y
@@ -324,24 +445,182 @@ WaitForGameplayAfterPopup(
 }
 
 
+HandleHomeMenuInterruptions() {
+    handledAny := false
+
+
+    Loop 4 {
+
+        if HandleCloseDLCPopup() {
+            handledAny := true
+            continue
+        }
+
+
+        if HandleBossRushPopup() {
+            handledAny := true
+            continue
+        }
+
+
+        break
+    }
+
+
+    return handledAny
+}
+
+
+HandleCloseDLCPopup() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has(
+        "CloseDLC"
+    ) {
+        return false
+    }
+
+
+    pattern :=
+        GameStatePatterns["CloseDLC"]
+
+
+    if pattern = "" {
+        return false
+    }
+
+
+    if !FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        pattern
+    ) {
+        return false
+    }
+
+
+    ReleaseMacroModifierKeys()
+
+
+    ; Close DLC is detected by its pattern, but its
+    ; dismiss target is the fixed close coordinate.
+    Click(
+        232,
+        175
+    )
+
+
+    Sleep(
+        700
+    )
+
+
+    return true
+}
+
+
+HandleBossRushPopup() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has(
+        "BossRush"
+    ) {
+        return false
+    }
+
+
+    pattern :=
+        GameStatePatterns["BossRush"]
+
+
+    if pattern = "" {
+        return false
+    }
+
+
+    if !FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        pattern
+    ) {
+        return false
+    }
+
+
+    ReleaseMacroModifierKeys()
+
+
+    ; The Boss Rush capture is the button to dismiss,
+    ; so click the detected pattern itself.
+    Click(
+        X,
+        Y
+    )
+
+
+    Sleep(
+        700
+    )
+
+
+    return true
+}
+
+
 HandleLoginNotNowPrompt(
     timeoutMs := 3000
 ) {
     global GameStatePatterns
 
 
-    if !GameStatePatterns.Has(
+    notNowPattern := ""
+    closeDLCPattern := ""
+    bossRushPattern := ""
+
+
+    if GameStatePatterns.Has(
         "LoginNotNow"
     ) {
-        return false
+        notNowPattern :=
+            GameStatePatterns["LoginNotNow"]
     }
 
 
-    notNowPattern :=
-        GameStatePatterns["LoginNotNow"]
+    if GameStatePatterns.Has(
+        "CloseDLC"
+    ) {
+        closeDLCPattern :=
+            GameStatePatterns["CloseDLC"]
+    }
 
 
-    if notNowPattern = "" {
+    if GameStatePatterns.Has(
+        "BossRush"
+    ) {
+        bossRushPattern :=
+            GameStatePatterns["BossRush"]
+    }
+
+
+    if (
+        notNowPattern = ""
+        && closeDLCPattern = ""
+        && bossRushPattern = ""
+    ) {
         return false
     }
 
@@ -356,21 +635,19 @@ HandleLoginNotNowPrompt(
 
     Loop {
 
-        ; Check the login prompt first.
-        ;
-        ; Even if the Home screen becomes visible
-        ; briefly before the prompt appears, this gives
-        ; the prompt time to render.
-        if FindText(
-            &X,
-            &Y,
-            0,
-            0,
-            A_ScreenWidth,
-            A_ScreenHeight,
-            0,
-            0,
-            notNowPattern
+        if (
+            notNowPattern != ""
+            && FindText(
+                &X,
+                &Y,
+                0,
+                0,
+                A_ScreenWidth,
+                A_ScreenHeight,
+                0,
+                0,
+                notNowPattern
+            )
         ) {
 
             ReleaseMacroModifierKeys()
@@ -391,9 +668,25 @@ HandleLoginNotNowPrompt(
         }
 
 
-        ; If Home is already visible, don't immediately
-        ; stop checking. Give the login prompt a short
-        ; grace period in case it appears just afterward.
+        if (
+            closeDLCPattern != ""
+            && HandleCloseDLCPopup()
+        ) {
+            return true
+        }
+
+
+        if (
+            bossRushPattern != ""
+            && HandleBossRushPopup()
+        ) {
+            return true
+        }
+
+
+        ; Home can appear briefly before a
+        ; post-victory prompt renders, so give it
+        ; a short grace period.
         if IsHomeScreenVisible() {
 
             if homeSeenTick = 0 {
@@ -422,7 +715,6 @@ HandleLoginNotNowPrompt(
             - startTick
             >= timeoutMs
         ) {
-
             return false
         }
 
@@ -494,8 +786,6 @@ HandleVictory() {
     }
 
 
-    ; Make absolutely sure no modifier keys
-    ; are logically stuck before clicking.
     ReleaseMacroModifierKeys()
 
 
@@ -533,8 +823,6 @@ HandleVictory() {
             )
 
 
-            ; Give BTD6 time to begin returning
-            ; from the victory screen.
             Sleep(
                 700
             )
@@ -543,17 +831,13 @@ HandleVictory() {
             ReleaseMacroModifierKeys()
 
 
-            ; Logged-out players can be shown a login
-            ; prompt shortly after reaching Home.
-            ;
-            ; If it appears, click NOT NOW.
+            ; Logged-out players can receive a login
+            ; prompt after returning Home.
             HandleLoginNotNowPrompt(
                 3000
             )
 
 
-            ; Make sure all modifiers are released before
-            ; this strategy process finishes.
             ReleaseMacroModifierKeys()
 
 

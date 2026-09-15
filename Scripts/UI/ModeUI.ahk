@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
 ShowModePicker(*) {
@@ -61,7 +61,7 @@ ShowModePicker(*) {
 
     modes := [
         "Default",
-        "Paragon XP Farm",
+        "Monkey EXP Grind Farm",
         "Monkey Money Grind"
     ]
 
@@ -85,7 +85,7 @@ ShowModePicker(*) {
         )
     }
     else if CurrentMode
-        = "Paragon XP Farm" {
+        = "Monkey EXP Grind Farm" {
 
         modeList.Choose(
             2
@@ -238,8 +238,8 @@ ApplyLauncherMode() {
 
     global HotkeyText
 
-    global ParagonTitle
-    global ParagonDescription
+    global MonkeyExpTitle
+    global MonkeyExpDescription
 
     global RunButton
 
@@ -262,8 +262,8 @@ ApplyLauncherMode() {
         HotkeyText.Visible := true
 
 
-        ParagonTitle.Visible := false
-        ParagonDescription.Visible := false
+        MonkeyExpTitle.Visible := false
+        MonkeyExpDescription.Visible := false
 
 
         RunButton.Enabled := true
@@ -283,10 +283,10 @@ ApplyLauncherMode() {
 
 
     if CurrentMode
-        = "Paragon XP Farm" {
+        = "Monkey EXP Grind Farm" {
 
         SubtitleText.Text :=
-            "Paragon XP Farm Mode"
+            "Monkey EXP Grind Farm Mode"
 
 
         CategoryLabel.Visible := false
@@ -298,17 +298,17 @@ ApplyLauncherMode() {
         HotkeyText.Visible := false
 
 
-        ParagonTitle.Text :=
-            "PARAGON XP FARM"
+        MonkeyExpTitle.Text :=
+            "Monkey EXP Grind FARM"
 
 
-        ParagonDescription.Text :=
-            "Paragon XP Farm controls will go here.`n"
+        MonkeyExpDescription.Text :=
+            "Monkey EXP Grind Farm controls will go here.`n"
             . "This mode is ready to be built next."
 
 
-        ParagonTitle.Visible := true
-        ParagonDescription.Visible := true
+        MonkeyExpTitle.Visible := true
+        MonkeyExpDescription.Visible := true
 
 
         RunButton.Enabled := false
@@ -343,17 +343,17 @@ ApplyLauncherMode() {
         HotkeyText.Visible := false
 
 
-        ParagonTitle.Text :=
+        MonkeyExpTitle.Text :=
             "MONKEY MONEY GRIND"
 
 
-        ParagonDescription.Text :=
+        MonkeyExpDescription.Text :=
             "Monkey Money Grind controls will go here.`n"
             . "This mode is ready to be built next."
 
 
-        ParagonTitle.Visible := true
-        ParagonDescription.Visible := true
+        MonkeyExpTitle.Visible := true
+        MonkeyExpDescription.Visible := true
 
 
         RunButton.Enabled := false

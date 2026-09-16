@@ -318,7 +318,7 @@ CreateLauncherUI() {
             350,
             initialMaps,
             1,
-            6
+            5
         )
 
 
@@ -330,7 +330,7 @@ CreateLauncherUI() {
             350,
             categories,
             1,
-            6
+            5
         )
 
 
@@ -344,7 +344,7 @@ CreateLauncherUI() {
                 "No Monkey EXP scripts found"
             ],
             1,
-            6
+            5
         )
 
 

@@ -5,6 +5,7 @@ global UIDarkDropdowns := []
 
 global UIDarkDropdownTimerStarted := false
 global UIDarkDropdownMouseWasDown := false
+global UIDarkDropdownWheelHookStarted := false
 
 
 CreateDarkDropdown(
@@ -14,7 +15,7 @@ CreateDarkDropdown(
     width,
     items := "",
     chooseIndex := 1,
-    maxVisibleRows := 6
+    maxVisibleRows := 5
 ) {
     return DarkDropdown(
         guiObject,
@@ -37,7 +38,7 @@ class DarkDropdown {
         width,
         items := "",
         chooseIndex := 1,
-        maxVisibleRows := 6
+        maxVisibleRows := 5
     ) {
         global UIDarkDropdowns
 
@@ -49,6 +50,7 @@ class DarkDropdown {
         global UIColorControlText
 
         global UIColorPopupBackground
+        global UIColorAccent
 
         global UIFontBody
 
@@ -62,8 +64,16 @@ class DarkDropdown {
         this.Height := 32
         this.RowHeight := 30
 
+        ; Keep short lists compact. Longer lists show five rows and scroll.
         this.MaxVisibleRows :=
-            maxVisibleRows
+            Max(
+                1,
+                maxVisibleRows
+            )
+
+        this.ScrollbarWidth := 6
+        this.ScrollbarGap := 5
+        this.ScrollbarPadding := 4
 
         this.Items := []
 
@@ -254,6 +264,47 @@ class DarkDropdown {
             )
 
 
+        ; Scrollbar stays hidden for lists with five items or fewer.
+        this.ScrollTrack :=
+            this.PopupGui.Add(
+                "Progress",
+                "x"
+                . (width - this.ScrollbarPadding - this.ScrollbarWidth)
+                . " y"
+                . this.ScrollbarPadding
+                . " w"
+                . this.ScrollbarWidth
+                . " h"
+                . Max(1, popupHeight - (this.ScrollbarPadding * 2))
+                . " c"
+                . UIColorControlBorder
+                . " Background"
+                . UIColorControlBorder
+                . " Disabled",
+                100
+            )
+
+        this.ScrollThumb :=
+            this.PopupGui.Add(
+                "Progress",
+                "x"
+                . (width - this.ScrollbarPadding - this.ScrollbarWidth)
+                . " y"
+                . this.ScrollbarPadding
+                . " w"
+                . this.ScrollbarWidth
+                . " h20 c"
+                . UIColorAccent
+                . " Background"
+                . UIColorAccent
+                . " Disabled",
+                100
+            )
+
+        this.ScrollTrack.Visible := false
+        this.ScrollThumb.Visible := false
+
+
         this.Rows := []
 
 
@@ -344,6 +395,7 @@ class DarkDropdown {
 
 
         StartDarkDropdownSystem()
+        StartDarkDropdownWheelHook()
 
 
         if IsObject(
@@ -452,6 +504,7 @@ class DarkDropdown {
 
 
         this.RefreshRows()
+        this.UpdateScrollbar()
 
 
         return this
@@ -476,7 +529,9 @@ class DarkDropdown {
         }
 
 
+        this.ClampScrollOffset()
         this.RefreshRows()
+        this.UpdateScrollbar()
 
 
         return this
@@ -601,12 +656,38 @@ class DarkDropdown {
             + 2
 
 
+        this.UpdateScrollbar(
+            popupHeight
+        )
+
+
         this.PopupBackground.Move(
             1,
             1,
             this.Width - 2,
             popupHeight - 2
         )
+
+
+        contentWidth :=
+            this.GetContentWidth()
+
+
+        for row in this.Rows {
+            row.Background.Move(
+                ,
+                ,
+                contentWidth,
+                this.RowHeight
+            )
+
+            row.Text.Move(
+                ,
+                ,
+                contentWidth,
+                this.RowHeight
+            )
+        }
 
 
         point := Buffer(
@@ -701,6 +782,10 @@ class DarkDropdown {
         try {
             this.PopupGui.Hide()
         }
+
+
+        this.ScrollTrack.Visible := false
+        this.ScrollThumb.Visible := false
 
 
         this.Arrow.Text :=
@@ -821,6 +906,137 @@ class DarkDropdown {
     }
 
 
+    ClampScrollOffset() {
+        maxOffset :=
+            Max(
+                0,
+                this.Items.Length
+                - this.MaxVisibleRows
+            )
+
+        if this.ScrollOffset < 0 {
+            this.ScrollOffset := 0
+        }
+
+        if this.ScrollOffset > maxOffset {
+            this.ScrollOffset := maxOffset
+        }
+    }
+
+
+    GetContentWidth() {
+        if this.Items.Length > this.MaxVisibleRows {
+            return Max(
+                1,
+                this.Width
+                - 2
+                - this.ScrollbarGap
+                - this.ScrollbarWidth
+                - this.ScrollbarPadding
+            )
+        }
+
+        return this.Width - 2
+    }
+
+
+    UpdateScrollbar(
+        popupHeight := 0
+    ) {
+        needsScroll :=
+            this.Items.Length
+            > this.MaxVisibleRows
+
+        if !needsScroll {
+            this.ScrollTrack.Visible := false
+            this.ScrollThumb.Visible := false
+            return
+        }
+
+        if popupHeight <= 0 {
+            visibleRows :=
+                Min(
+                    this.Items.Length,
+                    this.MaxVisibleRows
+                )
+
+            popupHeight :=
+                (visibleRows * this.RowHeight)
+                + 2
+        }
+
+        trackX :=
+            this.Width
+            - this.ScrollbarPadding
+            - this.ScrollbarWidth
+
+        trackY :=
+            this.ScrollbarPadding
+
+        trackHeight :=
+            Max(
+                1,
+                popupHeight
+                - (this.ScrollbarPadding * 2)
+            )
+
+        thumbHeight :=
+            Max(
+                22,
+                Floor(
+                    trackHeight
+                    * this.MaxVisibleRows
+                    / this.Items.Length
+                )
+            )
+
+        thumbHeight :=
+            Min(
+                trackHeight,
+                thumbHeight
+            )
+
+        maxOffset :=
+            Max(
+                1,
+                this.Items.Length
+                - this.MaxVisibleRows
+            )
+
+        travel :=
+            Max(
+                0,
+                trackHeight
+                - thumbHeight
+            )
+
+        thumbY :=
+            trackY
+            + Round(
+                travel
+                * this.ScrollOffset
+                / maxOffset
+            )
+
+        this.ScrollTrack.Move(
+            trackX,
+            trackY,
+            this.ScrollbarWidth,
+            trackHeight
+        )
+
+        this.ScrollThumb.Move(
+            trackX,
+            thumbY,
+            this.ScrollbarWidth,
+            thumbHeight
+        )
+
+        this.ScrollTrack.Visible := this.IsOpen
+        this.ScrollThumb.Visible := this.IsOpen
+    }
+
+
     Scroll(
         direction
     ) {
@@ -850,20 +1066,14 @@ class DarkDropdown {
         }
 
 
-        if this.ScrollOffset < 0 {
-            this.ScrollOffset := 0
-        }
-
-
-        if this.ScrollOffset > maxOffset {
-            this.ScrollOffset := maxOffset
-        }
+        this.ClampScrollOffset()
 
 
         this.HoveredSlot := 0
 
 
         this.RefreshRows()
+        this.UpdateScrollbar()
     }
 
 
@@ -955,6 +1165,11 @@ class DarkDropdown {
                 row.Background.Visible := false
                 row.Text.Visible := false
             }
+        }
+
+
+        if this.IsOpen {
+            this.UpdateScrollbar()
         }
     }
 
@@ -1185,6 +1400,67 @@ class DarkDropdown {
 }
 
 
+StartDarkDropdownWheelHook() {
+    global UIDarkDropdownWheelHookStarted
+
+    if UIDarkDropdownWheelHookStarted {
+        return
+    }
+
+    UIDarkDropdownWheelHookStarted := true
+
+    ; WM_MOUSEWHEEL - reliable even though wheel buttons do not have a held state.
+    OnMessage(
+        0x020A,
+        DarkDropdownMouseWheel
+    )
+}
+
+
+DarkDropdownMouseWheel(
+    wParam,
+    lParam,
+    msg,
+    hwnd
+) {
+    global UIDarkDropdowns
+
+    delta :=
+        (wParam >> 16)
+        & 0xFFFF
+
+    if delta & 0x8000 {
+        delta -= 0x10000
+    }
+
+    if delta = 0 {
+        return
+    }
+
+    mouseWindow := 0
+
+    try {
+        MouseGetPos(
+            ,
+            ,
+            &mouseWindow
+        )
+    }
+
+    for dropdown in UIDarkDropdowns {
+        if (
+            dropdown.IsOpen
+            && mouseWindow = dropdown.PopupGui.Hwnd
+        ) {
+            dropdown.Scroll(
+                delta > 0 ? 1 : -1
+            )
+            return 0
+        }
+    }
+}
+
+
 StartDarkDropdownSystem() {
     global UIDarkDropdownTimerStarted
 
@@ -1268,58 +1544,6 @@ PollDarkDropdowns() {
         leftDown
 
 
-    wheelUp :=
-        GetKeyState(
-            "WheelUp",
-            "P"
-        )
-
-
-    wheelDown :=
-        GetKeyState(
-            "WheelDown",
-            "P"
-        )
-
-
-    if wheelUp {
-
-        for dropdown in UIDarkDropdowns {
-
-            if (
-                dropdown.IsOpen
-                && mouseWindow
-                    = dropdown.PopupGui.Hwnd
-            ) {
-
-                dropdown.Scroll(
-                    1
-                )
-
-
-                break
-            }
-        }
-    }
-    else if wheelDown {
-
-        for dropdown in UIDarkDropdowns {
-
-            if (
-                dropdown.IsOpen
-                && mouseWindow
-                    = dropdown.PopupGui.Hwnd
-            ) {
-
-                dropdown.Scroll(
-                    -1
-                )
-
-
-                break
-            }
-        }
-    }
 }
 
 

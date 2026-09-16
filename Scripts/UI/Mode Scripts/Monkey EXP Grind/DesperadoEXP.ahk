@@ -5,7 +5,7 @@
 ; #Include Location Of IncludeAll.ahk
 
 
-DarkCastleDeflation() {
+DesperadoEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -28,71 +28,53 @@ DarkCastleDeflation() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 989,
-            y: 429,
+            x: 994,
+            y: 434,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
 
-        "Dart A", {
-            type: "Dart",
-            x: 797,
-            y: 447,
+        "Desperado A", {
+            type: "Desperado",
+            x: 892,
+            y: 442,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
 
-        "Dart B", {
-            type: "Dart",
-            x: 797,
-            y: 674,
+        "Desperado B", {
+            type: "Desperado",
+            x: 570,
+            y: 489,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
 
-        "Dart C", {
-            type: "Dart",
-            x: 893,
-            y: 669,
+        "Desperado C", {
+            type: "Desperado",
+            x: 737,
+            y: 673,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
 
-        "Dart D", {
-            type: "Dart",
-            x: 546,
-            y: 475,
+        "Desperado D", {
+            type: "Desperado",
+            x: 800,
+            y: 441,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
 
-        "Dart E", {
-            type: "Dart",
-            x: 537,
-            y: 640,
-            placed: false,
-            upgrades: [0, 0, 0],
-            targeting: "First"
-        },
-
-        "Dart F", {
-            type: "Dart",
-            x: 883,
-            y: 440,
-            placed: false,
-            upgrades: [0, 0, 0],
-            targeting: "First"
-        },
-
-        "Dart G", {
-            type: "Dart",
-            x: 359,
-            y: 562,
+        "Desperado E", {
+            type: "Desperado",
+            x: 979,
+            y: 664,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -106,77 +88,57 @@ DarkCastleDeflation() {
         )],
 
         [0, 0, () => PlaceTower(
-            TowerSetup["Dart A"]
+            TowerSetup["Desperado A"]
         )],
 
 
         [0, 0, () => UpgradeTower(
-            TowerSetup["Dart A"],
-            "024"
+            TowerSetup["Desperado A"],
+            "240"
         )],
 
         [0, 0, () => PlaceTower(
-            TowerSetup["Dart B"]
+            TowerSetup["Desperado B"]
         )],
 
 
         [0, 0, () => UpgradeTower(
-            TowerSetup["Dart B"],
-            "024"
+            TowerSetup["Desperado B"],
+            "023"
         )],
 
         [0, 0, () => PlaceTower(
-            TowerSetup["Dart C"]
+            TowerSetup["Desperado C"]
         )],
 
 
         [0, 0, () => UpgradeTower(
-            TowerSetup["Dart C"],
-            "024"
+            TowerSetup["Desperado C"],
+            "023"
         )],
 
         [0, 0, () => PlaceTower(
-            TowerSetup["Dart D"]
+            TowerSetup["Desperado D"]
         )],
 
 
         [0, 0, () => UpgradeTower(
-            TowerSetup["Dart D"],
-            "024"
+            TowerSetup["Desperado D"],
+            "023"
         )],
 
         [32, 0, () => PlaceTower(
-            TowerSetup["Dart E"]
+            TowerSetup["Desperado E"]
         )],
 
 
         [32, 0, () => UpgradeTower(
-            TowerSetup["Dart E"],
-            "024"
-        )],
-
-        [32, 0, () => PlaceTower(
-            TowerSetup["Dart F"]
-        )],
-
-
-        [32, 0, () => UpgradeTower(
-            TowerSetup["Dart F"],
-            "024"
-        )],
-
-        [32, 0, () => PlaceTower(
-            TowerSetup["Dart G"]
-        )],
-
-
-        [32, 0, () => UpgradeTower(
-            TowerSetup["Dart G"],
-            "003"
+            TowerSetup["Desperado E"],
+            "210"
         )],
     ]
 
     return RunMapStrategy(strategy)
 }
 
-DarkCastleDeflation()
+DesperadoEXP()

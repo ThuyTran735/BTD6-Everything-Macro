@@ -5,7 +5,7 @@
 ; #Include Location Of IncludeAll.ahk
 
 
-DarkCastleDeflation() {
+DartEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -179,4 +179,4 @@ DarkCastleDeflation() {
     return RunMapStrategy(strategy)
 }
 
-DarkCastleDeflation()
+DartEXP()

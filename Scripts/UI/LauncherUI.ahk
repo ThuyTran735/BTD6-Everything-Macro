@@ -853,6 +853,11 @@ StartNextQueuedRun() {
         . Chr(34)
         . RepeatScriptPath
         . Chr(34)
+        . " "
+        . Chr(34)
+        . "--btd6-cycle="
+        . currentRun
+        . Chr(34)
 
 
     try {

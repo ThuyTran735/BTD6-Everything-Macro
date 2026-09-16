@@ -1,6 +1,54 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+GetCurrentLauncherCycle() {
+    cyclePrefix :=
+        "--btd6-cycle="
+
+
+    for argument in A_Args {
+
+        if InStr(
+            argument,
+            cyclePrefix
+        ) != 1 {
+            continue
+        }
+
+
+        cycleText :=
+            SubStr(
+                argument,
+                StrLen(cyclePrefix) + 1
+            )
+
+
+        if RegExMatch(
+            cycleText,
+            "^\d+$"
+        ) {
+            cycleNumber :=
+                cycleText + 0
+
+
+            if cycleNumber >= 1 {
+                return cycleNumber
+            }
+        }
+    }
+
+
+    ; Scripts launched directly should behave exactly
+    ; like a normal first cycle and select the hero.
+    return 1
+}
+
+
+ShouldSelectHeroForCurrentCycle() {
+    return GetCurrentLauncherCycle() = 1
+}
+
+
 RunMapStrategy(strategy) {
     global RunConfig
 
@@ -13,12 +61,18 @@ RunMapStrategy(strategy) {
         return false
 
 
+    navigationHero :=
+        ShouldSelectHeroForCurrentCycle()
+            ? RunConfig.hero
+            : false
+
+
     navigationResult := NavigateToMap(
         RunConfig.category,
         RunConfig.map,
         RunConfig.difficulty,
         RunConfig.gameMode,
-        RunConfig.hero
+        navigationHero
     )
 
 
@@ -68,7 +122,7 @@ RunMapStrategy(strategy) {
             RunConfig.map,
             RunConfig.difficulty,
             RunConfig.gameMode,
-            RunConfig.hero
+            navigationHero
         )
 
 

@@ -192,22 +192,11 @@ SetTargeting(tower, targetMode) {
     )
 
 
-    backwardSteps := Mod(
-        currentIndex - targetIndex + profileLength,
-        profileLength
-    )
-
-
-    if forwardSteps <= backwardSteps {
-        Loop forwardSteps {
-            Send("{Tab}")
-            Sleep(30)
-        }
-    } else {
-        Loop backwardSteps {
-            Send("^{Tab}")
-            Sleep(30)
-        }
+    ; Always cycle forward through targeting modes.
+    ; Reverse targeting (Ctrl+Tab) is intentionally not used here.
+    Loop forwardSteps {
+        Send("{Tab}")
+        Sleep(30)
     }
 
 

@@ -4,7 +4,8 @@
 ShowScriptPicker(
     mapName,
     mapDirectory,
-    scripts
+    scripts,
+    action := "run"
 ) {
     global ScriptPickerGui
     global ScriptPickerState
@@ -17,6 +18,7 @@ ShowScriptPicker(
 
 
     CloseModePicker()
+    CloseQueueManager()
 
 
     try {
@@ -91,7 +93,7 @@ ShowScriptPicker(
         Map()
 
 
-    buttonGap := 8
+    buttonGap := 14
 
 
     buttonCount :=
@@ -132,6 +134,16 @@ ShowScriptPicker(
             )
 
 
+        CreateHelpBadgeForButton(
+            ScriptPickerGui,
+            difficultyButton,
+            StrUpper(difficulty) . " STRATEGIES",
+            "Filters the strategy list to "
+            . difficulty
+            . " difficulty scripts for this map."
+        )
+
+
         difficultyButton.OnEvent(
             "Click",
             SetStrategyDifficulty.Bind(
@@ -170,6 +182,12 @@ ShowScriptPicker(
     )
 
 
+    actionButtonText :=
+        action = "queue"
+        ? "ADD TO QUEUE"
+        : "RUN SELECTED"
+
+
     runSelectedButton :=
         CreateDarkButton(
             ScriptPickerGui,
@@ -177,7 +195,7 @@ ShowScriptPicker(
             328,
             220,
             42,
-            "RUN SELECTED",
+            actionButtonText,
             8
         )
 
@@ -206,6 +224,32 @@ ShowScriptPicker(
         )
 
 
+    CreateHelpBadgeForButton(
+        ScriptPickerGui,
+        runSelectedButton,
+        action = "queue" ? "ADD TO QUEUE" : "RUN SELECTED",
+        action = "queue"
+        ? "Adds the highlighted strategy to the queue, then asks how many times that queued job should run."
+        : "Runs the highlighted strategy and asks how many cycles it should repeat."
+    )
+
+
+    CreateHelpBadgeForButton(
+        ScriptPickerGui,
+        openFolderButton,
+        "OPEN MAP FOLDER",
+        "Opens this map's strategy folder in File Explorer so you can view or edit its .ahk files."
+    )
+
+
+    CreateHelpBadgeForButton(
+        ScriptPickerGui,
+        cancelButton,
+        "CANCEL",
+        "Closes the strategy picker without running or queueing a strategy."
+    )
+
+
     ScriptPickerState := {
         gui: ScriptPickerGui,
         difficultyButtons: difficultyButtons,
@@ -213,7 +257,9 @@ ShowScriptPicker(
         difficulty: availableDifficulties[1],
         list: strategyList,
         scripts: scripts,
-        mapDirectory: mapDirectory
+        mapDirectory: mapDirectory,
+        mapName: mapName,
+        action: action
     }
 
 
@@ -380,7 +426,30 @@ RunPickedScript(*) {
         ]
 
 
+    action :=
+        ScriptPickerState.action
+
+
+    mapName :=
+        ScriptPickerState.mapName
+
+
     CloseScriptPicker()
+
+
+    if action = "queue" {
+
+        AddJobToQueue(
+            script.path,
+            mapName
+            . " - "
+            . script.name,
+            "Default"
+        )
+
+
+        return
+    }
 
 
     LaunchMapScript(

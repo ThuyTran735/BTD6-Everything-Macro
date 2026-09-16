@@ -14,6 +14,8 @@ global HotkeyText := ""
 
 global MonkeyExpTitle := ""
 global MonkeyExpDescription := ""
+global MonkeyExpTypeLabel := ""
+global MonkeyExpTypeDropdown := ""
 global MonkeyExpScriptLabel := ""
 global MonkeyExpScriptDropdown := ""
 global MonkeyExpScripts := []
@@ -21,9 +23,15 @@ global MonkeyExpScripts := []
 global StatusText := ""
 
 global RunButton := ""
-global ConfigButton := ""
+global AddQueueButton := ""
+global QueueButton := ""
 global ModeButton := ""
 global LogsButton := ""
+
+global CategoryHelpBadge := ""
+global MapHelpBadge := ""
+global MonkeyExpTypeHelpBadge := ""
+global MonkeyExpScriptHelpBadge := ""
 
 global ScriptPickerGui := ""
 global ScriptPickerState := ""
@@ -69,6 +77,12 @@ global LauncherRunSuppressed := false
 global LauncherReturnPending := false
 global LauncherReturnPendingTick := 0
 
+; When one cycle/job ends, wait for BTD6 to be back on Home
+; before launching the next child process. This avoids starting a
+; queued map during the victory/menu transition.
+global MacroContinuationAction := ""
+global MacroContinuationTick := 0
+
 global GuiWidth := 390
 global GuiHeight := 390
 
@@ -80,10 +94,13 @@ global CategoryData := Map()
 #Include UITheme.ahk
 #Include CustomControlsUI.ahk
 #Include CustomDropdownUI.ahk
+#Include HelpUI.ahk
 #Include UIHelpers.ahk
 #Include LoadingUI.ahk
 #Include CycleStatusUI.ahk
 #Include MapDiscoveryUI.ahk
+#Include QueueJobBuilderUI.ahk
+#Include QueueUI.ahk
 #Include ScriptPickerUI.ahk
 #Include ModeUI.ahk
 #Include LauncherUI.ahk

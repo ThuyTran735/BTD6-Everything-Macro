@@ -13,6 +13,7 @@ ShowModePicker(*) {
 
 
     CloseScriptPicker()
+    CloseQueueManager()
 
 
     try {
@@ -138,6 +139,22 @@ ShowModePicker(*) {
         )
 
 
+    CreateHelpBadgeForButton(
+        ModePickerGui,
+        useButton,
+        "USE SELECTED",
+        "Switches the launcher to the highlighted mode. The controls on the main window update to match that mode."
+    )
+
+
+    CreateHelpBadgeForButton(
+        ModePickerGui,
+        cancelButton,
+        "CANCEL",
+        "Closes the mode picker without changing the current launcher mode."
+    )
+
+
     useButton.OnEvent(
         "Click",
         (*) => UseSelectedMode(
@@ -240,10 +257,18 @@ ApplyLauncherMode() {
 
     global MonkeyExpTitle
     global MonkeyExpDescription
+    global MonkeyExpTypeLabel
+    global MonkeyExpTypeDropdown
     global MonkeyExpScriptLabel
     global MonkeyExpScriptDropdown
 
+    global CategoryHelpBadge
+    global MapHelpBadge
+    global MonkeyExpTypeHelpBadge
+    global MonkeyExpScriptHelpBadge
+
     global RunButton
+    global AddQueueButton
 
     global UIColorSuccess
     global UIColorWarning
@@ -266,11 +291,19 @@ ApplyLauncherMode() {
 
         MonkeyExpTitle.Visible := false
         MonkeyExpDescription.Visible := false
+        MonkeyExpTypeLabel.Visible := false
+        MonkeyExpTypeDropdown.Visible := false
         MonkeyExpScriptLabel.Visible := false
         MonkeyExpScriptDropdown.Visible := false
 
+        CategoryHelpBadge.Visible := true
+        MapHelpBadge.Visible := true
+        MonkeyExpTypeHelpBadge.Visible := false
+        MonkeyExpScriptHelpBadge.Visible := false
+
 
         RunButton.Enabled := true
+        AddQueueButton.Enabled := true
 
         RunButton.Text :=
             "RUN MACRO"
@@ -280,6 +313,9 @@ ApplyLauncherMode() {
             "READY",
             UIColorSuccess
         )
+
+
+        UpdateQueueLauncherButton()
 
 
         return
@@ -308,16 +344,28 @@ ApplyLauncherMode() {
 
         MonkeyExpTitle.Visible := true
         MonkeyExpDescription.Visible := false
+        MonkeyExpTypeLabel.Visible := true
+        MonkeyExpTypeDropdown.Visible := true
         MonkeyExpScriptLabel.Visible := true
         MonkeyExpScriptDropdown.Visible := true
 
+        CategoryHelpBadge.Visible := false
+        MapHelpBadge.Visible := false
+        MonkeyExpTypeHelpBadge.Visible := true
+        MonkeyExpScriptHelpBadge.Visible := true
+
 
         scriptCount :=
-            RefreshMonkeyExpScripts()
+            RefreshMonkeyExpScripts(
+                MonkeyExpTypeDropdown.Text
+            )
 
 
         RunButton.Enabled :=
             scriptCount > 0
+
+        AddQueueButton.Enabled :=
+            true
 
         RunButton.Text :=
             "RUN MACRO"
@@ -327,6 +375,10 @@ ApplyLauncherMode() {
 
             UpdateStatus(
                 scriptCount
+                . " "
+                . StrUpper(
+                    MonkeyExpTypeDropdown.Text
+                )
                 . " SCRIPT"
                 . (
                     scriptCount = 1
@@ -340,10 +392,17 @@ ApplyLauncherMode() {
         else {
 
             UpdateStatus(
-                "NO MONKEY EXP SCRIPTS FOUND",
+                "NO "
+                . StrUpper(
+                    MonkeyExpTypeDropdown.Text
+                )
+                . " SCRIPTS FOUND",
                 UIColorWarning
             )
         }
+
+
+        UpdateQueueLauncherButton()
 
 
         return
@@ -377,11 +436,19 @@ ApplyLauncherMode() {
 
         MonkeyExpTitle.Visible := true
         MonkeyExpDescription.Visible := true
+        MonkeyExpTypeLabel.Visible := false
+        MonkeyExpTypeDropdown.Visible := false
         MonkeyExpScriptLabel.Visible := false
         MonkeyExpScriptDropdown.Visible := false
 
+        CategoryHelpBadge.Visible := false
+        MapHelpBadge.Visible := false
+        MonkeyExpTypeHelpBadge.Visible := false
+        MonkeyExpScriptHelpBadge.Visible := false
+
 
         RunButton.Enabled := false
+        AddQueueButton.Enabled := true
 
         RunButton.Text :=
             "RUN MACRO"
@@ -391,6 +458,9 @@ ApplyLauncherMode() {
             "MODE NOT CONFIGURED YET",
             UIColorWarning
         )
+
+
+        UpdateQueueLauncherButton()
 
 
         return

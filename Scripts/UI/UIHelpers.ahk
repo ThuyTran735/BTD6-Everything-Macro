@@ -235,6 +235,111 @@ ClearLauncherReturnPending() {
 }
 
 
+ScheduleMacroContinuation(
+    action
+) {
+    global MacroContinuationAction
+    global MacroContinuationTick
+
+
+    MacroContinuationAction :=
+        action
+
+
+    MacroContinuationTick :=
+        A_TickCount
+
+
+    SetTimer(
+        ContinueMacroWhenReady,
+        250
+    )
+}
+
+
+ClearMacroContinuation() {
+    global MacroContinuationAction
+    global MacroContinuationTick
+
+
+    SetTimer(
+        ContinueMacroWhenReady,
+        0
+    )
+
+
+    MacroContinuationAction :=
+        ""
+
+
+    MacroContinuationTick :=
+        0
+}
+
+
+ContinueMacroWhenReady() {
+    global MacroRunning
+    global MacroContinuationAction
+    global MacroContinuationTick
+
+
+    if MacroContinuationAction = "" {
+
+        ClearMacroContinuation()
+
+        return
+    }
+
+
+    if !MacroRunning {
+
+        ClearMacroContinuation()
+
+        return
+    }
+
+
+    homeReady :=
+        IsHomeScreenVisible()
+
+
+    timedOut :=
+        MacroContinuationTick
+        && A_TickCount
+            - MacroContinuationTick
+            >= 8000
+
+
+    if (
+        !homeReady
+        && !timedOut
+    ) {
+        return
+    }
+
+
+    action :=
+        MacroContinuationAction
+
+
+    ClearMacroContinuation()
+
+
+    if action = "next-run" {
+
+        StartNextQueuedRun()
+
+        return
+    }
+
+
+    if action = "next-job" {
+
+        StartNextQueueJob()
+    }
+}
+
+
 ShowLauncher(
     activate := false
 ) {
@@ -539,6 +644,11 @@ MonitorLauncherState() {
     global RepeatRunRemaining
     global RepeatRunCompleted
 
+    global QueueRunning
+    global QueueActiveJobIndex
+    global QueueTotalJobs
+    global QueueCompletedRuns
+
     global ForceLauncherVisible
     global StartupLoadingActive
     global LauncherRunSuppressed
@@ -613,6 +723,7 @@ MonitorLauncherState() {
 
 
                 ClearRepeatRunState()
+                ClearQueueExecutionState()
 
 
                 ForceLauncherVisible :=
@@ -641,6 +752,12 @@ MonitorLauncherState() {
             RepeatRunCompleted++
 
 
+            if QueueRunning {
+
+                QueueCompletedRuns++
+            }
+
+
             UpdateCycleStatusUI()
 
 
@@ -660,11 +777,12 @@ MonitorLauncherState() {
                 )
 
 
-                ; Keep suppression active while the game returns
-                ; to Home and before the next child cycle starts.
-                SetTimer(
-                    StartNextQueuedRun,
-                    -2000
+                ; Keep suppression active and wait until BTD6 is
+                ; actually back on Home before launching the next
+                ; child cycle. A timeout fallback prevents a stale
+                ; Home detector from permanently stalling the run.
+                ScheduleMacroContinuation(
+                    "next-run"
                 )
 
 
@@ -672,8 +790,47 @@ MonitorLauncherState() {
             }
 
 
-            completedRuns :=
-                RepeatRunCompleted
+            if (
+                QueueRunning
+                && QueueActiveJobIndex < QueueTotalJobs
+            ) {
+
+                UpdateStatus(
+                    "JOB "
+                    . QueueActiveJobIndex
+                    . " OF "
+                    . QueueTotalJobs
+                    . " COMPLETE",
+                    UIColorSuccess
+                )
+
+
+                ; The current job is finished. Keep the launcher
+                ; suppressed while BTD6 returns Home, then start
+                ; the next queued job automatically.
+                ScheduleMacroContinuation(
+                    "next-job"
+                )
+
+
+                return
+            }
+
+
+            queueWasRunning :=
+                QueueRunning
+
+
+            if queueWasRunning {
+
+                completedRuns :=
+                    QueueCompletedRuns
+            }
+            else {
+
+                completedRuns :=
+                    RepeatRunCompleted
+            }
 
 
             MacroRunning :=
@@ -695,7 +852,29 @@ MonitorLauncherState() {
             ClearCycleStopRequest()
 
 
-            if completedRuns = 1 {
+            if queueWasRunning {
+
+                if completedRuns = 1 {
+
+                    UpdateStatus(
+                        "QUEUE COMPLETE - 1 RUN",
+                        UIColorSuccess
+                    )
+                }
+                else {
+
+                    UpdateStatus(
+                        "QUEUE COMPLETE - "
+                        . completedRuns
+                        . " RUNS",
+                        UIColorSuccess
+                    )
+                }
+
+
+                ClearQueueExecutionState()
+            }
+            else if completedRuns = 1 {
 
                 UpdateStatus(
                     "COMPLETED 1 RUN",
@@ -711,6 +890,9 @@ MonitorLauncherState() {
                     UIColorSuccess
                 )
             }
+
+
+            ClearMacroContinuation()
 
 
             ; The child can disappear during a menu/fullscreen

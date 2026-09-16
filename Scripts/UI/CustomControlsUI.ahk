@@ -81,6 +81,7 @@ class DarkButton {
         this.FontSize := fontSize
 
         this.ClickCallback := ""
+        this.ClickExclusions := []
 
         this.IsEnabled := true
         this._Visible := true
@@ -287,8 +288,214 @@ class DarkButton {
     }
 
 
+    AddClickExclusion(
+        x,
+        y,
+        width,
+        height
+    ) {
+        this.ClickExclusions.Push(
+            {
+                Type: "Rect",
+                X: x,
+                Y: y,
+                Width: width,
+                Height: height
+            }
+        )
+
+
+        return this
+    }
+
+
+    AddClickExclusionControl(
+        controlObject,
+        padding := 0,
+        clickHandler := ""
+    ) {
+        this.ClickExclusions.Push(
+            {
+                Type: "Control",
+                Control: controlObject,
+                Padding: padding,
+                ClickHandler: clickHandler
+            }
+        )
+
+
+        return this
+    }
+
+
+    IsCursorInClickExclusion() {
+        if this.ClickExclusions.Length = 0 {
+            return false
+        }
+
+
+        point :=
+            Buffer(
+                8,
+                0
+            )
+
+
+        if !DllCall(
+            "GetCursorPos",
+            "Ptr",
+            point.Ptr,
+            "Int"
+        ) {
+            return false
+        }
+
+
+        screenX :=
+            NumGet(
+                point,
+                0,
+                "Int"
+            )
+
+
+        screenY :=
+            NumGet(
+                point,
+                4,
+                "Int"
+            )
+
+
+        for exclusion in this.ClickExclusions {
+            if (
+                exclusion.HasOwnProp("Type")
+                && exclusion.Type = "Control"
+            ) {
+                try controlHwnd := exclusion.Control.Hwnd
+                catch {
+                    continue
+                }
+
+
+                rect :=
+                    Buffer(
+                        16,
+                        0
+                    )
+
+
+                if !DllCall(
+                    "GetWindowRect",
+                    "Ptr",
+                    controlHwnd,
+                    "Ptr",
+                    rect.Ptr,
+                    "Int"
+                ) {
+                    continue
+                }
+
+
+                padding :=
+                    exclusion.HasOwnProp("Padding")
+                    ? exclusion.Padding
+                    : 0
+
+
+                left := NumGet(rect, 0, "Int") - padding
+                top := NumGet(rect, 4, "Int") - padding
+                right := NumGet(rect, 8, "Int") + padding
+                bottom := NumGet(rect, 12, "Int") + padding
+
+
+                if (
+                    screenX >= left
+                    && screenX < right
+                    && screenY >= top
+                    && screenY < bottom
+                ) {
+                    return exclusion
+                }
+
+
+                continue
+            }
+
+
+            ; Legacy rectangle exclusions are kept for compatibility.
+            clientPoint :=
+                Buffer(
+                    8,
+                    0
+                )
+
+
+            NumPut("Int", screenX, clientPoint, 0)
+            NumPut("Int", screenY, clientPoint, 4)
+
+
+            if !DllCall(
+                "ScreenToClient",
+                "Ptr",
+                this.Gui.Hwnd,
+                "Ptr",
+                clientPoint.Ptr,
+                "Int"
+            ) {
+                continue
+            }
+
+
+            mouseX := NumGet(clientPoint, 0, "Int")
+            mouseY := NumGet(clientPoint, 4, "Int")
+
+
+            left := this.X + exclusion.X
+            top := this.Y + exclusion.Y
+
+
+            if (
+                mouseX >= left
+                && mouseX < left + exclusion.Width
+                && mouseY >= top
+                && mouseY < top + exclusion.Height
+            ) {
+                return exclusion
+            }
+        }
+
+
+        return false
+    }
+
+
     HandleClick(*) {
         if !this.IsEnabled {
+            return
+        }
+
+
+        ; Help badges intentionally overlap the visual button. Keep the
+        ; parent's full hitbox, but ignore only the exact pixels occupied
+        ; by a registered badge so the rest of the right side still works.
+        clickExclusion :=
+            this.IsCursorInClickExclusion()
+
+
+        if clickExclusion {
+            ; An overlapping help badge may not receive the Windows click
+            ; itself because the parent text layer occupies the same pixels.
+            ; Route the click directly to the badge when one is registered so
+            ; clicking the ? always opens help and never fires this button.
+            if (
+                clickExclusion.HasOwnProp("ClickHandler")
+                && clickExclusion.ClickHandler
+            ) {
+                try clickExclusion.ClickHandler.Call()
+            }
+
+
             return
         }
 

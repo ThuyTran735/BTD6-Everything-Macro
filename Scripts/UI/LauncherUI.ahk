@@ -16,15 +16,23 @@ CreateLauncherUI() {
 
     global MonkeyExpTitle
     global MonkeyExpDescription
+    global MonkeyExpTypeLabel
+    global MonkeyExpTypeDropdown
     global MonkeyExpScriptLabel
     global MonkeyExpScriptDropdown
 
     global StatusText
 
     global RunButton
-    global ConfigButton
+    global AddQueueButton
+    global QueueButton
     global ModeButton
     global LogsButton
+
+    global CategoryHelpBadge
+    global MapHelpBadge
+    global MonkeyExpTypeHelpBadge
+    global MonkeyExpScriptHelpBadge
 
     global GuiWidth
     global GuiHeight
@@ -66,7 +74,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro"
+        "BTD6 Everything Macro - V1.0"
     )
 
 
@@ -106,12 +114,21 @@ CreateLauncherUI() {
 
     LauncherGui.Add(
         "Text",
-        "x21 y53 w205 h20 c"
+        "x21 y53 w145 h20 c"
         . UIColorMutedText
         . " BackgroundTrans",
         "Made By @Thuy_"
         . Chr(8202)
         . "_"
+    )
+
+
+    LauncherGui.Add(
+        "Text",
+        "x170 y53 w55 h20 Center c"
+        . UIColorMutedText
+        . " BackgroundTrans",
+        "V1.0"
     )
 
 
@@ -184,9 +201,9 @@ CreateLauncherUI() {
             LauncherGui,
             "MONKEY EXP GRIND",
             20,
-            110,
+            89,
             350,
-            38,
+            30,
             13,
             "Center",
             false
@@ -211,12 +228,26 @@ CreateLauncherUI() {
         )
 
 
+    MonkeyExpTypeLabel :=
+        AddUIOutlinedText(
+            LauncherGui,
+            "SELECT TOWER TYPE",
+            20,
+            123,
+            350,
+            22,
+            9,
+            "Left",
+            false
+        )
+
+
     MonkeyExpScriptLabel :=
         AddUIOutlinedText(
             LauncherGui,
-            "SELECT SCRIPT",
+            "SELECT TOWER",
             20,
-            157,
+            184,
             350,
             22,
             9,
@@ -230,10 +261,22 @@ CreateLauncherUI() {
             LauncherGui,
             20,
             250,
-            350,
+            230,
             44,
             "RUN MACRO",
             9
+        )
+
+
+    AddQueueButton :=
+        CreateDarkButton(
+            LauncherGui,
+            260,
+            250,
+            110,
+            44,
+            "ADD QUEUE",
+            8
         )
 
 
@@ -243,14 +286,20 @@ CreateLauncherUI() {
     )
 
 
-    ConfigButton :=
+    AddQueueButton.OnEvent(
+        "Click",
+        QueueCurrentSelection
+    )
+
+
+    QueueButton :=
         CreateDarkButton(
             LauncherGui,
             20,
             306,
             110,
             36,
-            "CONFIGS",
+            "QUEUE (0)",
             8
         )
 
@@ -279,12 +328,54 @@ CreateLauncherUI() {
         )
 
 
-    ConfigButton.Enabled :=
-        false
+    QueueButton.OnEvent(
+        "Click",
+        ShowQueueManager
+    )
 
 
     LogsButton.Enabled :=
         false
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        RunButton,
+        "RUN",
+        "Runs the current selection. If the queue contains jobs, this button changes to RUN QUEUE and starts the existing queue instead of opening another map selection."
+    )
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        AddQueueButton,
+        "ADD QUEUE",
+        "Opens the Add Queue Job window. Choose a job type, category or tower type, exact script, then enter how many times that job should run."
+    )
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        QueueButton,
+        "QUEUE",
+        "Opens the Queue Manager. Jobs run from top to bottom. You can reorder, remove, clear, or start the complete queue from there."
+    )
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        ModeButton,
+        "MODES",
+        "Switches the launcher between available macro modes, including normal map scripts and Monkey EXP Grind."
+    )
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        LogsButton,
+        "LOGS",
+        "This control is reserved for run logs and diagnostics. It is currently disabled until the logging feature is added."
+    )
 
 
     ModeButton.OnEvent(
@@ -334,11 +425,23 @@ CreateLauncherUI() {
         )
 
 
+    MonkeyExpTypeDropdown :=
+        CreateDarkDropdown(
+            LauncherGui,
+            20,
+            145,
+            350,
+            GetMonkeyExpTowerTypes(),
+            1,
+            5
+        )
+
+
     MonkeyExpScriptDropdown :=
         CreateDarkDropdown(
             LauncherGui,
             20,
-            181,
+            206,
             350,
             [
                 "No Monkey EXP scripts found"
@@ -348,13 +451,63 @@ CreateLauncherUI() {
         )
 
 
+    MonkeyExpTypeDropdown.Visible :=
+        false
+
+
     MonkeyExpScriptDropdown.Visible :=
         false
+
+
+    CategoryHelpBadge :=
+        CreateHelpBadgeForField(
+            LauncherGui,
+            CategoryDropdown,
+            "CATEGORY",
+            "Choose the map difficulty category. The Map dropdown updates automatically so it only shows configured maps from that category."
+        )
+
+
+    MapHelpBadge :=
+        CreateHelpBadgeForField(
+            LauncherGui,
+            MapDropdown,
+            "MAP",
+            "Choose the map you want to run. Only maps with at least one runnable strategy are listed."
+        )
+
+
+    MonkeyExpTypeHelpBadge :=
+        CreateHelpBadgeForField(
+            LauncherGui,
+            MonkeyExpTypeDropdown,
+            "TOWER TYPE",
+            "Choose Primary, Military, Magic, or Support. The Tower dropdown then shows only the .ahk scripts inside that tower type folder."
+        )
+
+
+    MonkeyExpScriptHelpBadge :=
+        CreateHelpBadgeForField(
+            LauncherGui,
+            MonkeyExpScriptDropdown,
+            "TOWER SCRIPT",
+            "Choose the exact Monkey EXP Grind .ahk script to run. The filename is kept exactly as it appears in the folder."
+        )
+
+
+    MonkeyExpTypeHelpBadge.Visible := false
+    MonkeyExpScriptHelpBadge.Visible := false
 
 
     CategoryDropdown.OnEvent(
         "Change",
         OnCategoryChanged
+    )
+
+
+    MonkeyExpTypeDropdown.OnEvent(
+        "Change",
+        OnMonkeyExpTypeChanged
     )
 
 
@@ -376,6 +529,7 @@ CreateLauncherUI() {
 
 
     ApplyLauncherMode()
+    UpdateQueueLauncherButton()
 
 
     ShowLauncher(
@@ -386,9 +540,28 @@ CreateLauncherUI() {
 
 RunCurrentMode(*) {
     global CurrentMode
+    global MacroJobQueue
+    global MacroRunning
+
+
+    if MacroRunning {
+        return
+    }
 
 
     CloseAllDarkDropdowns()
+    CloseQueueJobBuilder()
+
+
+    ; A populated queue owns the main Run action. Do not open a
+    ; strategy picker or prompt for an unrelated manual run when
+    ; the user has already built a queue.
+    if MacroJobQueue.Length > 0 {
+
+        StartMacroQueue()
+
+        return
+    }
 
 
     if CurrentMode = "Default" {
@@ -418,21 +591,255 @@ RunCurrentMode(*) {
 }
 
 
-RunMonkeyExpGrindMode() {
+QueueCurrentSelection(*) {
+    global MacroRunning
+
+
+    if MacroRunning {
+        return
+    }
+
+
+    CloseAllDarkDropdowns()
+
+
+    ShowQueueJobBuilder()
+}
+
+
+QueueMonkeyExpSelection() {
+    global MonkeyExpTypeDropdown
     global MonkeyExpScriptDropdown
     global MonkeyExpScripts
 
     global UIColorError
 
 
+    selectedType :=
+        MonkeyExpTypeDropdown.Text
+
+
     selectedName :=
         MonkeyExpScriptDropdown.Text
 
 
-    ; Refresh from disk when Run is pressed too, so the
-    ; launcher never relies on a stale path.
     currentScripts :=
-        GetMonkeyExpScripts()
+        GetMonkeyExpScripts(
+            selectedType
+        )
+
+
+    for script in currentScripts {
+
+        if script.name = selectedName {
+
+            AddJobToQueue(
+                script.path,
+                selectedType
+                . " - "
+                . script.name,
+                "Monkey EXP Grind"
+            )
+
+
+            return
+        }
+    }
+
+
+    MonkeyExpScripts :=
+        currentScripts
+
+
+    UpdateStatus(
+        "SELECTED TOWER SCRIPT NOT FOUND",
+        UIColorError
+    )
+}
+
+
+QueueDefaultModeSelection() {
+    global CategoryDropdown
+    global MapDropdown
+    global CategoryData
+
+    global UIColorError
+
+
+    categoryName :=
+        CategoryDropdown.Text
+
+
+    mapName :=
+        MapDropdown.Text
+
+
+    if (
+        categoryName = ""
+        || categoryName = "No configured categories"
+    ) {
+
+        UpdateStatus(
+            "NO CATEGORY SELECTED",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    if (
+        mapName = ""
+        || mapName = "No configured maps"
+    ) {
+
+        UpdateStatus(
+            "NO MAP SELECTED",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    GetConfiguredCategories()
+
+
+    if !CategoryData.Has(
+        categoryName
+    ) {
+
+        UpdateStatus(
+            "CATEGORY NOT FOUND",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    category :=
+        CategoryData[
+            categoryName
+        ]
+
+
+    if !category.directories.Has(
+        mapName
+    ) {
+
+        UpdateStatus(
+            "MAP FOLDER NOT FOUND",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    mapDirectory :=
+        category.directories[
+            mapName
+        ]
+
+
+    if !DirExist(
+        mapDirectory
+    ) {
+
+        UpdateStatus(
+            "MAP FOLDER NOT FOUND",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    scripts :=
+        GetMapScripts(
+            mapDirectory
+        )
+
+
+    scriptCount :=
+        CountMapScripts(
+            scripts
+        )
+
+
+    if scriptCount = 0 {
+
+        UpdateStatus(
+            "NO STRATEGIES FOUND",
+            UIColorError
+        )
+
+
+        return
+    }
+
+
+    if scriptCount = 1 {
+
+        script :=
+            GetOnlyMapScript(
+                scripts
+            )
+
+
+        if script {
+
+            AddJobToQueue(
+                script.path,
+                mapName
+                . " - "
+                . script.name,
+                "Default"
+            )
+        }
+
+
+        return
+    }
+
+
+    ShowScriptPicker(
+        mapName,
+        mapDirectory,
+        scripts,
+        "queue"
+    )
+}
+
+
+RunMonkeyExpGrindMode() {
+    global MonkeyExpTypeDropdown
+    global MonkeyExpScriptDropdown
+    global MonkeyExpScripts
+
+    global UIColorError
+
+
+    selectedType :=
+        MonkeyExpTypeDropdown.Text
+
+
+    selectedName :=
+        MonkeyExpScriptDropdown.Text
+
+
+    ; Refresh only the selected tower-type folder when Run is
+    ; pressed, so the launcher never relies on a stale path.
+    currentScripts :=
+        GetMonkeyExpScripts(
+            selectedType
+        )
 
 
     for script in currentScripts {
@@ -454,7 +861,7 @@ RunMonkeyExpGrindMode() {
 
 
     UpdateStatus(
-        "SELECTED SCRIPT NOT FOUND",
+        "SELECTED TOWER SCRIPT NOT FOUND",
         UIColorError
     )
 }
@@ -659,6 +1066,7 @@ LaunchMapScript(
     scriptPath
 ) {
     global MacroRunning
+    global MacroJobQueue
     global LauncherGui
 
     global RepeatScriptPath
@@ -674,6 +1082,15 @@ LaunchMapScript(
     if MacroRunning {
 
         return false
+    }
+
+
+    ; Defensive guard for picker/hotkey edge cases. If a queue was
+    ; populated after a picker opened, running the selected script
+    ; still starts the queue instead of creating a separate run.
+    if MacroJobQueue.Length > 0 {
+
+        return StartMacroQueue()
     }
 
 
@@ -701,6 +1118,7 @@ LaunchMapScript(
     }
 
 
+    ClearQueueExecutionState()
     ClearCycleStopRequest()
 
 
@@ -731,6 +1149,7 @@ LaunchMapScript(
     CloseAllDarkDropdowns()
     CloseModePicker()
     CloseScriptPicker()
+    CloseQueueManager()
 
 
     ; Mark the run active BEFORE the loading UI starts.
@@ -771,6 +1190,10 @@ StartNextQueuedRun() {
     global RepeatRunRemaining
     global RepeatRunCompleted
 
+    global QueueRunning
+    global QueueActiveJobIndex
+    global QueueTotalJobs
+
     global UIColorWarning
     global UIColorError
 
@@ -803,6 +1226,7 @@ StartNextQueuedRun() {
 
 
         ClearRepeatRunState()
+        ClearQueueExecutionState()
 
 
         UpdateStatus(
@@ -829,14 +1253,31 @@ StartNextQueuedRun() {
         + 1
 
 
-    UpdateStatus(
-        "STARTING RUN "
-        . currentRun
-        . " OF "
-        . RepeatRunTotal
-        . "...",
-        UIColorWarning
-    )
+    if QueueRunning {
+
+        UpdateStatus(
+            "JOB "
+            . QueueActiveJobIndex
+            . " / "
+            . QueueTotalJobs
+            . " - RUN "
+            . currentRun
+            . " / "
+            . RepeatRunTotal,
+            UIColorWarning
+        )
+    }
+    else {
+
+        UpdateStatus(
+            "STARTING RUN "
+            . currentRun
+            . " OF "
+            . RepeatRunTotal
+            . "...",
+            UIColorWarning
+        )
+    }
 
 
     UpdateCycleStatusUI()
@@ -907,6 +1348,7 @@ StartNextQueuedRun() {
 
 
         ClearRepeatRunState()
+        ClearQueueExecutionState()
         ClearCycleStopRequest()
 
 

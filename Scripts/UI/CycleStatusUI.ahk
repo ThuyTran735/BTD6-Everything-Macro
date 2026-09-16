@@ -159,6 +159,14 @@ CreateCycleStatusUI() {
         )
 
 
+    CreateHelpBadgeForButton(
+        CycleStatusGui,
+        CycleCancelButton,
+        "CANCEL RUN",
+        "Stops the current cycle. If a queue is running, this cancels the entire queue so no later jobs start automatically."
+    )
+
+
     CycleCancelButton.OnEvent(
         "Click",
         CancelMacroCycles
@@ -340,6 +348,12 @@ UpdateCycleStatusUI() {
     global RepeatRunTotal
     global RepeatRunCompleted
 
+    global QueueRunning
+    global QueueActiveJobIndex
+    global QueueTotalJobs
+    global QueueTotalRuns
+    global QueueCompletedRuns
+
 
     if !CycleStatusGui {
         return
@@ -370,26 +384,101 @@ UpdateCycleStatusUI() {
     }
 
 
-    cyclesLeft :=
-        RepeatRunTotal
-        - RepeatRunCompleted
+    if QueueRunning {
+
+        runsLeft :=
+            QueueTotalRuns
+            - QueueCompletedRuns
 
 
-    if cyclesLeft < 0 {
+        if runsLeft < 0 {
+            runsLeft := 0
+        }
+
+
+        if QueueTotalRuns > 0 {
+
+            progress :=
+                Floor(
+                    (
+                        QueueCompletedRuns
+                        / QueueTotalRuns
+                    )
+                    * 100
+                )
+        }
+        else {
+
+            progress := 0
+        }
+
+
+        CycleStatusText.Text :=
+            "JOB "
+            . QueueActiveJobIndex
+            . " / "
+            . QueueTotalJobs
+            . "  -  CYCLE "
+            . currentCycle
+            . " / "
+            . RepeatRunTotal
+
+
+        if runsLeft = 1 {
+
+            CycleProgressText.Text :=
+                "1 TOTAL RUN LEFT"
+        }
+        else {
+
+            CycleProgressText.Text :=
+                runsLeft
+                . " TOTAL RUNS LEFT"
+        }
+    }
+    else {
 
         cyclesLeft :=
-            0
-    }
+            RepeatRunTotal
+            - RepeatRunCompleted
 
 
-    progress :=
-        Floor(
-            (
-                RepeatRunCompleted
-                / RepeatRunTotal
+        if cyclesLeft < 0 {
+
+            cyclesLeft :=
+                0
+        }
+
+
+        progress :=
+            Floor(
+                (
+                    RepeatRunCompleted
+                    / RepeatRunTotal
+                )
+                * 100
             )
-            * 100
-        )
+
+
+        CycleStatusText.Text :=
+            "CYCLE "
+            . currentCycle
+            . " / "
+            . RepeatRunTotal
+
+
+        if cyclesLeft = 1 {
+
+            CycleProgressText.Text :=
+                "1 CYCLE LEFT"
+        }
+        else {
+
+            CycleProgressText.Text :=
+                cyclesLeft
+                . " CYCLES LEFT"
+        }
+    }
 
 
     if progress < 0 {
@@ -403,26 +492,6 @@ UpdateCycleStatusUI() {
 
         progress :=
             100
-    }
-
-
-    CycleStatusText.Text :=
-        "CYCLE "
-        . currentCycle
-        . " / "
-        . RepeatRunTotal
-
-
-    if cyclesLeft = 1 {
-
-        CycleProgressText.Text :=
-            "1 CYCLE LEFT"
-    }
-    else {
-
-        CycleProgressText.Text :=
-            cyclesLeft
-            . " CYCLES LEFT"
     }
 
 
@@ -440,6 +509,9 @@ CompleteCycleStatusUI() {
 
     global RepeatRunTotal
 
+    global QueueRunning
+    global QueueTotalRuns
+
 
     if !CycleStatusGui {
         return
@@ -451,15 +523,34 @@ CompleteCycleStatusUI() {
     }
 
 
-    CycleStatusText.Text :=
-        "CYCLE "
-        . RepeatRunTotal
-        . " / "
-        . RepeatRunTotal
+    if QueueRunning {
+
+        CycleStatusText.Text :=
+            "QUEUE COMPLETE"
 
 
-    CycleProgressText.Text :=
-        "COMPLETE"
+        CycleProgressText.Text :=
+            QueueTotalRuns
+            . " RUN"
+            . (
+                QueueTotalRuns = 1
+                ? ""
+                : "S"
+            )
+            . " COMPLETE"
+    }
+    else {
+
+        CycleStatusText.Text :=
+            "CYCLE "
+            . RepeatRunTotal
+            . " / "
+            . RepeatRunTotal
+
+
+        CycleProgressText.Text :=
+            "COMPLETE"
+    }
 
 
     ; Always visibly finish the bar before
@@ -504,8 +595,14 @@ CancelMacroCycles(*) {
     global MacroRunning
     global RunningPid
 
+    global CycleStatusGui
+    global CycleStatusText
+    global CycleProgressText
+
     global RepeatRunRemaining
     global ForceLauncherVisible
+
+    global QueueRunning
 
     global UIColorWarning
 
@@ -515,6 +612,19 @@ CancelMacroCycles(*) {
         StartNextQueuedRun,
         0
     )
+
+
+    SetTimer(
+        StartNextQueueJob,
+        0
+    )
+
+
+    ClearMacroContinuation()
+
+
+    queueWasRunning :=
+        QueueRunning
 
 
     RepeatRunRemaining :=
@@ -544,7 +654,17 @@ CancelMacroCycles(*) {
         0
 
 
-    CompleteCycleStatusUI()
+    if CycleStatusGui {
+
+        CycleStatusText.Text :=
+            queueWasRunning
+            ? "QUEUE CANCELLED"
+            : "CYCLES CANCELLED"
+
+
+        CycleProgressText.Text :=
+            "STOPPED"
+    }
 
 
     Sleep(
@@ -556,6 +676,7 @@ CancelMacroCycles(*) {
 
 
     ClearRepeatRunState()
+    ClearQueueExecutionState()
 
 
     try {
@@ -572,7 +693,9 @@ CancelMacroCycles(*) {
 
 
     UpdateStatus(
-        "CYCLES CANCELLED",
+        queueWasRunning
+        ? "QUEUE CANCELLED"
+        : "CYCLES CANCELLED",
         UIColorWarning
     )
 
@@ -794,6 +917,22 @@ ShowCycleInputPrompt() {
             "CANCEL",
             8
         )
+
+
+    CreateHelpBadgeForButton(
+        CycleInputGui,
+        runButton,
+        "RUN COUNT",
+        "Confirms how many times the selected script or queued job should run. Enter a whole number from 1 to 1,000,000."
+    )
+
+
+    CreateHelpBadgeForButton(
+        CycleInputGui,
+        cancelButton,
+        "CANCEL",
+        "Closes this prompt without starting or adding the pending run."
+    )
 
 
     runButton.OnEvent(

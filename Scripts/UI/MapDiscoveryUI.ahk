@@ -456,13 +456,43 @@ RefreshLauncherLists() {
 }
 
 
-GetMonkeyExpScripts() {
+GetMonkeyExpTowerTypes() {
+    return [
+        "Primary",
+        "Military",
+        "Magic",
+        "Support"
+    ]
+}
+
+
+GetMonkeyExpScripts(
+    towerType
+) {
     scripts := []
+
+
+    validType := false
+
+
+    for typeName in GetMonkeyExpTowerTypes() {
+
+        if typeName = towerType {
+            validType := true
+            break
+        }
+    }
+
+
+    if !validType {
+        return scripts
+    }
 
 
     scriptsDirectory :=
         A_ScriptDir
-        . "\Scripts\UI\Mode Scripts\Monkey EXP Grind"
+        . "\Scripts\UI\Mode Scripts\Monkey EXP Grind\"
+        . towerType
 
 
     if !DirExist(
@@ -487,13 +517,24 @@ GetMonkeyExpScripts() {
 }
 
 
-RefreshMonkeyExpScripts() {
+RefreshMonkeyExpScripts(
+    towerType := ""
+) {
+    global MonkeyExpTypeDropdown
     global MonkeyExpScriptDropdown
     global MonkeyExpScripts
 
 
+    if towerType = "" {
+        towerType :=
+            MonkeyExpTypeDropdown.Text
+    }
+
+
     MonkeyExpScripts :=
-        GetMonkeyExpScripts()
+        GetMonkeyExpScripts(
+            towerType
+        )
 
 
     names := []
@@ -501,6 +542,7 @@ RefreshMonkeyExpScripts() {
 
     for script in MonkeyExpScripts {
 
+        ; Keep the complete filename visible, including .ahk.
         names.Push(
             script.name
         )
@@ -514,7 +556,9 @@ RefreshMonkeyExpScripts() {
 
         MonkeyExpScriptDropdown.Add(
             [
-                "No Monkey EXP scripts found"
+                "No "
+                . towerType
+                . " scripts found"
             ]
         )
     }
@@ -532,4 +576,61 @@ RefreshMonkeyExpScripts() {
 
 
     return names.Length
+}
+
+
+OnMonkeyExpTypeChanged(*) {
+    global MonkeyExpTypeDropdown
+    global RunButton
+
+    global UIColorSuccess
+    global UIColorWarning
+
+
+    towerType :=
+        MonkeyExpTypeDropdown.Text
+
+
+    scriptCount :=
+        RefreshMonkeyExpScripts(
+            towerType
+        )
+
+
+    RunButton.Enabled :=
+        scriptCount > 0
+
+
+    if scriptCount > 0 {
+
+        UpdateStatus(
+            scriptCount
+            . " "
+            . StrUpper(
+                towerType
+            )
+            . " SCRIPT"
+            . (
+                scriptCount = 1
+                ? ""
+                : "S"
+            )
+            . " FOUND",
+            UIColorSuccess
+        )
+    }
+    else {
+
+        UpdateStatus(
+            "NO "
+            . StrUpper(
+                towerType
+            )
+            . " SCRIPTS FOUND",
+            UIColorWarning
+        )
+    }
+
+
+    UpdateQueueLauncherButton()
 }

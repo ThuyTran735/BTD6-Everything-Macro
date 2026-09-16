@@ -202,7 +202,10 @@ GetMapNamesForCategory(
     }
 
 
-    return maps
+    return SortMapNamesByFavorites(
+        categoryName,
+        maps
+    )
 }
 
 
@@ -386,6 +389,9 @@ OnCategoryChanged(*) {
     )
 
 
+    UpdateLauncherMapFavoriteButton()
+
+
     UpdateStatus(
         "READY",
         "22C55E"
@@ -453,6 +459,9 @@ RefreshLauncherLists() {
     MapDropdown.Choose(
         1
     )
+
+
+    UpdateLauncherMapFavoriteButton()
 }
 
 
@@ -513,7 +522,10 @@ GetMonkeyExpScripts(
     }
 
 
-    return scripts
+    return SortExpScriptsByFavorites(
+        towerType,
+        scripts
+    )
 }
 
 
@@ -573,6 +585,9 @@ RefreshMonkeyExpScripts(
     MonkeyExpScriptDropdown.Choose(
         1
     )
+
+
+    UpdateLauncherExpFavoriteButton()
 
 
     return names.Length

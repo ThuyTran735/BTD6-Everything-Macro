@@ -605,6 +605,15 @@ class DarkDropdown {
         }
 
 
+        ; A one-item list has nothing to choose. Keeping it closed avoids
+        ; the tiny popup repeatedly appearing/disappearing and eliminates
+        ; the single-item flicker while preserving the normal dropdown look.
+        if this.Items.Length <= 1 {
+            this.Close()
+            return
+        }
+
+
         if this.IsOpen {
 
             this.Close()
@@ -622,7 +631,7 @@ class DarkDropdown {
 
 
     Open() {
-        if this.Items.Length = 0 {
+        if this.Items.Length <= 1 {
             return
         }
 
@@ -925,29 +934,24 @@ class DarkDropdown {
 
 
     GetContentWidth() {
-        if this.Items.Length > this.MaxVisibleRows {
-            return Max(
-                1,
-                this.Width
-                - 2
-                - this.ScrollbarGap
-                - this.ScrollbarWidth
-                - this.ScrollbarPadding
-            )
-        }
-
-        return this.Width - 2
+        ; Every dropdown uses the same popup geometry as a scrollable list.
+        ; Short lists keep the scrollbar gutter too, which prevents the rows
+        ; from changing width/style depending on how many items are present.
+        return Max(
+            1,
+            this.Width
+            - 2
+            - this.ScrollbarGap
+            - this.ScrollbarWidth
+            - this.ScrollbarPadding
+        )
     }
 
 
     UpdateScrollbar(
         popupHeight := 0
     ) {
-        needsScroll :=
-            this.Items.Length
-            > this.MaxVisibleRows
-
-        if !needsScroll {
+        if this.Items.Length = 0 {
             this.ScrollTrack.Visible := false
             this.ScrollThumb.Visible := false
             return
@@ -980,43 +984,55 @@ class DarkDropdown {
                 - (this.ScrollbarPadding * 2)
             )
 
-        thumbHeight :=
-            Max(
-                22,
-                Floor(
-                    trackHeight
-                    * this.MaxVisibleRows
-                    / this.Items.Length
+        needsScroll :=
+            this.Items.Length
+            > this.MaxVisibleRows
+
+        if needsScroll {
+            thumbHeight :=
+                Max(
+                    22,
+                    Floor(
+                        trackHeight
+                        * this.MaxVisibleRows
+                        / this.Items.Length
+                    )
                 )
-            )
 
-        thumbHeight :=
-            Min(
-                trackHeight,
-                thumbHeight
-            )
+            thumbHeight :=
+                Min(
+                    trackHeight,
+                    thumbHeight
+                )
 
-        maxOffset :=
-            Max(
-                1,
-                this.Items.Length
-                - this.MaxVisibleRows
-            )
+            maxOffset :=
+                Max(
+                    1,
+                    this.Items.Length
+                    - this.MaxVisibleRows
+                )
 
-        travel :=
-            Max(
-                0,
-                trackHeight
-                - thumbHeight
-            )
+            travel :=
+                Max(
+                    0,
+                    trackHeight
+                    - thumbHeight
+                )
 
-        thumbY :=
-            trackY
-            + Round(
-                travel
-                * this.ScrollOffset
-                / maxOffset
-            )
+            thumbY :=
+                trackY
+                + Round(
+                    travel
+                    * this.ScrollOffset
+                    / maxOffset
+                )
+        }
+        else {
+            ; Short lists still render the same scrollbar rail. A full-height
+            ; thumb communicates that the entire list is already visible.
+            thumbHeight := trackHeight
+            thumbY := trackY
+        }
 
         this.ScrollTrack.Move(
             trackX,

@@ -125,24 +125,122 @@ CreateHelpBadgeForButton(
 }
 
 
+GetHelpLabelTextWidth(labelObject) {
+    control := labelObject.MainControl
+    fallback := Max(20, StrLen(control.Text) * 7)
+
+    hdc := DllCall(
+        "GetDC",
+        "Ptr", control.Hwnd,
+        "Ptr"
+    )
+
+    if !hdc {
+        return fallback
+    }
+
+    hfont := DllCall(
+        "SendMessage",
+        "Ptr", control.Hwnd,
+        "UInt", 0x31,
+        "Ptr", 0,
+        "Ptr", 0,
+        "Ptr"
+    )
+
+    oldFont := 0
+
+    if hfont {
+        oldFont := DllCall(
+            "SelectObject",
+            "Ptr", hdc,
+            "Ptr", hfont,
+            "Ptr"
+        )
+    }
+
+    sizeBuffer := Buffer(8, 0)
+    measured := DllCall(
+        "GetTextExtentPoint32W",
+        "Ptr", hdc,
+        "Str", control.Text,
+        "Int", StrLen(control.Text),
+        "Ptr", sizeBuffer.Ptr,
+        "Int"
+    )
+
+    if oldFont {
+        DllCall(
+            "SelectObject",
+            "Ptr", hdc,
+            "Ptr", oldFont
+        )
+    }
+
+    DllCall(
+        "ReleaseDC",
+        "Ptr", control.Hwnd,
+        "Ptr", hdc
+    )
+
+    if !measured {
+        return fallback
+    }
+
+    return NumGet(sizeBuffer, 0, "Int")
+}
+
+
 CreateHelpBadgeForField(
     guiObject,
     fieldObject,
+    labelObject,
     title,
     body,
-    size := 15
+    size := 15,
+    gap := 6
 ) {
-    ; Sit on the right side of the field's label row. Because this
-    ; position is derived from the field itself it remains aligned
-    ; when the field is moved or resized.
+    ; Field help belongs to the label, not the far edge of the dropdown.
+    ; Nudge the complete outlined label group down slightly so its visual
+    ; baseline lines up with the centered ? button beside it. Do this only
+    ; once even if the same label is reused.
+    if !labelObject.HasOwnProp("HelpBaselineAdjusted") {
+        for control in labelObject.Controls {
+            control.GetPos(&controlX, &controlY)
+            control.Move(controlX, controlY + 4)
+        }
+
+        labelObject.HelpBaselineAdjusted := true
+    }
+
+    ; Measure the rendered label text so the ? follows immediately after it
+    ; even when labels have different lengths.
+    labelObject.MainControl.GetPos(
+        &labelX,
+        &labelY,
+        &labelWidth,
+        &labelHeight
+    )
+
+    textWidth := GetHelpLabelTextWidth(labelObject)
+
+    badgeX := labelX + textWidth + gap
+    maxX := fieldObject.X + fieldObject.Width - size
+
+    if badgeX > maxX {
+        badgeX := maxX
+    }
+
+    ; Anchor every field-help badge to the shared label-action row instead
+    ; of moving it down with the label text. This lets the outlined text
+    ; sit a few pixels lower while the ?, favorite star, and favorite ?
+    ; remain perfectly aligned with each other.
+    badgeY := fieldObject.Y - size - 6
+
     return CreateHelpBadge(
         guiObject,
-        fieldObject.X
-        + fieldObject.Width
-        - size,
-        fieldObject.Y
-        - size
-        - 4,
+        badgeX,
+        badgeY,
         title,
         body,
         size

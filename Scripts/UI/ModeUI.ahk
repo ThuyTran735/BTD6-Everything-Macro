@@ -264,8 +264,13 @@ ApplyLauncherMode() {
 
     global CategoryHelpBadge
     global MapHelpBadge
+    global MapFavoriteHelpBadge
     global MonkeyExpTypeHelpBadge
     global MonkeyExpScriptHelpBadge
+    global MonkeyExpFavoriteHelpBadge
+
+    global MapFavoriteButton
+    global MonkeyExpFavoriteButton
 
     global RunButton
     global AddQueueButton
@@ -298,8 +303,14 @@ ApplyLauncherMode() {
 
         CategoryHelpBadge.Visible := true
         MapHelpBadge.Visible := true
+        MapFavoriteHelpBadge.Visible := true
         MonkeyExpTypeHelpBadge.Visible := false
         MonkeyExpScriptHelpBadge.Visible := false
+        MonkeyExpFavoriteHelpBadge.Visible := false
+
+        MapFavoriteButton.Visible := true
+        MonkeyExpFavoriteButton.Visible := false
+        UpdateLauncherMapFavoriteButton()
 
 
         RunButton.Enabled := true
@@ -351,8 +362,13 @@ ApplyLauncherMode() {
 
         CategoryHelpBadge.Visible := false
         MapHelpBadge.Visible := false
+        MapFavoriteHelpBadge.Visible := false
         MonkeyExpTypeHelpBadge.Visible := true
         MonkeyExpScriptHelpBadge.Visible := true
+        MonkeyExpFavoriteHelpBadge.Visible := true
+
+        MapFavoriteButton.Visible := false
+        MonkeyExpFavoriteButton.Visible := true
 
 
         scriptCount :=
@@ -443,8 +459,13 @@ ApplyLauncherMode() {
 
         CategoryHelpBadge.Visible := false
         MapHelpBadge.Visible := false
+        MapFavoriteHelpBadge.Visible := false
         MonkeyExpTypeHelpBadge.Visible := false
         MonkeyExpScriptHelpBadge.Visible := false
+        MonkeyExpFavoriteHelpBadge.Visible := false
+
+        MapFavoriteButton.Visible := false
+        MonkeyExpFavoriteButton.Visible := false
 
 
         RunButton.Enabled := false

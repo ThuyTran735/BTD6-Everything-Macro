@@ -706,7 +706,7 @@ CancelMacroCycles(*) {
 }
 
 
-ShowCycleInputPrompt() {
+ShowCycleInputPrompt(context := "run") {
     global CycleInputGui
     global CycleInputEdit
     global CycleInputErrorText
@@ -737,10 +737,13 @@ ShowCycleInputPrompt() {
     dialogHeight := 280
 
 
+    isQueuePrompt := context = "queue"
+
+
     CycleInputGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-            "Run Macro"
+            isQueuePrompt ? "Run Script" : "Run Macro"
         )
 
 
@@ -781,7 +784,7 @@ ShowCycleInputPrompt() {
         "x20 y20 w400 h30 Center c"
         . UIColorPrimaryText
         . " BackgroundTrans",
-        "RUN CYCLES"
+        isQueuePrompt ? "RUN SCRIPT" : "RUN CYCLES"
     )
 
 
@@ -797,7 +800,9 @@ ShowCycleInputPrompt() {
         "x20 y59 w400 h22 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        "How many times should this strategy run?"
+        isQueuePrompt
+        ? "How many times should this script run in the queue?"
+        : "How many times should this strategy run?"
     )
 
 
@@ -902,7 +907,7 @@ ShowCycleInputPrompt() {
             211,
             184,
             44,
-            "RUN MACRO",
+            isQueuePrompt ? "RUN SCRIPT" : "RUN MACRO",
             8
         )
 
@@ -922,8 +927,10 @@ ShowCycleInputPrompt() {
     CreateHelpBadgeForButton(
         CycleInputGui,
         runButton,
-        "RUN COUNT",
-        "Confirms how many times the selected script or queued job should run. Enter a whole number from 1 to 1,000,000."
+        isQueuePrompt ? "RUN SCRIPT" : "RUN COUNT",
+        isQueuePrompt
+        ? "Confirms how many times this script should be added to the queue. Enter a whole number from 1 to 1,000,000."
+        : "Confirms how many times the selected script should run. Enter a whole number from 1 to 1,000,000."
     )
 
 

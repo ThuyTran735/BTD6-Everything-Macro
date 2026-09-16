@@ -59,7 +59,7 @@ AddJobToQueue(
     if runCount < 1 {
 
         runCount :=
-            PromptForRunCount()
+            PromptForRunCount("queue")
     }
 
 
@@ -271,9 +271,21 @@ ShowQueueManager(*) {
             QueueGui,
             20,
             436,
-            380,
+            250,
             44,
             "START QUEUE",
+            9
+        )
+
+
+    profilesButton :=
+        CreateDarkButton(
+            QueueGui,
+            280,
+            436,
+            150,
+            44,
+            "PROFILES",
             9
         )
 
@@ -281,9 +293,9 @@ ShowQueueManager(*) {
     closeButton :=
         CreateDarkButton(
             QueueGui,
-            420,
+            440,
             436,
-            180,
+            160,
             44,
             "CLOSE",
             9
@@ -332,6 +344,14 @@ ShowQueueManager(*) {
 
     CreateHelpBadgeForButton(
         QueueGui,
+        profilesButton,
+        "QUEUE PROFILES",
+        "Opens saved Queue Profiles. Save the current queue with a name, load it later, update or rename it, delete it, and favorite profiles so they stay at the top."
+    )
+
+
+    CreateHelpBadgeForButton(
+        QueueGui,
         closeButton,
         "CLOSE",
         "Closes the Queue Manager. Your queued jobs stay saved in the launcher until you remove them or exit the macro."
@@ -365,6 +385,12 @@ ShowQueueManager(*) {
     QueueStartButton.OnEvent(
         "Click",
         StartMacroQueue
+    )
+
+
+    profilesButton.OnEvent(
+        "Click",
+        ShowQueueProfilesManager
     )
 
 

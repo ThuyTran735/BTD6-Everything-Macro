@@ -30,8 +30,10 @@ global LogsButton := ""
 
 global CategoryHelpBadge := ""
 global MapHelpBadge := ""
+global MapFavoriteHelpBadge := ""
 global MonkeyExpTypeHelpBadge := ""
 global MonkeyExpScriptHelpBadge := ""
+global MonkeyExpFavoriteHelpBadge := ""
 
 global ScriptPickerGui := ""
 global ScriptPickerState := ""
@@ -96,15 +98,21 @@ global CategoryData := Map()
 #Include CustomDropdownUI.ahk
 #Include HelpUI.ahk
 #Include UIHelpers.ahk
+#Include FavoritesProfilesData.ahk
+#Include FavoritesUI.ahk
 #Include LoadingUI.ahk
 #Include CycleStatusUI.ahk
 #Include MapDiscoveryUI.ahk
 #Include QueueJobBuilderUI.ahk
+#Include QueueProfilesUI.ahk
 #Include QueueUI.ahk
 #Include ScriptPickerUI.ahk
 #Include ModeUI.ahk
 #Include LauncherUI.ahk
 
+
+; Load persistent favorites before discovery builds launcher lists.
+LoadFavoriteData()
 
 ; UI.ahk is only loaded by the main launcher.
 ; Run the fake boot sequence before Main.ahk

@@ -1,6 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 
-#Include ..\..\..\..\Scripts\IncludeAll.ahk
+#Include ..\..\..\..\IncludeAll.ahk
 
 ; #Include Location Of IncludeAll.ahk
 

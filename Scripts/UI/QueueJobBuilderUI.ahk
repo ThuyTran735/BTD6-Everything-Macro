@@ -19,9 +19,14 @@ global QueueBuilderExpScriptLabel := ""
 
 global QueueBuilderCategoryHelp := ""
 global QueueBuilderMapHelp := ""
+global QueueBuilderMapFavoriteHelp := ""
 global QueueBuilderStrategyHelp := ""
 global QueueBuilderExpTypeHelp := ""
 global QueueBuilderExpScriptHelp := ""
+global QueueBuilderExpFavoriteHelp := ""
+
+global QueueBuilderMapFavoriteButton := ""
+global QueueBuilderExpFavoriteButton := ""
 
 
 ShowQueueJobBuilder(*) {
@@ -41,9 +46,14 @@ ShowQueueJobBuilder(*) {
 
     global QueueBuilderCategoryHelp
     global QueueBuilderMapHelp
+    global QueueBuilderMapFavoriteHelp
     global QueueBuilderStrategyHelp
     global QueueBuilderExpTypeHelp
     global QueueBuilderExpScriptHelp
+    global QueueBuilderExpFavoriteHelp
+
+    global QueueBuilderMapFavoriteButton
+    global QueueBuilderExpFavoriteButton
 
     global CurrentMode
     global MacroRunning
@@ -141,7 +151,8 @@ ShowQueueJobBuilder(*) {
     )
 
 
-    AddUIOutlinedText(
+    QueueBuilderJobTypeLabel :=
+        AddUIOutlinedText(
         QueueBuilderGui,
         "SELECT JOB TYPE",
         30,
@@ -170,6 +181,7 @@ ShowQueueJobBuilder(*) {
     CreateHelpBadgeForField(
         QueueBuilderGui,
         QueueBuilderJobTypeDropdown,
+        QueueBuilderJobTypeLabel,
         "JOB TYPE",
         "Choose the kind of queued job you want to add.`n`nMAP SCRIPT lets you choose a map category, map, and exact strategy.`n`nMONKEY EXP GRIND lets you choose a tower type and its .ahk script."
     )
@@ -203,6 +215,7 @@ ShowQueueJobBuilder(*) {
         CreateHelpBadgeForField(
             QueueBuilderGui,
             QueueBuilderCategoryDropdown,
+            QueueBuilderCategoryLabel,
             "MAP CATEGORY",
             "Choose the BTD6 map category for this queue job, such as Beginner, Intermediate, Advanced, or Expert.`n`nThe Map list below updates automatically to only show maps from the selected category."
         )
@@ -236,6 +249,7 @@ ShowQueueJobBuilder(*) {
         CreateHelpBadgeForField(
             QueueBuilderGui,
             QueueBuilderMapDropdown,
+            QueueBuilderMapLabel,
             "MAP",
             "Choose the map for this queued job.`n`nOnly maps that contain at least one runnable .ahk strategy are shown. Changing the map refreshes the Strategy list below."
         )
@@ -271,6 +285,7 @@ ShowQueueJobBuilder(*) {
         CreateHelpBadgeForField(
             QueueBuilderGui,
             QueueBuilderStrategyDropdown,
+            QueueBuilderStrategyLabel,
             "STRATEGY",
             "Choose the exact .ahk strategy that the queue should run for the selected map.`n`nDifficulty is shown before the filename so strategies with similar names are easy to tell apart."
         )
@@ -310,6 +325,7 @@ ShowQueueJobBuilder(*) {
         CreateHelpBadgeForField(
             QueueBuilderGui,
             QueueBuilderExpTypeDropdown,
+            QueueBuilderExpTypeLabel,
             "TOWER TYPE",
             "Choose Primary, Military, Magic, or Support.`n`nThe Tower Script list below reads only the .ahk files inside that type's Monkey EXP Grind folder."
         )
@@ -355,6 +371,7 @@ ShowQueueJobBuilder(*) {
         CreateHelpBadgeForField(
             QueueBuilderGui,
             QueueBuilderExpScriptDropdown,
+            QueueBuilderExpScriptLabel,
             "TOWER SCRIPT",
             "Choose the exact Monkey EXP Grind .ahk file to queue.`n`nThe .ahk extension stays visible, and the list updates whenever you change Tower Type."
         )
@@ -362,6 +379,54 @@ ShowQueueJobBuilder(*) {
 
     QueueBuilderExpScriptHelp.Visible :=
         false
+
+
+    QueueBuilderMapFavoriteButton :=
+        CreateFavoriteButtonForField(
+            QueueBuilderGui,
+            QueueBuilderMapDropdown
+        )
+
+
+    QueueBuilderMapFavoriteButton.OnEvent(
+        "Click",
+        ToggleQueueBuilderMapFavorite
+    )
+
+
+    QueueBuilderMapFavoriteHelp :=
+        CreateFavoriteHelpBadgeForField(
+            QueueBuilderGui,
+            QueueBuilderMapDropdown,
+            "FAVORITES",
+            "Click ☆ to favorite the selected map. ★ means it is already a favorite. Favorite maps move to the top everywhere map dropdowns are used."
+        )
+
+
+    QueueBuilderExpFavoriteButton :=
+        CreateFavoriteButtonForField(
+            QueueBuilderGui,
+            QueueBuilderExpScriptDropdown
+        )
+
+
+    QueueBuilderExpFavoriteButton.OnEvent(
+        "Click",
+        ToggleQueueBuilderExpFavorite
+    )
+
+
+    QueueBuilderExpFavoriteHelp :=
+        CreateFavoriteHelpBadgeForField(
+            QueueBuilderGui,
+            QueueBuilderExpScriptDropdown,
+            "FAVORITES",
+            "Click ☆ to favorite the selected Monkey EXP script. ★ means it is already a favorite. Favorite EXP scripts move to the top everywhere EXP dropdowns are used."
+        )
+
+
+    QueueBuilderExpFavoriteButton.Visible := false
+    QueueBuilderExpFavoriteHelp.Visible := false
 
 
     addButton :=
@@ -425,6 +490,12 @@ ShowQueueJobBuilder(*) {
     QueueBuilderExpTypeDropdown.OnEvent(
         "Change",
         QueueBuilderExpTypeChanged
+    )
+
+
+    QueueBuilderExpScriptDropdown.OnEvent(
+        "Change",
+        UpdateQueueBuilderExpFavoriteButton
     )
 
 
@@ -493,6 +564,10 @@ QueueBuilderJobTypeChanged(*) {
     global QueueBuilderStrategyHelp
     global QueueBuilderExpTypeHelp
     global QueueBuilderExpScriptHelp
+    global QueueBuilderMapFavoriteButton
+    global QueueBuilderExpFavoriteButton
+    global QueueBuilderMapFavoriteHelp
+    global QueueBuilderExpFavoriteHelp
 
 
     isMap :=
@@ -509,7 +584,9 @@ QueueBuilderJobTypeChanged(*) {
 
     QueueBuilderCategoryHelp.Visible := isMap
     QueueBuilderMapHelp.Visible := isMap
+    QueueBuilderMapFavoriteHelp.Visible := isMap
     QueueBuilderStrategyHelp.Visible := isMap
+    QueueBuilderMapFavoriteButton.Visible := isMap
 
 
     QueueBuilderExpTypeLabel.Visible := !isMap
@@ -519,6 +596,16 @@ QueueBuilderJobTypeChanged(*) {
 
     QueueBuilderExpTypeHelp.Visible := !isMap
     QueueBuilderExpScriptHelp.Visible := !isMap
+    QueueBuilderExpFavoriteHelp.Visible := !isMap
+    QueueBuilderExpFavoriteButton.Visible := !isMap
+
+
+    if isMap {
+        UpdateQueueBuilderMapFavoriteButton()
+    }
+    else {
+        UpdateQueueBuilderExpFavoriteButton()
+    }
 
 
     CloseAllDarkDropdowns()
@@ -526,43 +613,12 @@ QueueBuilderJobTypeChanged(*) {
 
 
 QueueBuilderCategoryChanged(*) {
-    global QueueBuilderCategoryDropdown
-    global QueueBuilderMapDropdown
-
-
-    maps :=
-        GetMapNamesForCategory(
-            QueueBuilderCategoryDropdown.Text
-        )
-
-
-    QueueBuilderMapDropdown.Delete()
-
-
-    if maps.Length = 0 {
-        QueueBuilderMapDropdown.Add(
-            [
-                "No configured maps"
-            ]
-        )
-    }
-    else {
-        QueueBuilderMapDropdown.Add(
-            maps
-        )
-    }
-
-
-    QueueBuilderMapDropdown.Choose(
-        1
-    )
-
-
-    RefreshQueueBuilderMapStrategies()
+    RefreshQueueBuilderMapFavorites(false)
 }
 
 
 QueueBuilderMapChanged(*) {
+    UpdateQueueBuilderMapFavoriteButton()
     RefreshQueueBuilderMapStrategies()
 }
 
@@ -706,7 +762,7 @@ SetQueueBuilderStrategyPlaceholder() {
 
 
 QueueBuilderExpTypeChanged(*) {
-    RefreshQueueBuilderExpScripts()
+    RefreshQueueBuilderExpFavorites(false)
 }
 
 
@@ -758,6 +814,9 @@ RefreshQueueBuilderExpScripts() {
     QueueBuilderExpScriptDropdown.Choose(
         1
     )
+
+
+    UpdateQueueBuilderExpFavoriteButton()
 
 
     return names.Length
@@ -860,6 +919,10 @@ CloseQueueJobBuilder(*) {
     global QueueBuilderExpScriptDropdown
     global QueueBuilderMapStrategies
     global QueueBuilderExpScripts
+    global QueueBuilderMapFavoriteButton
+    global QueueBuilderExpFavoriteButton
+    global QueueBuilderMapFavoriteHelp
+    global QueueBuilderExpFavoriteHelp
 
 
     CloseAllDarkDropdowns()
@@ -880,4 +943,8 @@ CloseQueueJobBuilder(*) {
     QueueBuilderExpScriptDropdown := ""
     QueueBuilderMapStrategies := []
     QueueBuilderExpScripts := []
+    QueueBuilderMapFavoriteButton := ""
+    QueueBuilderExpFavoriteButton := ""
+    QueueBuilderMapFavoriteHelp := ""
+    QueueBuilderExpFavoriteHelp := ""
 }

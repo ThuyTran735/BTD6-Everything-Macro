@@ -31,8 +31,13 @@ CreateLauncherUI() {
 
     global CategoryHelpBadge
     global MapHelpBadge
+    global MapFavoriteHelpBadge
     global MonkeyExpTypeHelpBadge
     global MonkeyExpScriptHelpBadge
+    global MonkeyExpFavoriteHelpBadge
+
+    global MapFavoriteButton
+    global MonkeyExpFavoriteButton
 
     global GuiWidth
     global GuiHeight
@@ -74,7 +79,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.0"
+        "BTD6 Everything Macro - V1.1"
     )
 
 
@@ -128,7 +133,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.0"
+        "V1.1"
     )
 
 
@@ -459,10 +464,59 @@ CreateLauncherUI() {
         false
 
 
+    MapFavoriteButton :=
+        CreateFavoriteButtonForField(
+            LauncherGui,
+            MapDropdown
+        )
+
+
+    MapFavoriteButton.OnEvent(
+        "Click",
+        ToggleLauncherMapFavorite
+    )
+
+
+    MapFavoriteHelpBadge :=
+        CreateFavoriteHelpBadgeForField(
+            LauncherGui,
+            MapDropdown,
+            "FAVORITES",
+            "Click ☆ to favorite the selected map. ★ means the map is already a favorite. Favorite maps automatically move to the top of map dropdowns."
+        )
+
+
+    MonkeyExpFavoriteButton :=
+        CreateFavoriteButtonForField(
+            LauncherGui,
+            MonkeyExpScriptDropdown
+        )
+
+
+    MonkeyExpFavoriteButton.OnEvent(
+        "Click",
+        ToggleLauncherExpFavorite
+    )
+
+
+    MonkeyExpFavoriteHelpBadge :=
+        CreateFavoriteHelpBadgeForField(
+            LauncherGui,
+            MonkeyExpScriptDropdown,
+            "FAVORITES",
+            "Click ☆ to favorite the selected Monkey EXP script. ★ means it is already a favorite. Favorite EXP scripts automatically move to the top of EXP script dropdowns."
+        )
+
+
+    MonkeyExpFavoriteButton.Visible := false
+    MonkeyExpFavoriteHelpBadge.Visible := false
+
+
     CategoryHelpBadge :=
         CreateHelpBadgeForField(
             LauncherGui,
             CategoryDropdown,
+            CategoryLabel,
             "CATEGORY",
             "Choose the map difficulty category. The Map dropdown updates automatically so it only shows configured maps from that category."
         )
@@ -472,6 +526,7 @@ CreateLauncherUI() {
         CreateHelpBadgeForField(
             LauncherGui,
             MapDropdown,
+            MapLabel,
             "MAP",
             "Choose the map you want to run. Only maps with at least one runnable strategy are listed."
         )
@@ -481,6 +536,7 @@ CreateLauncherUI() {
         CreateHelpBadgeForField(
             LauncherGui,
             MonkeyExpTypeDropdown,
+            MonkeyExpTypeLabel,
             "TOWER TYPE",
             "Choose Primary, Military, Magic, or Support. The Tower dropdown then shows only the .ahk scripts inside that tower type folder."
         )
@@ -490,6 +546,7 @@ CreateLauncherUI() {
         CreateHelpBadgeForField(
             LauncherGui,
             MonkeyExpScriptDropdown,
+            MonkeyExpScriptLabel,
             "TOWER SCRIPT",
             "Choose the exact Monkey EXP Grind .ahk script to run. The filename is kept exactly as it appears in the folder."
         )
@@ -505,9 +562,21 @@ CreateLauncherUI() {
     )
 
 
+    MapDropdown.OnEvent(
+        "Change",
+        UpdateLauncherMapFavoriteButton
+    )
+
+
     MonkeyExpTypeDropdown.OnEvent(
         "Change",
         OnMonkeyExpTypeChanged
+    )
+
+
+    MonkeyExpScriptDropdown.OnEvent(
+        "Change",
+        UpdateLauncherExpFavoriteButton
     )
 
 
@@ -526,6 +595,10 @@ CreateLauncherUI() {
 
 
     ApplyModernWindowStyle()
+
+
+    UpdateLauncherMapFavoriteButton()
+    UpdateLauncherExpFavoriteButton()
 
 
     ApplyLauncherMode()
@@ -1057,8 +1130,8 @@ RunDefaultMode() {
 }
 
 
-PromptForRunCount() {
-    return ShowCycleInputPrompt()
+PromptForRunCount(context := "run") {
+    return ShowCycleInputPrompt(context)
 }
 
 

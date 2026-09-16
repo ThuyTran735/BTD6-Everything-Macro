@@ -2,6 +2,11 @@
 
 #Include ..\Lib\FindText.ahk
 
+global HeroSelectionPatterns := Map(
+    ; button shown on a hero the player does not own.
+    "Unlock", "|<>*173$138.00007zzk7zs000000000000007zzzzwDzw03y003zrzts0DzzzzzzyTzw0Tzk0DzzzzzUTzzzw1sDQ0Q0zzw0zzzzzzwTzy0s0U7w0Q3w1y1w0S0T7yQ0y0M003w0Q7k0D3k0C0S0Ts0y0M001w0Q7007bU0S0S0Ds0y0s001w0QC003z00S0Q0Ts0y0s000w0QS001y00S0M0Ss1y0s0M0w0QQ001w00S0E0ys1y0s0s0w0Qs000w00S0E1ws1y0s0w0w0ws000s00S003ss1y0s0w0w0ws1w0s0Dy007ks1y0s1w0w0tk3y0s0zy00DUs1w0s1w0Q0tk3y0s1zy00DUU"
+)
+
 HeroPatterns := Map(
     "Quincy", [
         ; Archer Skin
@@ -199,13 +204,9 @@ SelectHero(heroName) {
     if FindAndClickHero(
         patterns
     ) {
-
-        Sleep(
-            500
+        return FinishHeroSelection(
+            heroName
         )
-
-
-        return ClickSelectButton()
     }
 
 
@@ -231,13 +232,9 @@ SelectHero(heroName) {
         if FindAndClickHero(
             patterns
         ) {
-
-            Sleep(
-                500
+            return FinishHeroSelection(
+                heroName
             )
-
-
-            return ClickSelectButton()
         }
     }
 
@@ -264,13 +261,9 @@ SelectHero(heroName) {
         if FindAndClickHero(
             patterns
         ) {
-
-            Sleep(
-                500
+            return FinishHeroSelection(
+                heroName
             )
-
-
-            return ClickSelectButton()
         }
     }
 
@@ -280,6 +273,68 @@ SelectHero(heroName) {
     ; unlocked that hero yet.
     return SelectFallbackHero(
         heroName
+    )
+}
+
+FinishHeroSelection(
+    heroName
+) {
+    ; Give the hero details panel time to update
+    ; after the requested hero was clicked.
+    Sleep(
+        500
+    )
+
+
+    ; Higher-level accounts can display the normal
+    ; hero portrait even when the hero is still locked.
+    ; The Unlock button is the reliable ownership check.
+    if IsHeroUnlockVisible() {
+        return SelectFallbackHero(
+            heroName
+        )
+    }
+
+
+    return ClickSelectButton()
+}
+
+IsHeroUnlockVisible() {
+    global HeroSelectionPatterns
+
+
+    if !HeroSelectionPatterns.Has(
+        "Unlock"
+    ) {
+        return false
+    }
+
+
+    unlockPattern :=
+        HeroSelectionPatterns[
+            "Unlock"
+        ]
+
+
+    ; Keep hero selection working while the new
+    ; FindText capture has not been added yet.
+    if Trim(
+        unlockPattern
+    ) = "" {
+        return false
+    }
+
+
+    return !!FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        unlockPattern
     )
 }
 

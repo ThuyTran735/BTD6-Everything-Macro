@@ -14,6 +14,9 @@ global HotkeyText := ""
 
 global MonkeyExpTitle := ""
 global MonkeyExpDescription := ""
+global MonkeyExpScriptLabel := ""
+global MonkeyExpScriptDropdown := ""
+global MonkeyExpScripts := []
 
 global StatusText := ""
 
@@ -57,6 +60,14 @@ global RepeatRunRemaining := 0
 global RepeatRunCompleted := 0
 
 global ForceLauncherVisible := false
+
+; While a macro run is active (and briefly while the child
+; process is handing control back to BTD6), keep the launcher
+; physically hidden and fully transparent. This prevents a
+; one-frame launcher flash during fullscreen/menu transitions.
+global LauncherRunSuppressed := false
+global LauncherReturnPending := false
+global LauncherReturnPendingTick := 0
 
 global GuiWidth := 390
 global GuiHeight := 390

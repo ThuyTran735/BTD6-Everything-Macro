@@ -191,7 +191,7 @@ RunStrategy(actions) {
     ; undetectable hero-unlock screen can appear near
     ; the end of a game, such as round 39/40 on Easy.
     ;
-    ; GetValidatedRound() keeps the 7500 ms
+    ; GetValidatedRound() keeps the 1500 ms
     ; missing-round recovery alive, so the macro can
     ; still click the known bottom-right location
     ; five times and resume.
@@ -241,7 +241,7 @@ WaitForRoundTime(targetMs) {
         ; Keep round tracking updated.
         ;
         ; This also keeps the unknown-screen
-        ; 7500 ms recovery active.
+        ; 1500 ms recovery active.
         GetValidatedRound()
 
 

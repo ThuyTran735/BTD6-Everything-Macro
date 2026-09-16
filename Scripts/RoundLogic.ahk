@@ -128,7 +128,7 @@ global RoundStartTick := 0
 global LastTrackedRound := 0
 
 global RoundReadMissingSince := 0
-global RoundReadTimeoutMs := 7500
+global RoundReadTimeoutMs := 1500
 
 global RoundRecoveryX := 1598
 global RoundRecoveryY := 1043

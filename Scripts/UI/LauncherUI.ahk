@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 
 CreateLauncherUI() {
@@ -16,6 +16,8 @@ CreateLauncherUI() {
 
     global MonkeyExpTitle
     global MonkeyExpDescription
+    global MonkeyExpScriptLabel
+    global MonkeyExpScriptDropdown
 
     global StatusText
 
@@ -209,6 +211,20 @@ CreateLauncherUI() {
         )
 
 
+    MonkeyExpScriptLabel :=
+        AddUIOutlinedText(
+            LauncherGui,
+            "SELECT SCRIPT",
+            20,
+            157,
+            350,
+            22,
+            9,
+            "Left",
+            false
+        )
+
+
     RunButton :=
         CreateDarkButton(
             LauncherGui,
@@ -318,6 +334,24 @@ CreateLauncherUI() {
         )
 
 
+    MonkeyExpScriptDropdown :=
+        CreateDarkDropdown(
+            LauncherGui,
+            20,
+            181,
+            350,
+            [
+                "No Monkey EXP scripts found"
+            ],
+            1,
+            6
+        )
+
+
+    MonkeyExpScriptDropdown.Visible :=
+        false
+
+
     CategoryDropdown.OnEvent(
         "Change",
         OnCategoryChanged
@@ -385,12 +419,43 @@ RunCurrentMode(*) {
 
 
 RunMonkeyExpGrindMode() {
-    global UIColorWarning
+    global MonkeyExpScriptDropdown
+    global MonkeyExpScripts
+
+    global UIColorError
+
+
+    selectedName :=
+        MonkeyExpScriptDropdown.Text
+
+
+    ; Refresh from disk when Run is pressed too, so the
+    ; launcher never relies on a stale path.
+    currentScripts :=
+        GetMonkeyExpScripts()
+
+
+    for script in currentScripts {
+
+        if script.name = selectedName {
+
+            LaunchMapScript(
+                script.path
+            )
+
+
+            return
+        }
+    }
+
+
+    MonkeyExpScripts :=
+        currentScripts
 
 
     UpdateStatus(
-        "MONKEY EXP GRIND NOT SET UP YET",
-        UIColorWarning
+        "SELECTED SCRIPT NOT FOUND",
+        UIColorError
     )
 }
 
@@ -659,6 +724,10 @@ LaunchMapScript(
         false
 
 
+    ClearLauncherReturnPending()
+    SetLauncherRunSuppressed(true)
+
+
     CloseAllDarkDropdowns()
     CloseModePicker()
     CloseScriptPicker()
@@ -740,6 +809,10 @@ StartNextQueuedRun() {
             "SCRIPT NOT FOUND",
             UIColorError
         )
+
+
+        ClearLauncherReturnPending()
+        SetLauncherRunSuppressed(false)
 
 
         ShowLauncher(
@@ -836,6 +909,10 @@ StartNextQueuedRun() {
             "FAILED TO START",
             UIColorError
         )
+
+
+        ClearLauncherReturnPending()
+        SetLauncherRunSuppressed(false)
 
 
         ShowLauncher(

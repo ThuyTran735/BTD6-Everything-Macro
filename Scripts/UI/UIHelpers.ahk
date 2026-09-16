@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 
 PositionLauncher() {
@@ -152,14 +152,112 @@ PositionLauncher() {
 }
 
 
+SetLauncherRunSuppressed(
+    suppressed
+) {
+    global LauncherGui
+    global LauncherRunSuppressed
+
+
+    LauncherRunSuppressed :=
+        !!suppressed
+
+
+    if !LauncherGui {
+        return
+    }
+
+
+    windowTitle :=
+        "ahk_id "
+        . LauncherGui.Hwnd
+
+
+    if LauncherRunSuppressed {
+
+        ; Transparency is intentional in addition to Hide().
+        ; BTD6 can briefly change fullscreen/window composition
+        ; while Play is opening the map screen. Even if Windows
+        ; redraws the hidden tool window for a frame, opacity 0
+        ; prevents the launcher from becoming visible.
+        try {
+            WinSetTransparent(
+                0,
+                windowTitle
+            )
+        }
+
+
+        try {
+            LauncherGui.Hide()
+        }
+
+
+        return
+    }
+
+
+    ; Restore normal opacity before the launcher is shown again.
+    try {
+        WinSetTransparent(
+            255,
+            windowTitle
+        )
+    }
+}
+
+
+BeginLauncherReturnPending() {
+    global LauncherReturnPending
+    global LauncherReturnPendingTick
+
+
+    LauncherReturnPending :=
+        true
+
+
+    LauncherReturnPendingTick :=
+        A_TickCount
+}
+
+
+ClearLauncherReturnPending() {
+    global LauncherReturnPending
+    global LauncherReturnPendingTick
+
+
+    LauncherReturnPending :=
+        false
+
+
+    LauncherReturnPendingTick :=
+        0
+}
+
+
 ShowLauncher(
     activate := false
 ) {
     global LauncherGui
+    global LauncherRunSuppressed
     global GuiWidth
     global GuiHeight
     global GuiX
     global GuiY
+
+
+    ; Never permit a normal Show() while a run owns the screen.
+    ; Call SetLauncherRunSuppressed(false) first for an explicit
+    ; cancel/error/completion return to the launcher.
+    if LauncherRunSuppressed {
+
+        if IsLauncherVisible() {
+            LauncherGui.Hide()
+        }
+
+
+        return false
+    }
 
 
     PositionLauncher()
@@ -187,6 +285,9 @@ ShowLauncher(
     LauncherGui.Show(
         options
     )
+
+
+    return true
 }
 
 
@@ -440,6 +541,9 @@ MonitorLauncherState() {
 
     global ForceLauncherVisible
     global StartupLoadingActive
+    global LauncherRunSuppressed
+    global LauncherReturnPending
+    global LauncherReturnPendingTick
 
     global LauncherGui
 
@@ -452,7 +556,6 @@ MonitorLauncherState() {
     if StartupLoadingActive {
 
         if IsLauncherVisible() {
-
             LauncherGui.Hide()
         }
 
@@ -461,7 +564,13 @@ MonitorLauncherState() {
     }
 
 
+    ; Explicit cancel/error requests are allowed to return to the
+    ; launcher immediately. They override the transition guard.
     if ForceLauncherVisible {
+
+        ClearLauncherReturnPending()
+        SetLauncherRunSuppressed(false)
+
 
         if !IsLauncherVisible() {
 
@@ -476,6 +585,12 @@ MonitorLauncherState() {
 
 
     if MacroRunning {
+
+        ; While the child process is alive, suppression is a hard
+        ; invariant. This also re-applies opacity 0 if Windows
+        ; changed window composition during a BTD6 transition.
+        SetLauncherRunSuppressed(true)
+
 
         if (
             RunningPid
@@ -502,6 +617,10 @@ MonitorLauncherState() {
 
                 ForceLauncherVisible :=
                     true
+
+
+                ClearLauncherReturnPending()
+                SetLauncherRunSuppressed(false)
 
 
                 UpdateStatus(
@@ -541,8 +660,8 @@ MonitorLauncherState() {
                 )
 
 
-                ; Give the main menu one full second
-                ; to finish loading before the next cycle.
+                ; Keep suppression active while the game returns
+                ; to Home and before the next child cycle starts.
                 SetTimer(
                     StartNextQueuedRun,
                     -2000
@@ -592,6 +711,17 @@ MonitorLauncherState() {
                     UIColorSuccess
                 )
             }
+
+
+            ; The child can disappear during a menu/fullscreen
+            ; transition. Do not immediately interpret that as
+            ; permission to paint the launcher. Wait until Home is
+            ; positively visible; use a fallback only for a real
+            ; child failure that never reaches Home.
+            BeginLauncherReturnPending()
+
+
+            return
         }
         else {
 
@@ -599,7 +729,6 @@ MonitorLauncherState() {
 
 
             if IsLauncherVisible() {
-
                 LauncherGui.Hide()
             }
 
@@ -609,10 +738,51 @@ MonitorLauncherState() {
     }
 
 
+    if LauncherReturnPending {
+
+        if IsHomeScreenVisible() {
+
+            ClearLauncherReturnPending()
+            SetLauncherRunSuppressed(false)
+
+
+            if !IsLauncherVisible() {
+
+                ShowLauncher(
+                    false
+                )
+            }
+
+
+            return
+        }
+
+
+        ; A genuine script error may terminate away from Home.
+        ; Keep the launcher invisible long enough for normal BTD6
+        ; transitions to settle, then give control back to the user.
+        if (
+            LauncherReturnPendingTick
+            && A_TickCount
+                - LauncherReturnPendingTick
+                < 8000
+        ) {
+
+            SetLauncherRunSuppressed(true)
+
+
+            return
+        }
+
+
+        ClearLauncherReturnPending()
+        SetLauncherRunSuppressed(false)
+    }
+
+
     if IsInGameScreen() {
 
         if IsLauncherVisible() {
-
             LauncherGui.Hide()
         }
 

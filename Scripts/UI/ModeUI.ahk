@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 
 ShowModePicker(*) {
@@ -61,7 +61,7 @@ ShowModePicker(*) {
 
     modes := [
         "Default",
-        "Monkey EXP Grind Farm",
+        "Monkey EXP Grind",
         "Monkey Money Grind"
     ]
 
@@ -85,7 +85,7 @@ ShowModePicker(*) {
         )
     }
     else if CurrentMode
-        = "Monkey EXP Grind Farm" {
+        = "Monkey EXP Grind" {
 
         modeList.Choose(
             2
@@ -240,6 +240,8 @@ ApplyLauncherMode() {
 
     global MonkeyExpTitle
     global MonkeyExpDescription
+    global MonkeyExpScriptLabel
+    global MonkeyExpScriptDropdown
 
     global RunButton
 
@@ -264,6 +266,8 @@ ApplyLauncherMode() {
 
         MonkeyExpTitle.Visible := false
         MonkeyExpDescription.Visible := false
+        MonkeyExpScriptLabel.Visible := false
+        MonkeyExpScriptDropdown.Visible := false
 
 
         RunButton.Enabled := true
@@ -283,10 +287,10 @@ ApplyLauncherMode() {
 
 
     if CurrentMode
-        = "Monkey EXP Grind Farm" {
+        = "Monkey EXP Grind" {
 
         SubtitleText.Text :=
-            "Monkey EXP Grind Farm Mode"
+            "Monkey EXP Grind Mode"
 
 
         CategoryLabel.Visible := false
@@ -299,28 +303,47 @@ ApplyLauncherMode() {
 
 
         MonkeyExpTitle.Text :=
-            "Monkey EXP Grind FARM"
-
-
-        MonkeyExpDescription.Text :=
-            "Monkey EXP Grind Farm controls will go here.`n"
-            . "This mode is ready to be built next."
+            "MONKEY EXP GRIND"
 
 
         MonkeyExpTitle.Visible := true
-        MonkeyExpDescription.Visible := true
+        MonkeyExpDescription.Visible := false
+        MonkeyExpScriptLabel.Visible := true
+        MonkeyExpScriptDropdown.Visible := true
 
 
-        RunButton.Enabled := false
+        scriptCount :=
+            RefreshMonkeyExpScripts()
+
+
+        RunButton.Enabled :=
+            scriptCount > 0
 
         RunButton.Text :=
             "RUN MACRO"
 
 
-        UpdateStatus(
-            "MODE NOT CONFIGURED YET",
-            UIColorWarning
-        )
+        if scriptCount > 0 {
+
+            UpdateStatus(
+                scriptCount
+                . " SCRIPT"
+                . (
+                    scriptCount = 1
+                    ? ""
+                    : "S"
+                )
+                . " FOUND",
+                UIColorSuccess
+            )
+        }
+        else {
+
+            UpdateStatus(
+                "NO MONKEY EXP SCRIPTS FOUND",
+                UIColorWarning
+            )
+        }
 
 
         return
@@ -354,6 +377,8 @@ ApplyLauncherMode() {
 
         MonkeyExpTitle.Visible := true
         MonkeyExpDescription.Visible := true
+        MonkeyExpScriptLabel.Visible := false
+        MonkeyExpScriptDropdown.Visible := false
 
 
         RunButton.Enabled := false

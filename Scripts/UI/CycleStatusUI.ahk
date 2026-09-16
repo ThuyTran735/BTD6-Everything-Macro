@@ -567,6 +567,10 @@ CancelMacroCycles(*) {
         true
 
 
+    ClearLauncherReturnPending()
+    SetLauncherRunSuppressed(false)
+
+
     UpdateStatus(
         "CYCLES CANCELLED",
         UIColorWarning

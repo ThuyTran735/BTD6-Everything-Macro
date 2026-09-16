@@ -454,3 +454,82 @@ RefreshLauncherLists() {
         1
     )
 }
+
+
+GetMonkeyExpScripts() {
+    scripts := []
+
+
+    scriptsDirectory :=
+        A_ScriptDir
+        . "\Scripts\UI\Mode Scripts\Monkey EXP Grind"
+
+
+    if !DirExist(
+        scriptsDirectory
+    ) {
+        return scripts
+    }
+
+
+    Loop Files scriptsDirectory "\*.ahk", "F" {
+
+        scripts.Push(
+            {
+                name: A_LoopFileName,
+                path: A_LoopFileFullPath
+            }
+        )
+    }
+
+
+    return scripts
+}
+
+
+RefreshMonkeyExpScripts() {
+    global MonkeyExpScriptDropdown
+    global MonkeyExpScripts
+
+
+    MonkeyExpScripts :=
+        GetMonkeyExpScripts()
+
+
+    names := []
+
+
+    for script in MonkeyExpScripts {
+
+        names.Push(
+            script.name
+        )
+    }
+
+
+    MonkeyExpScriptDropdown.Delete()
+
+
+    if names.Length = 0 {
+
+        MonkeyExpScriptDropdown.Add(
+            [
+                "No Monkey EXP scripts found"
+            ]
+        )
+    }
+    else {
+
+        MonkeyExpScriptDropdown.Add(
+            names
+        )
+    }
+
+
+    MonkeyExpScriptDropdown.Choose(
+        1
+    )
+
+
+    return names.Length
+}

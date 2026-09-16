@@ -22,6 +22,9 @@
 )
 
 
+global LastNewBloonPopupTick := 0
+
+
 CheckGameState() {
     global GameStatePatterns
 
@@ -39,11 +42,6 @@ CheckGameState() {
 
 
     if HandleMonkeyMoneyPopup() {
-        return "Playing"
-    }
-
-
-    if HandleMKBookPopup() {
         return "Playing"
     }
 
@@ -208,6 +206,7 @@ HandleMonkeyUnlockAfterLevelUp() {
 
 HandleNewBloonPopup() {
     global GameStatePatterns
+    global LastNewBloonPopupTick
 
 
     if !GameStatePatterns.Has(
@@ -252,12 +251,80 @@ HandleNewBloonPopup() {
     )
 
 
+    ; UpgradeLogic uses this timestamp to briefly wait
+    ; for a level-up screen before it reselects the tower.
+    ; That screen can animate in just after this OK closes.
+    LastNewBloonPopupTick :=
+        A_TickCount
+
+
     Sleep(
         500
     )
 
 
     return true
+}
+
+
+WaitForLevelUpAfterNewBloon(
+    timeoutMs := 2500
+) {
+    global LastNewBloonPopupTick
+
+
+    if LastNewBloonPopupTick = 0 {
+        return false
+    }
+
+
+    ; Ignore an old balloon-info dismissal. Only the
+    ; immediate follow-up screen can block tower recovery.
+    if (
+        A_TickCount
+        - LastNewBloonPopupTick
+        > 4500
+    ) {
+
+        LastNewBloonPopupTick := 0
+
+
+        return false
+    }
+
+
+    startTick :=
+        A_TickCount
+
+
+    Loop {
+
+        if HandleLevelUpPopup() {
+
+            LastNewBloonPopupTick := 0
+
+
+            return true
+        }
+
+
+        if (
+            A_TickCount
+            - startTick
+            >= timeoutMs
+        ) {
+
+            LastNewBloonPopupTick := 0
+
+
+            return false
+        }
+
+
+        Sleep(
+            100
+        )
+    }
 }
 
 
@@ -288,77 +355,19 @@ HandleMonkeyMoneyPopup() {
         0,
         A_ScreenWidth,
         A_ScreenHeight,
-        0.08,
-        0.08,
+        0,
+        0,
         pattern
     ) {
         return false
     }
 
 
-    ; Allow a small amount of capture variation so the
-    ; Monkey Money pattern does not require a pixel-perfect
-    ; match. Click the detected pattern itself.
-    ;
     ; Only dismiss the Monkey Money popup here.
     ;
     ; Do not select a tower in GameStateLogic.
     ; UpgradeLogic handles restoring the currently
     ; selected tower only when an upgrade is active.
-    Click(
-        X,
-        Y
-    )
-
-
-    Sleep(
-        500
-    )
-
-
-    return true
-}
-
-
-HandleMKBookPopup() {
-    global GameStatePatterns
-
-
-    if !GameStatePatterns.Has(
-        "MKBook"
-    ) {
-        return false
-    }
-
-
-    pattern :=
-        GameStatePatterns["MKBook"]
-
-
-    ; Keep this empty until an actual MK Book FindText
-    ; capture is supplied. Do not fabricate a pattern.
-    if pattern = "" {
-        return false
-    }
-
-
-    if !FindText(
-        &X,
-        &Y,
-        0,
-        0,
-        A_ScreenWidth,
-        A_ScreenHeight,
-        0.08,
-        0.08,
-        pattern
-    ) {
-        return false
-    }
-
-
-    ; MK Book behaves like Monkey Money: there is no
-    ; separate button, so click the detected pattern itself.
     Click(
         X,
         Y
@@ -587,40 +596,18 @@ HandleLoginNotNowPrompt(
     global GameStatePatterns
 
 
-    notNowPattern := ""
-    closeDLCPattern := ""
-    bossRushPattern := ""
-
-
-    if GameStatePatterns.Has(
+    if !GameStatePatterns.Has(
         "LoginNotNow"
     ) {
-        notNowPattern :=
-            GameStatePatterns["LoginNotNow"]
+        return false
     }
 
 
-    if GameStatePatterns.Has(
-        "CloseDLC"
-    ) {
-        closeDLCPattern :=
-            GameStatePatterns["CloseDLC"]
-    }
+    notNowPattern :=
+        GameStatePatterns["LoginNotNow"]
 
 
-    if GameStatePatterns.Has(
-        "BossRush"
-    ) {
-        bossRushPattern :=
-            GameStatePatterns["BossRush"]
-    }
-
-
-    if (
-        notNowPattern = ""
-        && closeDLCPattern = ""
-        && bossRushPattern = ""
-    ) {
+    if notNowPattern = "" {
         return false
     }
 
@@ -635,19 +622,16 @@ HandleLoginNotNowPrompt(
 
     Loop {
 
-        if (
-            notNowPattern != ""
-            && FindText(
-                &X,
-                &Y,
-                0,
-                0,
-                A_ScreenWidth,
-                A_ScreenHeight,
-                0,
-                0,
-                notNowPattern
-            )
+        if FindText(
+            &X,
+            &Y,
+            0,
+            0,
+            A_ScreenWidth,
+            A_ScreenHeight,
+            0,
+            0,
+            notNowPattern
         ) {
 
             ReleaseMacroModifierKeys()
@@ -668,25 +652,8 @@ HandleLoginNotNowPrompt(
         }
 
 
-        if (
-            closeDLCPattern != ""
-            && HandleCloseDLCPopup()
-        ) {
-            return true
-        }
-
-
-        if (
-            bossRushPattern != ""
-            && HandleBossRushPopup()
-        ) {
-            return true
-        }
-
-
-        ; Home can appear briefly before a
-        ; post-victory prompt renders, so give it
-        ; a short grace period.
+        ; Home can appear briefly before the login
+        ; popup renders, so give it a short grace period.
         if IsHomeScreenVisible() {
 
             if homeSeenTick = 0 {

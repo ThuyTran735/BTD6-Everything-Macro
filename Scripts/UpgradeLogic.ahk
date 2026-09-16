@@ -576,7 +576,7 @@ WaitForUpgrade(
                 ; popup may be covering the screen.
                 ;
                 ; In that specific case, wait for the
-                ; 7500 ms fallback instead of clicking
+                ; missing-round fallback instead of clicking
                 ; random locations behind the popup.
                 if (
                     !IsPregame
@@ -649,12 +649,26 @@ EnsureUpgradePanelOpen(
     }
 
 
+    ; A level-up screen can appear just after the
+    ; first-time balloon info screen is dismissed.
+    ; Clear it before any click tries to reselect the tower.
+    if !IsPregame {
+
+        WaitForLevelUpAfterNewBloon()
+    }
+
+
     ; Fast path.
     ;
     ; This is the important part that fixes the delay:
     ; immediately attempt to select the monkey several
     ; times without waiting for round OCR.
     Loop 3 {
+
+        if !IsPregame {
+
+            WaitForLevelUpAfterNewBloon()
+        }
 
         Click(
             tower.x,
@@ -744,6 +758,9 @@ EnsureUpgradePanelOpen(
         }
 
 
+        WaitForLevelUpAfterNewBloon()
+
+
         roundHealth :=
             CheckRoundReadRecovery()
 
@@ -826,7 +843,7 @@ EnsureUpgradePanelOpen(
 
         ; If roundHealth = "Waiting", do not click
         ; behind a likely unknown popup. The round
-        ; recovery timer will clear it after 7500 ms.
+        ; recovery timer will clear it after about 1.5 seconds.
         if (
             A_TickCount
             - startTick

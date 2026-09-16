@@ -88,69 +88,69 @@ InTheLoopPrimaryOnly() {
             TowerSetup["Dart A"]
         )],
 
-        [0, 0, () => PlaceTower(
+        [3, 0, () => PlaceTower(
             TowerSetup["Boomerang A"]
         )],
 
-        [2, 0, () => UpgradeTower(
+        [5, 0, () => UpgradeTower(
             TowerSetup["Boomerang A"],
             "002"
         )],
 
-        [4, 0, () => UpgradeTower(
+        [7, 0, () => UpgradeTower(
             TowerSetup["Boomerang A"],
             "202"
         )],
 
-        [6, 0, () => UpgradeTower(
+        [8, 0, () => UpgradeTower(
             TowerSetup["Dart A"],
             "002"
         )],
 
-        [8, 0, () => UpgradeTower(
+        [10, 0, () => UpgradeTower(
             TowerSetup["Dart A"],
             "022"
         )],
 
-        [10, 0, () => UpgradeTower(
+        [12, 0, () => UpgradeTower(
             TowerSetup["Dart A"],
             "023"
         )],
 
-        [15, 0, () => UpgradeTower(
+        [17, 0, () => UpgradeTower(
             TowerSetup["Boomerang A"],
             "203"
         )],
 
-        [15, 0, () => SetTargeting(
+        [17, 0, () => SetTargeting(
             TowerSetup["Boomerang A"],
             "Last"
         )],
 
-        [23, 0, () => UpgradeTower(
+        [25, 0, () => UpgradeTower(
             TowerSetup["Boomerang A"],
             "204"
         )],
 
-        [27, 0, () => UpgradeTower(
+        [28, 0, () => UpgradeTower(
             TowerSetup["Dart A"],
             "024"
         )],
 
-        [28, 0, () => PlaceTower(
+        [30, 0, () => PlaceTower(
             TowerSetup["Dart B"]
         )],
 
-        [28, 0, () => UpgradeTower(
+        [30, 0, () => UpgradeTower(
             TowerSetup["Dart B"],
             "024"
         )],
 
-        [35, 0, () => PlaceTower(
+        [36, 0, () => PlaceTower(
             TowerSetup["Dart C"]
         )],
 
-        [35, 0, () => UpgradeTower(
+        [36, 0, () => UpgradeTower(
             TowerSetup["Dart C"],
             "024"
         )],

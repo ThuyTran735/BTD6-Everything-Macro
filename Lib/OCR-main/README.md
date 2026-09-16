@@ -1,131 +1,131 @@
-# BTD6 Everything Macro
+# NOTICE
+November 2025 version 2 of this library was officially released, which introduces multiple breaking changes. Major differences include:
+1. Options common to the different OCR functions (such as `scale`, `lang` etc) are now gathered under the `Options` argument
+2. OCR.Result objects now contain common methods to all result types (Result, Line, Word, etc) such as `Result.Highlight` and `Result.Click`
+3. OCR.FromWindow uses CoordMode from A_CoordModePixel and the option `onlyClientArea` is no longer valid. (applied in 18.02.2025 update)
+4. Compared to v2 alpha version, the v2 final release includes an additional `OCR.FromMonitor` method, and `OCR.FromDesktop` was modified to capture the whole virtual screen. 
 
-**Current version: V1.1**
+If you have any suggestions about the syntax or feature requests, please open an Issue here in GitHub.
 
-A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
+# OCR
+UWP OCR for AHK v2:
+A wrapper for the the UWP Windows.Media.Ocr library. 
+Introduced in Windows 10.0.10240.0, this OCR library is included with Windows, no special installs or executables required. Though it might be necessary to install language packs for the OCR, which requires admin access.
 
-It is built around a **1920×1080 Windows display and 1920×1080 BTD6 fullscreen** setup. It also requires **AutoHotkey v2**.
+Special thanks to AHK forums user malcev, whose OCR function this library is based on.
 
-## Progress
+Examples are included in the Examples folder.
 
-You can see which maps and modes are finished here:
+# Table of contents
+```
+OCR library: a wrapper for the the UWP Windows.Media.Ocr library.
+Based on the UWP OCR function for AHK v1 by malcev.
 
-**[OPEN THE MAP & MODE TRACKER](https://docs.google.com/spreadsheets/d/1uqV7fzFkcJIGeEd6xj-hhhBuhY8A40UP8oUbox0J6VI/edit?usp=sharing)**
+Ways of initiating OCR:
+OCR(RandomAccessStreamOrSoftwareBitmap, Options?)
+OCR.FromDesktop(Options?)
+OCR.FromMonitor(Monitor?, Options?)
+OCR.FromRect(X, Y, W, H, Options?)
+OCR.FromWindow(WinTitle:="", Options?, WinText:="", ExcludeTitle:="", ExcludeText:="")
+     Note: the result object coordinates will be in CoordMode "Pixel"
+OCR.FromFile(FileName, Options?)
+OCR.FromBitmap(bitmap, Options?, hDC?)
+OCR.FromPDF(FileName, Options?, Start:=1, End?, Password:="") => returns an array of results for each PDF page
+OCR.FromPDFPage(FileName, page, Options?)
+  Helper functions for PDF OCR:
+     OCR.GetPdfPageCount(FileName, Password:="")
+     OCR.GetPdfPageProperties(FileName, Page, Password:="")
 
-## What it currently does
+Options can be an object containing none or all of these elements:
+{
+     lang: OCR language. Default is first from available languages.
+     scale: a Float scale factor to zoom the image in or out, which might improve detection. 
+            The resulting coordinates will be adjusted to scale. Default is 1.
+     grayscale: Boolean 0 | 1 whether to convert the image to black-and-white. Default is 0.
+     monochrome: 0-255, converts all pixels with luminosity less than the threshold to black, otherwise to white. Default is 0 (no conversion).
+     invertcolors: Boolean 0 | 1, whether to invert the colors of the image. Default is 0.
+     rotate: 0 | 90 | 180 | 270, can be used to rotate the image clock-wise by degrees. Default is 0.
+     flip: 0 | "x" | "y", can be used to flip the image on the x- or y-axis. Default is 0.
+     x, y, w, h: can be used to crop the image. This is applied before scaling. Default is no cropping.
+     decoder: gif | ico | jpeg | jpegxr | png | tiff | bmp. Optional bitmap codec name to decode RandomAccessStream. Default is automatic detection. 
+}
 
-- Finds strategy files inside the `Maps` folder
-- Lets you choose a category, map, and mode from the launcher
-- Places towers and buys upgrades
-- Handles tower targeting and abilities
-- Reads the current round
-- Detects victory, defeat, and several menu popups
-- Retries failed runs when the strategy allows it
-- Supports normal runs and grind modes from the launcher
-- Supports favorites for maps, Monkey EXP scripts, and queue profiles
-- Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted
+Note: Options also accepts any optional parameters after it like named parameters.
+Eg. OCR.FromDesktop({lang:"en-us", monitor:2})
 
-This project is still being worked on, so not every map or mode has a strategy yet. Check the tracker above for the current list.
+Additional methods:
+OCR.GetAvailableLanguages()
+OCR.LoadLanguage(lang:="FirstFromAvailableLanguages")
+OCR.WaitText(needle, timeout:=-1, func?, casesense:=False, comparefunc?)
+     Calls a func (the provided OCR method) until a string is found
+OCR.WordsBoundingRect(words*)
+     Returns the bounding rectangle for multiple words
+OCR.ClearAllHighlights()
+     Removes all highlights created by Result.Highlight
+OCR.Cluster(objs, eps_x:=-1, eps_y:=-1, minPts:=1, compareFunc?, &noise?)
+     Clusters objects (by default based on distance from eachother). Can be used to create more
+     accurate "Line" results.
+OCR.SortArray(arr, optionsOrCallback:="N", key?)
+     Sorts an array in-place, optionally by object keys or using a callback function.
+OCR.ReverseArray(arr)
+     Reverses an array in-place.
+OCR.UniqueArray(arr)
+     Returns an array with unique values.
+OCR.FlattenArray(arr)
+     Returns a one-dimensional array from a multi-dimensional array
 
-## Installation
+Properties:
+OCR.MaxImageDimension
+MinImageDimension is not documented, but appears to be 40 pixels (source: user FanaticGuru in AutoHotkey forums)
+OCR.PerformanceMode
+     Increases speed of OCR acquisition by about 20-50ms if set to 1, but also increases CPU usage. Default is 0.
+OCR.DisplayImage
+     If set to True then the captured image is displayed on the screen before proceeding to OCR-ing the image.
 
-### 1. Install AutoHotkey v2
+OCR returns an OCR.Result object:
+Result.Text         => All recognized text
+Result.TextAngle    => Clockwise rotation of the recognized text 
+Result.Lines        => Array of all OCR.Line objects
+Result.Words        => Array of all OCR.Word objects
+Result.ImageWidth   => Used image width
+Result.ImageHeight  => Used image height
 
-Go to the official AutoHotkey website:
+Result.FindString(Needle, Options?)
+     Finds a string in the result. Possible options (see descriptions at the function definition):
+     {CaseSense: False, IgnoreLinebreaks: False, AllowOverlap: False, i: 1, x, y, w, h, SearchFunc}
+Result.FindStrings(Needle, Options?)
+     Finds all strings in the result. 
+Result.Filter(callback)
+     Returns a filtered result object that contains only words that satisfy the callback function
+Result.Crop(x1, y1, x2, y2)
+     Crops the result object to contain only results from an area defined by points (x1,y1) and (x2,y2). 
 
-**[Download AutoHotkey](https://www.autohotkey.com/)**
+OCR.Line object:
+Line.Text         => Recognized text of the line
+Line.Words        => Array of Word objects for the Line
+Line.x,y,w,h      => Size and location of the Line. 
 
-Download and install the latest **v2** release. The macro will not work with AutoHotkey v1.
+OCR.Word object:
+Word.Text         => Recognized text of the word
+Word.x,y,w,h      => Size and location of the Word. 
+Word.BoundingRect => Bounding rectangle of the Word in format {x,y,w,h}. 
 
-If `.ahk` files do not open after installing it:
+OCR.Result, OCR.Line, and OCR.Word also all have some common methods:
 
-1. Right-click `Main.ahk`.
-2. Choose **Open with**.
-3. Select **AutoHotkey v2**.
-4. Turn on **Always use this app** if Windows gives you the option.
+Result.Click(WhichButton?, ClickCount?, DownOrUp?)
+     Clicks an object (Word, FindString result etc)
+Result.ControlClick(WinTitle?, WinText?, WhichButton?, ClickCount?, Options?, ExcludeTitle?, ExcludeText?)
+     ControlClicks an object (Word, FindString result etc)
+Result.Highlight(showTime?, color:="Red", d:=2)
+     Highlights a Word, Line, or object with {x,y,w,h} properties on the screen (default: 2 seconds), or removes the highlighting
 
-### 2. Download the macro
-
-1. Open the GitHub repository.
-2. Click the green **Code** button.
-3. Click **Download ZIP**.
-4. Extract the ZIP somewhere easy to find.
-5. Keep every folder together. Do not move `Main.ahk` away from `Scripts`, `Lib`, or `Maps`.
-
-Do not run the macro from inside the ZIP. Extract it first.
-
-## BTD6 setup
-
-Before starting the macro:
-
-- Set your **Windows display resolution to 1920×1080**.
-- Run BTD6 in fullscreen at **1920×1080**.
-- Keep the game on the monitor where the strategy coordinates were recorded.
-- Make sure Windows display scaling and the BTD6 UI scale have not changed.
-- Open the BTD6 hotkey settings and **reset every hotkey to its default**. If you have changed any tower, ability, upgrade, targeting, or menu hotkeys, reset them before using the macro.
-
-After resetting the hotkeys, set these three special monkey hotkeys:
-
-| Monkey | Hotkey |
-|---|---|
-| Desperado | `Shift + Q` |
-| Mermonkey | `Shift + W` |
-| Skywarden | `Shift + E` |
-
-Leave every other hotkey at its default. Different bindings can make the macro place the wrong tower, buy the wrong upgrade, or stop the strategy completely.
-
-## Running the macro
-
-1. Start BTD6 and wait until you are on the main menu.
-2. Double-click `Main.ahk`.
-3. Pick a category and map in the launcher.
-4. Pick the mode you want to run.
-5. Click the run button or press:
-
-```text
-Ctrl + Shift + P
+Additional notes:
+Languages are recognized in BCP-47 language tags. Eg. OCR.FromFile("myfile.bmp", {lang: "en-AU"})
+Languages can be installed for example with PowerShell (run as admin): Install-Language <language-tag>
+     or from Language settings in Settings.
+Not all language packs support OCR though. A list of supported language can be gotten from 
+Powershell (run as admin) with the following command: Get-WindowsCapability -Online | Where-Object { $_.Name -Like 'Language.OCR*' } 
 ```
 
-Once a run starts, avoid moving the mouse or pressing game hotkeys unless you are stopping the macro.
-
-To close it completely, right-click the AutoHotkey tray icon and click **Exit**.
-
-## Folder layout
-
-```text
-Main.ahk        Starts the launcher
-Scripts/        Navigation, placement, upgrades, rounds, UI, and recovery
-Maps/           Map strategy files
-Lib/            FindText and OCR libraries
-Docs/           Strategy-writing notes
-Test/           Test scripts
-```
-
-The launcher scans the `Maps` folder when it starts. A map only shows up when it has a runnable `.ahk` strategy file.
-
-## Troubleshooting
-
-### `Main.ahk` will not run
-
-Make sure AutoHotkey **v2** is installed. If Windows asks which program should open the file, choose AutoHotkey v2.
-
-### The launcher is empty
-
-Make sure the entire `Maps` folder was extracted and that the strategy files are still inside their category and map folders.
-
-### Towers are clicking in the wrong place
-
-Check that both the Windows display and BTD6 are set to 1920×1080, with BTD6 running fullscreen. A different resolution, UI scale, display scale, or monitor layout can throw off the saved coordinates.
-
-### A tower is not placing
-
-Reset the BTD6 hotkeys to their defaults, then restart the macro.
-
-### Round or button detection stops working
-
-BTD6 updates can change parts of the UI. The matching FindText pattern may need to be captured again after a game update.
-
-## Notes
-
-- This macro sends normal mouse and keyboard input; it does not edit BTD6 files.
-- If the game is not where the strategy expects it to be, stop the script before trying again.
+If you wish to support me in this and other projects:
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/descolada)

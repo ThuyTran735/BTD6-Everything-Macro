@@ -1,5 +1,7 @@
 # BTD6 Everything Macro
 
+**Current version: V1.1**
+
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
 It is built around a **1920×1080 Windows display and 1920×1080 BTD6 fullscreen** setup. It also requires **AutoHotkey v2**.
@@ -20,6 +22,8 @@ You can see which maps and modes are finished here:
 - Detects victory, defeat, and several menu popups
 - Retries failed runs when the strategy allows it
 - Supports normal runs and grind modes from the launcher
+- Supports favorites for maps, Monkey EXP scripts, and queue profiles
+- Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted
 
 This project is still being worked on, so not every map or mode has a strategy yet. Check the tracker above for the current list.
 

@@ -12,7 +12,7 @@ DartEXP() {
         difficulty: "Easy",
         gameMode: "Deflation",
 
-        hero: "Churchill",
+        hero: "Captain Churchill",
 
         ; Maximum number of attempts before giving up.
         maxAttempts: 3,

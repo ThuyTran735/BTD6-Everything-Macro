@@ -84,7 +84,7 @@ NavigateToMap(
             "Could not reach map selection screen."
         )
 
-        return false
+        return SetRunFailureReason("FAILED TO OPEN PLAY MENU")
     }
 
     if hero {
@@ -93,7 +93,7 @@ NavigateToMap(
                 "Could not open hero selection."
             )
 
-            return false
+            return SetRunFailureReason("FAILED TO OPEN HERO SELECTION")
         }
 
         if !SelectHero(hero) {
@@ -102,7 +102,7 @@ NavigateToMap(
                 hero
             )
 
-            return false
+            return SetRunFailureReason("FAILED TO SELECT HERO", hero)
         }
 
         Send("{Esc}")
@@ -115,7 +115,7 @@ NavigateToMap(
         mapName,
         15
     ) {
-        return false
+        return EnsureRunFailureReason("MAP NOT FOUND")
     }
 
     Sleep(500)
@@ -126,7 +126,7 @@ NavigateToMap(
             difficulty
         )
 
-        return false
+        return SetRunFailureReason("FAILED TO SELECT DIFFICULTY", difficulty)
     }
 
     HandleSavePrompt(700)
@@ -156,7 +156,7 @@ NavigateToMap(
             gameMode
         )
 
-        return false
+        return SetRunFailureReason("FAILED TO ENTER MODE", gameMode)
     }
 
     HandleSavePrompt(4000)
@@ -164,7 +164,7 @@ NavigateToMap(
     if !HandleModePrompt(
         gameMode
     ) {
-        return false
+        return SetRunFailureReason("MODE CONFIRMATION FAILED", gameMode)
     }
 
     return true
@@ -329,7 +329,7 @@ FindAndClickMap(
         Sleep(1800)
         ToolTip()
 
-        return false
+        return SetRunFailureReason("MAP NOT FOUND", mapName)
     }
 
     if !NavigationPatterns.Has(
@@ -346,7 +346,7 @@ FindAndClickMap(
         Sleep(1800)
         ToolTip()
 
-        return false
+        return SetRunFailureReason("MAP CATEGORY NOT FOUND", category)
     }
 
     ; Search the page the user is currently on first.
@@ -386,7 +386,7 @@ FindAndClickMap(
             Sleep(1800)
             ToolTip()
 
-            return false
+            return SetRunFailureReason("MAP CATEGORY CONTROL NOT FOUND", category)
         }
 
         Click(X, Y)
@@ -413,7 +413,7 @@ FindAndClickMap(
     Sleep(2200)
     ToolTip()
 
-    return false
+    return SetRunFailureReason("MAP NOT FOUND", mapName)
 }
 
 SelectDifficulty(difficulty) {

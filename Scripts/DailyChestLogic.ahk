@@ -8,7 +8,7 @@ global DailyChestPatterns := Map(
 )
 
 
-CollectDailyChest() {
+CollectDailyChest(silent := false) {
     global DailyChestPatterns
 
 
@@ -50,12 +50,14 @@ CollectDailyChest() {
         0,
         availablePattern
     ) {
-        ToolTip(
-            "Daily chest is not available."
-        )
+        if !silent {
+            ToolTip(
+                "Daily chest is not available."
+            )
 
-        Sleep(1000)
-        ToolTip()
+            Sleep(1000)
+            ToolTip()
+        }
 
         return "Unavailable"
     }
@@ -68,21 +70,8 @@ CollectDailyChest() {
 
 
     ; Different rewards can show different screens.
-    ;
-    ; Click the middle of the screen several times
-    ; to advance through all reward screens.
-    centerX := A_ScreenWidth // 2
-    centerY := A_ScreenHeight // 2
-
-
-    Loop 5 {
-        Click(
-            centerX,
-            centerY
-        )
-
-        Sleep(700)
-    }
+    ; Advance through them using the known screen coordinate.
+    ClickDailyChestRewardScreens()
 
 
     ; Give the final reward screen time to settle.
@@ -105,15 +94,93 @@ CollectDailyChest() {
     }
 
 
-    ToolTip(
-        "Daily chest collected."
-    )
+    if !silent {
+        ToolTip(
+            "Daily chest collected."
+        )
 
-    Sleep(1000)
-    ToolTip()
+        Sleep(1000)
+        ToolTip()
+    }
 
 
     return true
+}
+
+
+ClickDailyChestRewardScreens() {
+    previousMouseCoordMode := A_CoordModeMouse
+
+    try {
+        CoordMode("Mouse", "Screen")
+
+        Loop 5 {
+            Click(583, 388)
+
+            if A_Index < 5
+                Sleep(350)
+        }
+    }
+    finally {
+        CoordMode("Mouse", previousMouseCoordMode)
+    }
+}
+
+
+GetDailyChestSettingsFilePath() {
+    return GetMacroProjectRoot() . "\\UserData\\Settings.ini"
+}
+
+
+IsPreRunDailyChestEnabled() {
+    path := GetDailyChestSettingsFilePath()
+
+    try {
+        value := IniRead(path, "DailyChest", "BeforeEachCycle", "0")
+        return value != "0"
+    }
+
+    return false
+}
+
+
+SetPreRunDailyChestEnabled(enabled) {
+    settingsDir := GetMacroProjectRoot() . "\\UserData"
+
+    try {
+        if !DirExist(settingsDir)
+            DirCreate(settingsDir)
+
+        IniWrite(
+            enabled ? "1" : "0",
+            GetDailyChestSettingsFilePath(),
+            "DailyChest",
+            "BeforeEachCycle"
+        )
+
+        return true
+    }
+
+    return false
+}
+
+
+RunPreMapDailyChestIfEnabled() {
+    if !IsPreRunDailyChestEnabled()
+        return false
+
+    try {
+        result := CollectDailyChest(true)
+
+        ; If a chest was collected, give the home screen a brief moment
+        ; to settle before the map strategy process starts.
+        if result = true
+            Sleep(500)
+
+        return result
+    }
+
+    return false
 }
 
 

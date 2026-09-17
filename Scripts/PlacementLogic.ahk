@@ -14,7 +14,7 @@ PlaceTower(tower) {
 
 
     if !TowerHotkeys.Has(tower.type)
-        return false
+        return SetRunFailureReason("PLACEMENT FAILED", "Unknown tower type: " . tower.type)
 
 
     hotkey := TowerHotkeys[tower.type]

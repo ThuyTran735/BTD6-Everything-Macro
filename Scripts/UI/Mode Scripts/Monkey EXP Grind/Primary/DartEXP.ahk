@@ -142,32 +142,32 @@ DartEXP() {
             "024"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Dart E"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Dart E"],
             "024"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Dart F"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Dart F"],
             "024"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Dart G"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Dart G"],
             "003"
         )],

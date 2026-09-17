@@ -114,22 +114,22 @@ TackEXP() {
             "204"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Tack C"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Tack C"],
             "230"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Tack D"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Tack D"],
             "032"
         )],

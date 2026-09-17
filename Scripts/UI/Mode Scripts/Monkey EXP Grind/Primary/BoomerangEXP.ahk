@@ -124,12 +124,12 @@ BoomerangEXP() {
             "320"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Boomerang D"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Boomerang D"],
             "022"
         )],

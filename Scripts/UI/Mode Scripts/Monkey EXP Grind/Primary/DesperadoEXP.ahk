@@ -124,12 +124,12 @@ DesperadoEXP() {
             "023"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Desperado E"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Desperado E"],
             "210"
         )],

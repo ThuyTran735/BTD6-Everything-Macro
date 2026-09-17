@@ -129,12 +129,12 @@ BombEXP() {
             "Strong"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Village A"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Village A"],
             "020"
         )],

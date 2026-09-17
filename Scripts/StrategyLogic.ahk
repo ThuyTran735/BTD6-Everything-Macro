@@ -49,7 +49,7 @@ RunPregameStrategy(actions) {
 
 
             if actionResult = false {
-                return false
+                return EnsureRunFailureReason("PREGAME ACTION FAILED")
             }
         }
 
@@ -179,7 +179,7 @@ RunStrategy(actions) {
 
 
         if actionResult = false {
-            return false
+            return EnsureRunFailureReason("STRATEGY ACTION FAILED")
         }
     }
 

@@ -61,7 +61,7 @@ ShowQueueProfilesManager(*) {
 
     QueueProfilesGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Queue Profiles - V1.4"
+        "Queue Profiles - V1.5"
     )
     QueueProfilesGui.BackColor := UIColorBackground
 
@@ -886,7 +886,7 @@ ShowQueueProfileMoreActions(*) {
 
     QueueProfileMoreGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox" . ownerOption,
-        "Profile Actions - V1.4"
+        "Profile Actions - V1.5"
     )
     QueueProfileMoreGui.BackColor := UIColorBackground
 

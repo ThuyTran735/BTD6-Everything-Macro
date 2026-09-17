@@ -118,7 +118,7 @@ ShowRetryRecoveryUI(*) {
 
     RetryRecoveryGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Retry / Recovery - V1.4"
+        "Retry / Recovery - V1.5"
     )
     RetryRecoveryGui.BackColor := UIColorBackground
 

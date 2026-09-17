@@ -86,25 +86,34 @@ WriteLauncherRunResult(status, reason := "") {
         IniWrite(reason, path, "Result", "Reason")
         return true
     }
-
-    return false
+    catch {
+        return false
+    }
 }
 
-
 RunMapStrategy(strategy) {
+    InitializeRunLog("Map strategy")
+    LogRunConfig()
+
     try {
         result := RunMapStrategyCore(strategy)
     }
     catch Error as err {
-        WriteLauncherRunResult("Failed", "UNHANDLED ERROR: " . err.Message)
+        LogException(err)
+        reason := GetRunFailureReason("UNHANDLED ERROR: " . err.Message)
+        FinishRunLog("Failed", reason)
+        WriteLauncherRunResult("Failed", reason)
         throw
     }
 
     if result {
+        FinishRunLog("Success")
         WriteLauncherRunResult("Success")
     }
     else {
-        WriteLauncherRunResult("Failed", "SCRIPT RETURNED FAILURE")
+        reason := GetRunFailureReason("SCRIPT RETURNED FAILURE")
+        FinishRunLog("Failed", reason)
+        WriteLauncherRunResult("Failed", reason)
     }
 
     return result
@@ -119,9 +128,13 @@ RunMapStrategyCore(strategy) {
     ResetRoundTracking()
     ResetTowerSetup()
 
-    if !SwitchToFullscreen()
-        return false
+    LogMessage("INFO", "Preparing BTD6 fullscreen state")
 
+    if !SwitchToFullscreen()
+        return SetRunFailureReason("FAILED TO ENTER FULLSCREEN")
+
+
+    LogMessage("INFO", "Navigating to configured map and mode")
 
     navigationHero :=
         ShouldSelectHeroForCurrentCycle()
@@ -155,7 +168,7 @@ RunMapStrategyCore(strategy) {
             Sleep(3000)
             ToolTip()
 
-            return false
+            return SetRunFailureReason("GAME MODE LOCKED - NO PREREQUISITE", RunConfig.gameMode)
         }
 
 
@@ -175,7 +188,7 @@ RunMapStrategyCore(strategy) {
         if !TryRunPrerequisiteMode(
             RunConfig.gameMode
         ) {
-            return false
+            return EnsureRunFailureReason("FAILED TO COMPLETE PREREQUISITE MODE")
         }
 
 
@@ -200,26 +213,30 @@ RunMapStrategyCore(strategy) {
             Sleep(3000)
             ToolTip()
 
-            return false
+            return SetRunFailureReason("GAME MODE STILL LOCKED", RunConfig.gameMode)
         }
 
 
         if navigationResult = false
-            return false
+            return EnsureRunFailureReason("FAILED TO ENTER MODE")
     }
 
 
     if navigationResult = false
-        return false
+        return EnsureRunFailureReason("MAP NAVIGATION FAILED")
 
 
     ; First load into the selected game.
+    LogMessage("INFO", "Waiting for game load")
+
     if !WaitForGameLoad()
-        return false
+        return SetRunFailureReason("GAME LOAD FAILED")
 
     ResetRoundTracking()
     ResetTowerSetup()
 
+
+    LogMessage("INFO", "Running pregame strategy actions")
 
     pregameResult := RunPregameStrategy(
         strategy
@@ -228,27 +245,31 @@ RunMapStrategyCore(strategy) {
 
     if pregameResult = "Victory" {
         if !HandleVictory()
-            return false
+            return SetRunFailureReason("VICTORY SCREEN HANDLING FAILED")
 
         return true
     }
 
 
     if pregameResult = "Defeat" {
-        return false
+        return SetRunFailureReason("DEFEAT DURING PREGAME")
     }
 
 
     if pregameResult = false
-        return false
+        return EnsureRunFailureReason("PREGAME STRATEGY FAILED")
 
 
     ResetRoundTracking()
 
 
-    if !StartGame()
-        return false
+    LogMessage("INFO", "Starting game rounds")
 
+    if !StartGame()
+        return SetRunFailureReason("FAILED TO START GAME")
+
+
+    LogMessage("INFO", "Running round strategy")
 
     result := RunStrategy(
         strategy
@@ -257,11 +278,15 @@ RunMapStrategyCore(strategy) {
 
     if result = "Victory" {
         if !HandleVictory()
-            return false
+            return SetRunFailureReason("VICTORY SCREEN HANDLING FAILED")
 
         return true
     }
 
 
-    return false
+    if result = "Defeat"
+        return SetRunFailureReason("DEFEAT")
+
+
+    return EnsureRunFailureReason("STRATEGY FAILED")
 }

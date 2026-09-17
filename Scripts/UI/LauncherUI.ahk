@@ -80,7 +80,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.4"
+        "BTD6 Everything Macro - V1.5"
     )
 
 
@@ -134,7 +134,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.4"
+        "V1.5"
     )
 
 
@@ -412,7 +412,7 @@ CreateLauncherUI() {
         LauncherGui,
         SettingsButton,
         "SETTINGS",
-        "Opens Settings.`n`nThis is where you can change confirmations, queue buttons, retry behavior, and view Run History."
+        "Opens Settings.`n`nManage confirmations, queue buttons, retry behavior, Run History, and per-run diagnostic logs."
     )
 
 
@@ -1438,6 +1438,11 @@ StartNextQueuedRun(isRetry := false) {
 
 
     LauncherGui.Hide()
+
+
+    ; Optional Daily Chest check runs immediately before every individual
+    ; map cycle, including repeated runs and queued jobs.
+    RunPreMapDailyChestIfEnabled()
 
 
     ActiveRunToken := CreateChildRunToken()

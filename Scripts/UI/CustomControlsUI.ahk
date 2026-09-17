@@ -611,16 +611,16 @@ class DarkButton {
         pressedHighlight := UIColorControlPressedHighlight
 
 
-        if this.Style = "Success" {
+        if this.Style = "Success" || this.Style = "ToggleOn" {
             accentColor := UIColorSuccess
-            pressedTop := BlendUIColors("272C35", UIColorSuccess, 0.62)
-            pressedBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.48)
+            pressedTop := BlendUIColors("272C35", UIColorSuccess, 0.72)
+            pressedBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.58)
             pressedHighlight := UIColorSuccess
         }
-        else if this.Style = "Danger" {
+        else if this.Style = "Danger" || this.Style = "ToggleOff" {
             accentColor := UIColorError
-            pressedTop := BlendUIColors("272C35", UIColorError, 0.62)
-            pressedBottom := BlendUIColors("1B1F26", UIColorError, 0.48)
+            pressedTop := BlendUIColors("272C35", UIColorError, 0.72)
+            pressedBottom := BlendUIColors("1B1F26", UIColorError, 0.58)
             pressedHighlight := UIColorError
         }
 
@@ -699,19 +699,10 @@ class DarkButton {
 
         if this.IsEnabled {
 
-            SetUIProgressColor(
-                this.Top,
-                UIColorControlTop
-            )
-
-
-            SetUIProgressColor(
-                this.Bottom,
-                UIColorControlBottom
-            )
-
-
+            restTop := UIColorControlTop
+            restBottom := UIColorControlBottom
             restHighlight := UIColorControlHighlight
+            restBorder := UIColorControlBorder
 
 
             if this.Style = "Success" {
@@ -720,6 +711,36 @@ class DarkButton {
             else if this.Style = "Danger" {
                 restHighlight := UIColorError
             }
+            else if this.Style = "ToggleOn" {
+                restTop := BlendUIColors("272C35", UIColorSuccess, 0.58)
+                restBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.44)
+                restHighlight := UIColorSuccess
+                restBorder := BlendUIColors(UIColorControlBorder, UIColorSuccess, 0.72)
+            }
+            else if this.Style = "ToggleOff" {
+                restTop := BlendUIColors("272C35", UIColorError, 0.58)
+                restBottom := BlendUIColors("1B1F26", UIColorError, 0.44)
+                restHighlight := UIColorError
+                restBorder := BlendUIColors(UIColorControlBorder, UIColorError, 0.72)
+            }
+
+
+            SetUIProgressColor(
+                this.Border,
+                restBorder
+            )
+
+
+            SetUIProgressColor(
+                this.Top,
+                restTop
+            )
+
+
+            SetUIProgressColor(
+                this.Bottom,
+                restBottom
+            )
 
 
             SetUIProgressColor(
@@ -803,6 +824,16 @@ class DarkButton {
 
 GetDarkButtonStyleForText(text) {
     normalized := StrUpper(Trim(text))
+
+
+    if RegExMatch(normalized, ":\s*ON$") {
+        return "ToggleOn"
+    }
+
+
+    if RegExMatch(normalized, ":\s*OFF$") {
+        return "ToggleOff"
+    }
 
 
     if RegExMatch(normalized, "^(RUN|START)(\s|$)") {

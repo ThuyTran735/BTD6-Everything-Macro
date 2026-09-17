@@ -844,6 +844,17 @@ MonitorLauncherState() {
 
             if ConsumeCycleStopRequest() {
 
+                childResult := ReadChildRunResult(ActiveRunToken)
+                ActiveRunToken := ""
+
+                stopReason := (
+                    childResult.status = "Failed"
+                    && childResult.reason != ""
+                )
+                    ? childResult.reason
+                    : "MAP SEARCH STOPPED"
+
+
                 MacroRunning :=
                     false
 
@@ -864,13 +875,13 @@ MonitorLauncherState() {
 
 
                 UpdateStatus(
-                    "MAP SEARCH STOPPED",
+                    stopReason,
                     UIColorError
                 )
 
 
                 RecordRunHistoryFailure(
-                    "MAP SEARCH STOPPED"
+                    stopReason
                 )
 
 

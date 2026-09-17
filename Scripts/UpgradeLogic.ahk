@@ -11,6 +11,9 @@ global ConfirmUpgradeUnlockPattern := "|<>*154$127.zzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 ; Approximate affordable green color.
 global UpgradeGreenColor := 0x4FD500
 
+; Deflation pregame should never stall forever waiting for an upgrade.
+global DeflationUpgradeWaitTimeoutMs := 5000
+
 
 global UpgradePoints := Map(
     "Left", Map(
@@ -34,6 +37,18 @@ global UpgradeHotkeys := Map(
 )
 
 
+IsFastDeflationPregameUpgrade() {
+    global IsPregame
+    global RunConfig
+
+    try {
+        return IsPregame && RunConfig.gameMode = "Deflation"
+    }
+
+    return false
+}
+
+
 UpgradeTower(
     tower,
     target
@@ -49,7 +64,7 @@ UpgradeTower(
         || !tower.placed
     ) {
 
-        return false
+        return SetRunFailureReason("UPGRADE FAILED", "Tower has not been placed")
     }
 
 
@@ -113,7 +128,7 @@ UpgradeTower(
 
 
     Sleep(
-        120
+        IsFastDeflationPregameUpgrade() ? 45 : 120
     )
 
 
@@ -141,7 +156,7 @@ UpgradeTower(
 
 
         if panelResult = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Could not open upgrade panel")
         }
     }
 
@@ -166,8 +181,18 @@ UpgradeTower(
         }
 
 
+        if result = "DeflationTimeout" {
+            ; In Deflation pregame, an unavailable upgrade should not
+            ; block the rest of the setup. Close the panel and let the
+            ; next scripted action run.
+            Send("{Esc}")
+            Sleep(45)
+            return true
+        }
+
+
         if result = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Could not afford or detect Top path upgrade")
         }
 
 
@@ -190,7 +215,7 @@ UpgradeTower(
 
 
         if buyResult = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Top path upgrade")
         }
 
 
@@ -224,8 +249,18 @@ UpgradeTower(
         }
 
 
+        if result = "DeflationTimeout" {
+            ; In Deflation pregame, an unavailable upgrade should not
+            ; block the rest of the setup. Close the panel and let the
+            ; next scripted action run.
+            Send("{Esc}")
+            Sleep(45)
+            return true
+        }
+
+
         if result = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Could not afford or detect Middle path upgrade")
         }
 
 
@@ -248,7 +283,7 @@ UpgradeTower(
 
 
         if buyResult = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Middle path upgrade")
         }
 
 
@@ -282,8 +317,18 @@ UpgradeTower(
         }
 
 
+        if result = "DeflationTimeout" {
+            ; In Deflation pregame, an unavailable upgrade should not
+            ; block the rest of the setup. Close the panel and let the
+            ; next scripted action run.
+            Send("{Esc}")
+            Sleep(45)
+            return true
+        }
+
+
         if result = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Could not afford or detect Bottom path upgrade")
         }
 
 
@@ -306,7 +351,7 @@ UpgradeTower(
 
 
         if buyResult = false {
-            return false
+            return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Bottom path upgrade")
         }
 
 
@@ -326,7 +371,7 @@ UpgradeTower(
 
 
     Sleep(
-        200
+        IsFastDeflationPregameUpgrade() ? 60 : 200
     )
 
 
@@ -367,6 +412,11 @@ WaitForUpgrade(
 ) {
     global UpgradePoints
     global IsPregame
+    global RunConfig
+    global DeflationUpgradeWaitTimeoutMs
+
+
+    waitStartTick := A_TickCount
 
 
     if !UpgradePoints.Has(
@@ -551,7 +601,7 @@ WaitForUpgrade(
         if (
             A_TickCount
             - lastPanelCheck
-            >= 200
+            >= (IsFastDeflationPregameUpgrade() ? 75 : 200)
         ) {
 
             lastPanelCheck :=
@@ -621,8 +671,28 @@ WaitForUpgrade(
         }
 
 
+        ; Deflation begins with a fixed amount of cash. If a scripted
+        ; pregame upgrade is not obtainable, do not wait forever. After
+        ; 5000 ms, skip the rest of this UpgradeTower action and allow
+        ; the strategy to continue toward StartGame().
+        if (
+            IsPregame
+            && RunConfig.gameMode = "Deflation"
+            && A_TickCount - waitStartTick >= DeflationUpgradeWaitTimeoutMs
+        ) {
+            LogMessage(
+                "WARN",
+                "Deflation upgrade timed out after "
+                . DeflationUpgradeWaitTimeoutMs
+                . " ms; skipping this upgrade action"
+            )
+
+            return "DeflationTimeout"
+        }
+
+
         Sleep(
-            10
+            IsFastDeflationPregameUpgrade() ? 5 : 10
         )
     }
 }
@@ -677,7 +747,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            120
+            IsFastDeflationPregameUpgrade() ? 45 : 120
         )
 
 
@@ -713,7 +783,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            50
+            IsFastDeflationPregameUpgrade() ? 15 : 50
         )
     }
 
@@ -1166,7 +1236,7 @@ BuyUpgrade(
 
 
     Sleep(
-        200
+        IsFastDeflationPregameUpgrade() ? 75 : 200
     )
 
 

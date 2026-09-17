@@ -1,35 +1,36 @@
 ﻿#Requires AutoHotkey v2.0
+#SingleInstance Force
 
-#Include ..\Lib\FindText.ahk
-#Include ..\Scripts\RoundLogic.ahk
+#Include ..\Scripts\IncludeAll.ahk
 
+; Live round OCR/debug test for V1.5.
+; Open any active game first, then run this file.
 global RunConfig := {
+    category: "Beginner",
     map: "Test",
-    difficulty: "CHIMPS"
-}
-
-RoundAreas["CHIMPS"] := {
-    x1: 1375,
-    y1: 27,
-    x2: 1560,
-    y2: 71
+    difficulty: "CHIMPS",
+    gameMode: "CHIMPS",
+    hero: false,
+    startRound: 1,
+    endRound: 100
 }
 
 ResetRoundTracking()
 
+Esc::ExitApp()
+
 Loop {
     detectedRound := GetCurrentRound()
-
-    if detectedRound
-        currentRound := ValidateRound(detectedRound)
-    else
-        currentRound := LastRound
+    validatedRound := detectedRound ? ValidateRound(detectedRound) : LastRound
 
     ToolTip(
-        "Round: " (currentRound ? currentRound : "Not Found")
-        "`nOCR: " (detectedRound ? detectedRound : "Not Found")
-        "`nWeird Mode: " (WeirdReadActive ? "YES" : "NO")
-        "`nLast Weird: " (LastWeirdRead ? LastWeirdRead : "None"),
+        "BTD6 V1.5 Round Detection Test"
+        "`nDetected OCR: " (detectedRound ? detectedRound : "Not Found")
+        "`nValidated: " (validatedRound ? validatedRound : "Not Found")
+        "`nLast Round: " LastRound
+        "`nWeird Read: " (WeirdReadActive ? "YES" : "NO")
+        "`nLast Weird: " (LastWeirdRead ? LastWeirdRead : "None")
+        "`n`nEsc = Exit",
         1000,
         100
     )

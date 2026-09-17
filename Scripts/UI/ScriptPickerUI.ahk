@@ -15,10 +15,7 @@ ShowScriptPicker(
 
 
     CloseAllDarkDropdowns()
-
-
-    CloseModePicker()
-    CloseQueueManager()
+    CloseAllSecondaryMenus()
 
 
     try {
@@ -138,9 +135,9 @@ ShowScriptPicker(
             ScriptPickerGui,
             difficultyButton,
             StrUpper(difficulty) . " STRATEGIES",
-            "Filters the strategy list to "
+            "Shows only "
             . difficulty
-            . " difficulty scripts for this map."
+            . " difficulty strategies for this map."
         )
 
 
@@ -229,8 +226,8 @@ ShowScriptPicker(
         runSelectedButton,
         action = "queue" ? "ADD TO QUEUE" : "RUN SELECTED",
         action = "queue"
-        ? "Adds the highlighted strategy to the queue, then asks how many times that queued job should run."
-        : "Runs the highlighted strategy and asks how many cycles it should repeat."
+        ? "Adds the selected strategy to the queue.`n`nNext, choose how many times that job should run."
+        : "Runs the selected strategy.`n`nNext, choose how many times it should repeat."
     )
 
 
@@ -238,7 +235,7 @@ ShowScriptPicker(
         ScriptPickerGui,
         openFolderButton,
         "OPEN MAP FOLDER",
-        "Opens this map's strategy folder in File Explorer so you can view or edit its .ahk files."
+        "Opens this map's strategy folder in File Explorer.`n`nUse it to view or edit the .ahk strategy files."
     )
 
 
@@ -246,7 +243,7 @@ ShowScriptPicker(
         ScriptPickerGui,
         cancelButton,
         "CLOSE",
-        "Closes the strategy picker without running or queueing a strategy."
+        "Closes this window without running or adding a strategy."
     )
 
 
@@ -277,13 +274,13 @@ ShowScriptPicker(
 
     cancelButton.OnEvent(
         "Click",
-        CloseScriptPicker
+        CloseScriptPickerAndReturnToLauncher
     )
 
 
     ScriptPickerGui.OnEvent(
         "Close",
-        CloseScriptPicker
+        CloseScriptPickerAndReturnToLauncher
     )
 
 
@@ -490,6 +487,12 @@ OpenSelectedMapFolder(*) {
     Run(
         command
     )
+}
+
+
+CloseScriptPickerAndReturnToLauncher(*) {
+    CloseScriptPicker()
+    ShowLauncher(true)
 }
 
 

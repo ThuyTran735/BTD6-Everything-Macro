@@ -12,7 +12,6 @@ global RunConfig := {
     difficulty: "Easy",
     gameMode: "Standard",
     hero: false,
-    maxAttempts: 3,
     wingmonkeyMK: false
 }
 
@@ -32,9 +31,7 @@ hero
      - Use a hero name when needed, for example: hero: "Quincy"
      - Use hero: false when no hero is needed.
 
-maxAttempts
      - Number of tries before giving up.
-     - Example: maxAttempts: 3
 
 wingmonkeyMK
      - true if Wingmonkey Monkey Knowledge is enabled.
@@ -400,23 +397,12 @@ Then hero navigation is skipped completely.
 
 14. RETRIES
 
-RunConfig:
+Map scripts perform one attempt per process launch.
+Retry / Recovery is controlled by the main launcher under Settings.
 
-maxAttempts: 3
+When a queued cycle fails and Auto Retry is enabled, the launcher starts a fresh script process for the same cycle. The queue advances only after that cycle reports success.
 
-Examples:
-     - 1 = one attempt
-     - 3 = three attempts
-     - 5 = five attempts
-
-On retry, reset includes:
-     - placed := false
-     - upgrades := [0, 0, 0]
-     - normal targeting := First
-     - Ace targeting := Circle
-     - Sub submerged := false
-     - Sub targetingBeforeSubmerge := First
-     - EliteSniperActive := false
+The Queue Retry Limit controls the maximum number of fresh-process retries for one failed queue cycle.
 
 
 15. SIMPLE COMPLETE EXAMPLE

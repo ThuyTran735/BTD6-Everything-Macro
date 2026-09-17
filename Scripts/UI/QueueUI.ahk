@@ -15,6 +15,16 @@ global QueueCompletedJobs := 0
 global QueueTotalRuns := 0
 global QueueCompletedRuns := 0
 global QueueCurrentJobLabel := ""
+global QueueCurrentRetryCount := 0
+global QueueHistorySource := "CUSTOM QUEUE"
+
+
+SetQueueHistorySource(source := "CUSTOM QUEUE") {
+    global QueueHistorySource
+
+    source := Trim(source)
+    QueueHistorySource := source != "" ? source : "CUSTOM QUEUE"
+}
 
 
 AddJobToQueue(
@@ -78,6 +88,9 @@ AddJobToQueue(
     )
 
 
+    SetQueueHistorySource()
+
+
     RefreshQueueManager()
     UpdateQueueLauncherButton()
 
@@ -120,9 +133,7 @@ ShowQueueManager(*) {
 
 
     CloseAllDarkDropdowns()
-    CloseModePicker()
-    CloseScriptPicker()
-    CloseQueueJobBuilder()
+    CloseAllSecondaryMenus()
     CloseContextHelp()
 
 
@@ -169,7 +180,7 @@ ShowQueueManager(*) {
         QueueGui,
         620,
         "MACRO QUEUE",
-        "The queue runs jobs from top to bottom. Each job keeps its own script and run count. When one job finishes, the next job starts automatically after BTD6 is ready at the Home screen."
+        "Your queue runs from top to bottom.`n`nEach job keeps its own script and run count. After one job finishes, the next starts when BTD6 is back at the Home screen."
     )
 
 
@@ -223,7 +234,7 @@ ShowQueueManager(*) {
             QueueGui,
             20,
             382,
-            135,
+            108,
             38,
             "MOVE UP",
             8
@@ -233,11 +244,23 @@ ShowQueueManager(*) {
     moveDownButton :=
         CreateDarkButton(
             QueueGui,
-            165,
+            138,
             382,
-            135,
+            108,
             38,
             "MOVE DOWN",
+            8
+        )
+
+
+    editButton :=
+        CreateDarkButton(
+            QueueGui,
+            256,
+            382,
+            108,
+            38,
+            "EDIT JOB",
             8
         )
 
@@ -245,9 +268,9 @@ ShowQueueManager(*) {
     removeButton :=
         CreateDarkButton(
             QueueGui,
-            310,
+            374,
             382,
-            135,
+            108,
             38,
             "REMOVE",
             8
@@ -257,9 +280,9 @@ ShowQueueManager(*) {
     clearButton :=
         CreateDarkButton(
             QueueGui,
-            455,
+            492,
             382,
-            145,
+            108,
             38,
             "CLEAR ALL",
             8
@@ -306,7 +329,7 @@ ShowQueueManager(*) {
         QueueGui,
         moveUpButton,
         "MOVE UP",
-        "Moves the selected queue job one position earlier. Use this to control which jobs run first."
+        "Moves the selected job up one spot.`n`nJobs closer to the top run sooner."
     )
 
 
@@ -314,7 +337,15 @@ ShowQueueManager(*) {
         QueueGui,
         moveDownButton,
         "MOVE DOWN",
-        "Moves the selected queue job one position later. The queue always runs from top to bottom."
+        "Moves the selected job down one spot.`n`nJobs closer to the bottom run later."
+    )
+
+
+    CreateHelpBadgeForButton(
+        QueueGui,
+        editButton,
+        "EDIT JOB",
+        "Edits the selected job without removing it.`n`nYou can change its type, map or script, and run count."
     )
 
 
@@ -322,7 +353,7 @@ ShowQueueManager(*) {
         QueueGui,
         removeButton,
         "REMOVE",
-        "Removes only the currently selected job from the queue. Other queued jobs are left unchanged."
+        "Removes only the selected job.`n`nThe rest of the queue stays unchanged."
     )
 
 
@@ -330,7 +361,7 @@ ShowQueueManager(*) {
         QueueGui,
         clearButton,
         "CLEAR ALL",
-        "Removes every job from the queue. This does not delete any .ahk files from your project."
+        "Removes every job from the current queue.`n`nYour scripts and saved Queue Profiles are not deleted."
     )
 
 
@@ -338,7 +369,7 @@ ShowQueueManager(*) {
         QueueGui,
         QueueStartButton,
         "START QUEUE",
-        "Starts the complete queue from the first job. Each job runs for its configured number of cycles before the next job begins."
+        "Starts the queue from the first job.`n`nEach job finishes its configured runs before the next job begins."
     )
 
 
@@ -346,7 +377,7 @@ ShowQueueManager(*) {
         QueueGui,
         profilesButton,
         "QUEUE PROFILES",
-        "Opens saved Queue Profiles. Save the current queue with a name, load it later, update or rename it, delete it, and favorite profiles so they stay at the top."
+        "Opens Queue Profiles.`n`nUse profiles to save a queue, load it later, update it, rename it, export it, or favorite it."
     )
 
 
@@ -354,7 +385,7 @@ ShowQueueManager(*) {
         QueueGui,
         closeButton,
         "CLOSE",
-        "Closes the Queue Manager. Your queued jobs stay saved in the launcher until you remove them or exit the macro."
+        "Closes the Queue Manager.`n`nYour current queue stays in the launcher until you clear it or close the macro."
     )
 
 
@@ -367,6 +398,12 @@ ShowQueueManager(*) {
     moveDownButton.OnEvent(
         "Click",
         (*) => MoveQueueJob(1)
+    )
+
+
+    editButton.OnEvent(
+        "Click",
+        EditSelectedQueueJob
     )
 
 
@@ -390,25 +427,25 @@ ShowQueueManager(*) {
 
     profilesButton.OnEvent(
         "Click",
-        ShowQueueProfilesManager
+        OpenQueueProfilesFromQueue
     )
 
 
     closeButton.OnEvent(
         "Click",
-        CloseQueueManager
+        CloseQueueManagerAndReturnToLauncher
     )
 
 
     QueueGui.OnEvent(
         "Close",
-        CloseQueueManager
+        CloseQueueManagerAndReturnToLauncher
     )
 
 
     QueueGui.OnEvent(
         "Escape",
-        CloseQueueManager
+        CloseQueueManagerAndReturnToLauncher
     )
 
 
@@ -657,11 +694,37 @@ MoveQueueJob(
         temp
 
 
+    SetQueueHistorySource()
+
+
     RefreshQueueManager()
 
 
     QueueList.Choose(
         targetIndex
+    )
+}
+
+
+EditSelectedQueueJob(*) {
+    global MacroJobQueue
+    global QueueList
+
+    if !QueueList {
+        return
+    }
+
+    selectedIndex := QueueList.Value
+
+    if (
+        selectedIndex < 1
+        || selectedIndex > MacroJobQueue.Length
+    ) {
+        return
+    }
+
+    OpenQueueJobBuilderForEdit(
+        selectedIndex
     )
 }
 
@@ -691,6 +754,9 @@ RemoveSelectedQueueJob(*) {
     MacroJobQueue.RemoveAt(
         selectedIndex
     )
+
+
+    SetQueueHistorySource()
 
 
     RefreshQueueManager()
@@ -726,8 +792,23 @@ ClearMacroQueueConfirmed(*) {
     MacroJobQueue := []
 
 
+    SetQueueHistorySource()
+
+
     RefreshQueueManager()
     UpdateQueueLauncherButton()
+}
+
+
+OpenQueueProfilesFromQueue(*) {
+    CloseQueueManager()
+    ShowQueueProfilesManager()
+}
+
+
+CloseQueueManagerAndReturnToLauncher(*) {
+    CloseQueueManager()
+    ShowLauncher(true)
 }
 
 
@@ -761,6 +842,7 @@ StartMacroQueue(*) {
     global QueueTotalRuns
     global QueueCompletedRuns
     global QueueCurrentJobLabel
+    global QueueCurrentRetryCount
 
     global MacroRunning
     global LauncherGui
@@ -779,6 +861,11 @@ StartMacroQueue(*) {
     }
 
 
+    SetRunHistoryCurrentSource(
+        QueueHistorySource
+    )
+
+
     totalRuns := 0
 
 
@@ -791,6 +878,11 @@ StartMacroQueue(*) {
             UpdateStatus(
                 "QUEUE SCRIPT NOT FOUND",
                 UIColorError
+            )
+
+
+            RecordRunHistoryFailure(
+                "QUEUE SCRIPT NOT FOUND"
             )
 
 
@@ -807,6 +899,7 @@ StartMacroQueue(*) {
     CloseQueueJobBuilder()
     CloseContextHelp()
     CloseAllDarkDropdowns()
+    HideLauncher()
     CloseModePicker()
     CloseScriptPicker()
 
@@ -822,11 +915,16 @@ StartMacroQueue(*) {
     QueueTotalRuns := totalRuns
     QueueCompletedRuns := 0
     QueueCurrentJobLabel := ""
+    QueueCurrentRetryCount := 0
 
 
     if !LoadQueueJob(
         QueueActiveJobIndex
     ) {
+
+        RecordRunHistoryFailure(
+            "QUEUE JOB COULD NOT LOAD"
+        )
 
         ClearQueueExecutionState()
 
@@ -866,6 +964,7 @@ LoadQueueJob(
     global MacroJobQueue
 
     global QueueCurrentJobLabel
+    global QueueCurrentRetryCount
 
     global RepeatScriptPath
     global RepeatRunTotal
@@ -912,6 +1011,9 @@ LoadQueueJob(
 
     QueueCurrentJobLabel :=
         job.label
+
+
+    QueueCurrentRetryCount := 0
 
 
     return true
@@ -976,6 +1078,11 @@ StartNextQueueJob() {
         )
 
 
+        RecordRunHistoryFailure(
+            "QUEUE SCRIPT NOT FOUND"
+        )
+
+
         ShowLauncher(
             true
         )
@@ -1010,6 +1117,7 @@ ClearQueueExecutionState() {
     global QueueTotalRuns
     global QueueCompletedRuns
     global QueueCurrentJobLabel
+    global QueueCurrentRetryCount
 
 
     QueueRunning := false
@@ -1019,4 +1127,5 @@ ClearQueueExecutionState() {
     QueueTotalRuns := 0
     QueueCompletedRuns := 0
     QueueCurrentJobLabel := ""
+    QueueCurrentRetryCount := 0
 }

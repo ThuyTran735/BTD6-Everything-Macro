@@ -80,7 +80,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.3"
+        "BTD6 Everything Macro - V1.4"
     )
 
 
@@ -134,7 +134,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.3"
+        "V1.4"
     )
 
 
@@ -262,36 +262,42 @@ CreateLauncherUI() {
         )
 
 
+    queueButtonsEnabled := AreQueueLauncherButtonsEnabled()
+
     RunButton :=
         CreateDarkButton(
             LauncherGui,
             20,
             250,
-            160,
+            queueButtonsEnabled ? 160 : 240,
             44,
             "RUN MACRO",
             9
         )
 
 
-    AddQueueButton :=
-        CreateDarkButton(
-            LauncherGui,
-            190,
-            250,
-            100,
-            44,
-            "ADD QUEUE",
-            8
-        )
+    if queueButtonsEnabled {
+        AddQueueButton :=
+            CreateDarkButton(
+                LauncherGui,
+                190,
+                250,
+                100,
+                44,
+                "ADD QUEUE",
+                8
+            )
+    } else {
+        AddQueueButton := ""
+    }
 
 
     CloseButton :=
         CreateDarkButton(
             LauncherGui,
-            300,
+            queueButtonsEnabled ? 300 : 270,
             250,
-            70,
+            queueButtonsEnabled ? 70 : 100,
             44,
             "CLOSE",
             7
@@ -304,30 +310,33 @@ CreateLauncherUI() {
     )
 
 
-    AddQueueButton.OnEvent(
-        "Click",
-        QueueCurrentSelection
-    )
-
-
-    QueueButton :=
-        CreateDarkButton(
-            LauncherGui,
-            20,
-            306,
-            110,
-            36,
-            "QUEUE (0)",
-            8
+    if queueButtonsEnabled {
+        AddQueueButton.OnEvent(
+            "Click",
+            QueueCurrentSelection
         )
+
+        QueueButton :=
+            CreateDarkButton(
+                LauncherGui,
+                20,
+                306,
+                110,
+                36,
+                "QUEUE (0)",
+                8
+            )
+    } else {
+        QueueButton := ""
+    }
 
 
     ModeButton :=
         CreateDarkButton(
             LauncherGui,
-            140,
+            queueButtonsEnabled ? 140 : 20,
             306,
-            110,
+            queueButtonsEnabled ? 110 : 170,
             36,
             "MODES",
             8
@@ -337,27 +346,26 @@ CreateLauncherUI() {
     SettingsButton :=
         CreateDarkButton(
             LauncherGui,
-            260,
+            queueButtonsEnabled ? 260 : 200,
             306,
-            110,
+            queueButtonsEnabled ? 110 : 170,
             36,
             "SETTINGS",
             8
         )
 
 
-    QueueButton.OnEvent(
-        "Click",
-        ShowQueueManager
-    )
+    if queueButtonsEnabled {
+        QueueButton.OnEvent(
+            "Click",
+            ShowQueueManager
+        )
+    }
 
 
     SettingsButton.OnEvent(
         "Click",
-        ShowContextHelp.Bind(
-            "SETTINGS",
-            "Settings will live here as the launcher grows. This button is reserved for configurable macro and UI options in a future update."
-        )
+        ShowSettingsUI
     )
 
 
@@ -371,31 +379,32 @@ CreateLauncherUI() {
         LauncherGui,
         RunButton,
         "RUN",
-        "Runs the current selection. If the queue contains jobs, this button changes to RUN QUEUE and starts the existing queue instead of opening another map selection."
+        "Starts what you selected.`n`nIf your queue has jobs, this button becomes RUN QUEUE and starts that queue instead."
     )
 
 
-    CreateHelpBadgeForButton(
-        LauncherGui,
-        AddQueueButton,
-        "ADD QUEUE",
-        "Opens the Add Queue Job window. Choose a job type, category or tower type, exact script, then enter how many times that job should run."
-    )
+    if queueButtonsEnabled {
+        CreateHelpBadgeForButton(
+            LauncherGui,
+            AddQueueButton,
+            "ADD QUEUE",
+            "Adds a new job to your queue.`n`nChoose the job type and script, then choose how many times it should run."
+        )
 
-
-    CreateHelpBadgeForButton(
-        LauncherGui,
-        QueueButton,
-        "QUEUE",
-        "Opens the Queue Manager. Jobs run from top to bottom. You can reorder, remove, clear, or start the complete queue from there."
-    )
+        CreateHelpBadgeForButton(
+            LauncherGui,
+            QueueButton,
+            "QUEUE",
+            "Opens the Queue Manager.`n`nJobs run from top to bottom. You can edit their order, remove jobs, clear the queue, or start it."
+        )
+    }
 
 
     CreateHelpBadgeForButton(
         LauncherGui,
         ModeButton,
         "MODES",
-        "Switches the launcher between available macro modes, including normal map scripts and Monkey EXP Grind."
+        "Changes what kind of macro you want to run.`n`nUse this to switch between Map Scripts and Monkey EXP Grind."
     )
 
 
@@ -403,7 +412,7 @@ CreateLauncherUI() {
         LauncherGui,
         SettingsButton,
         "SETTINGS",
-        "Opens launcher settings. The settings panel is reserved for configurable macro and UI options as they are added."
+        "Opens Settings.`n`nThis is where you can change confirmations, queue buttons, retry behavior, and view Run History."
     )
 
 
@@ -411,7 +420,7 @@ CreateLauncherUI() {
         LauncherGui,
         CloseButton,
         "CLOSE",
-        "Closes BTD6 Everything Macro completely. Any queue that is not currently running is discarded when the launcher exits."
+        "Closes BTD6 Everything Macro.`n`nAny queue that has not been saved as a Queue Profile will be lost when the launcher closes."
     )
 
 
@@ -514,7 +523,7 @@ CreateLauncherUI() {
             LauncherGui,
             MapDropdown,
             "FAVORITES",
-            "Click ☆ to favorite the selected map. ★ means the map is already a favorite. Favorite maps automatically move to the top of map dropdowns."
+            "Click ☆ to favorite the selected map.`n`n★ means it is already a favorite. Favorites appear at the top of map lists."
         )
 
 
@@ -536,7 +545,7 @@ CreateLauncherUI() {
             LauncherGui,
             MonkeyExpScriptDropdown,
             "FAVORITES",
-            "Click ☆ to favorite the selected Monkey EXP script. ★ means it is already a favorite. Favorite EXP scripts automatically move to the top of EXP script dropdowns."
+            "Click ☆ to favorite the selected EXP script.`n`n★ means it is already a favorite. Favorites appear at the top of EXP script lists."
         )
 
 
@@ -550,7 +559,7 @@ CreateLauncherUI() {
             CategoryDropdown,
             CategoryLabel,
             "CATEGORY",
-            "Choose the map difficulty category. The Map dropdown updates automatically so it only shows configured maps from that category."
+            "Choose a map category, such as Beginner or Expert.`n`nThe Map list updates automatically to show maps from that category."
         )
 
 
@@ -560,7 +569,7 @@ CreateLauncherUI() {
             MapDropdown,
             MapLabel,
             "MAP",
-            "Choose the map you want to run. Only maps with at least one runnable strategy are listed."
+            "Choose the map you want to run.`n`nOnly maps that have at least one usable strategy are shown."
         )
 
 
@@ -570,7 +579,7 @@ CreateLauncherUI() {
             MonkeyExpTypeDropdown,
             MonkeyExpTypeLabel,
             "TOWER TYPE",
-            "Choose Primary, Military, Magic, or Support. The Tower dropdown then shows only the .ahk scripts inside that tower type folder."
+            "Choose the tower group: Primary, Military, Magic, or Support.`n`nThe Tower Script list then shows scripts from that group."
         )
 
 
@@ -580,7 +589,7 @@ CreateLauncherUI() {
             MonkeyExpScriptDropdown,
             MonkeyExpScriptLabel,
             "TOWER SCRIPT",
-            "Choose the exact Monkey EXP Grind .ahk script to run. The filename is kept exactly as it appears in the folder."
+            "Choose the exact Monkey EXP Grind script to run.`n`nThe .ahk filename is shown exactly as it appears in the folder."
         )
 
 
@@ -652,7 +661,7 @@ RequestCloseLauncher(*) {
         "CLOSE MACRO",
         ExitApp,
         LauncherGui,
-        "Closes BTD6 Everything Macro completely after confirmation."
+        "Closes BTD6 Everything Macro completely.`n`nUnsaved queue jobs will be lost."
     )
 }
 
@@ -1227,14 +1236,35 @@ LaunchMapScript(
     }
 
 
+    ; Keep the main launcher visible while the user chooses the run count.
+    ; It is only hidden after a valid run is confirmed and startup begins.
+    ClearLauncherReturnPending()
+    SetLauncherRunSuppressed(false)
+    ShowLauncher(true)
+
+
     runCount :=
         PromptForRunCount()
 
 
     if runCount = 0 {
 
+        ShowLauncher(true)
+
         return false
     }
+
+
+    ForceLauncherVisible :=
+        false
+
+
+    SetLauncherRunSuppressed(true)
+
+
+    SetRunHistoryCurrentSource(
+        "MANUAL RUN"
+    )
 
 
     ClearQueueExecutionState()
@@ -1255,14 +1285,6 @@ LaunchMapScript(
 
     RepeatRunCompleted :=
         0
-
-
-    ForceLauncherVisible :=
-        false
-
-
-    ClearLauncherReturnPending()
-    SetLauncherRunSuppressed(true)
 
 
     CloseAllDarkDropdowns()
@@ -1299,9 +1321,10 @@ LaunchMapScript(
 }
 
 
-StartNextQueuedRun() {
+StartNextQueuedRun(isRetry := false) {
     global MacroRunning
     global RunningPid
+    global ActiveRunToken
     global LauncherGui
 
     global RepeatScriptPath
@@ -1323,7 +1346,10 @@ StartNextQueuedRun() {
     }
 
 
-    if RepeatRunRemaining < 1 {
+    if (
+        !isRetry
+        && RepeatRunRemaining < 1
+    ) {
 
         return false
     }
@@ -1341,6 +1367,10 @@ StartNextQueuedRun() {
             0
 
 
+        ClearChildRunResult(ActiveRunToken)
+        ActiveRunToken := ""
+
+
         HideCycleStatusUI()
 
 
@@ -1351,6 +1381,11 @@ StartNextQueuedRun() {
         UpdateStatus(
             "SCRIPT NOT FOUND",
             UIColorError
+        )
+
+
+        RecordRunHistoryFailure(
+            "SCRIPT NOT FOUND"
         )
 
 
@@ -1405,6 +1440,10 @@ StartNextQueuedRun() {
     LauncherGui.Hide()
 
 
+    ActiveRunToken := CreateChildRunToken()
+    ClearChildRunResult(ActiveRunToken)
+
+
     command :=
         Chr(34)
         . A_AhkPath
@@ -1417,6 +1456,11 @@ StartNextQueuedRun() {
         . Chr(34)
         . "--btd6-cycle="
         . currentRun
+        . Chr(34)
+        . " "
+        . Chr(34)
+        . "--btd6-run-token="
+        . ActiveRunToken
         . Chr(34)
 
 
@@ -1448,7 +1492,9 @@ StartNextQueuedRun() {
         )
 
 
-        RepeatRunRemaining--
+        if !isRetry {
+            RepeatRunRemaining--
+        }
 
 
         return true
@@ -1463,6 +1509,10 @@ StartNextQueuedRun() {
             0
 
 
+        ClearChildRunResult(ActiveRunToken)
+        ActiveRunToken := ""
+
+
         HideCycleStatusUI()
 
 
@@ -1474,6 +1524,11 @@ StartNextQueuedRun() {
         UpdateStatus(
             "FAILED TO START",
             UIColorError
+        )
+
+
+        RecordRunHistoryFailure(
+            "FAILED TO START"
         )
 
 

@@ -70,6 +70,8 @@ global RepeatRunTotal := 0
 global RepeatRunRemaining := 0
 global RepeatRunCompleted := 0
 
+global ActiveRunToken := ""
+
 global ForceLauncherVisible := false
 
 ; While a macro run is active (and briefly while the child
@@ -107,6 +109,9 @@ global CategoryData := Map()
 #Include MapDiscoveryUI.ahk
 #Include QueueJobBuilderUI.ahk
 #Include QueueProfilesUI.ahk
+#Include RunHistoryUI.ahk
+#Include RetryRecoveryUI.ahk
+#Include SettingsUI.ahk
 #Include QueueUI.ahk
 #Include ScriptPickerUI.ahk
 #Include ModeUI.ahk

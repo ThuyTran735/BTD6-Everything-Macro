@@ -333,6 +333,14 @@ ContinueMacroWhenReady() {
     }
 
 
+    if action = "retry-run" {
+
+        StartNextQueuedRun(true)
+
+        return
+    }
+
+
     if action = "next-job" {
 
         StartNextQueueJob()
@@ -404,6 +412,20 @@ HideLauncher() {
 
         LauncherGui.Hide()
     }
+}
+
+
+CloseAllSecondaryMenus() {
+    ; The main launcher stays visible while the user configures the macro.
+    ; Only one secondary menu is allowed at a time.
+    try CloseModePicker()
+    try CloseScriptPicker()
+    try CloseQueueManager()
+    try DestroyQueueJobBuilder(false)
+    try CloseQueueProfilesManager()
+    try CloseSettingsUI()
+    try CloseRunHistoryUI()
+    try CloseRetryRecoveryUI()
 }
 
 
@@ -656,6 +678,48 @@ IsInGameScreen() {
 }
 
 
+CreateChildRunToken() {
+    return A_TickCount . "-" . Random(100000, 999999)
+}
+
+
+GetChildRunResultPath(token) {
+    if token = ""
+        return ""
+
+    return A_Temp . "\\BTD6EverythingMacro_RunResult_" . token . ".ini"
+}
+
+
+ClearChildRunResult(token) {
+    path := GetChildRunResultPath(token)
+    if path = ""
+        return
+
+    try FileDelete(path)
+}
+
+
+ReadChildRunResult(token) {
+    result := {
+        status: "Missing",
+        reason: "NO RESULT REPORTED"
+    }
+
+    path := GetChildRunResultPath(token)
+    if path = "" || !FileExist(path)
+        return result
+
+    try {
+        result.status := IniRead(path, "Result", "Status", "Missing")
+        result.reason := IniRead(path, "Result", "Reason", "")
+    }
+
+    try FileDelete(path)
+    return result
+}
+
+
 GetCycleStopRequestPath() {
     return A_Temp
         . "\BTD6EverythingMacro_StopCycles.flag"
@@ -702,6 +766,7 @@ ConsumeCycleStopRequest() {
 MonitorLauncherState() {
     global MacroRunning
     global RunningPid
+    global ActiveRunToken
 
     global RepeatRunTotal
     global RepeatRunRemaining
@@ -711,6 +776,7 @@ MonitorLauncherState() {
     global QueueActiveJobIndex
     global QueueTotalJobs
     global QueueCompletedRuns
+    global QueueCurrentRetryCount
 
     global ForceLauncherVisible
     global StartupLoadingActive
@@ -803,6 +869,11 @@ MonitorLauncherState() {
                 )
 
 
+                RecordRunHistoryFailure(
+                    "MAP SEARCH STOPPED"
+                )
+
+
                 ShowLauncher(
                     true
                 )
@@ -812,7 +883,72 @@ MonitorLauncherState() {
             }
 
 
+            childResult := ReadChildRunResult(ActiveRunToken)
+            ActiveRunToken := ""
+
+
+            if childResult.status != "Success" {
+
+                reason := childResult.reason != ""
+                    ? childResult.reason
+                    : "CHILD SCRIPT FAILED"
+
+
+                if (
+                    QueueRunning
+                    && IsQueueAutoRetryEnabled()
+                    && GetQueueRetryLimit() > 0
+                    && QueueCurrentRetryCount < GetQueueRetryLimit()
+                ) {
+                    QueueCurrentRetryCount++
+
+                    UpdateStatus(
+                        "RETRY "
+                        . QueueCurrentRetryCount
+                        . " / "
+                        . GetQueueRetryLimit(),
+                        UIColorError
+                    )
+
+                    UpdateCycleStatusUI()
+                    ScheduleMacroContinuation("retry-run")
+                    return
+                }
+
+
+                queueWasRunning := QueueRunning
+
+                MacroRunning := false
+                HideCycleStatusUI()
+
+                ClearRepeatRunState()
+                ClearQueueExecutionState()
+                ClearMacroContinuation()
+
+                ForceLauncherVisible := true
+                ClearLauncherReturnPending()
+                SetLauncherRunSuppressed(false)
+
+                UpdateStatus(
+                    queueWasRunning
+                        ? "QUEUE FAILED"
+                        : "RUN FAILED",
+                    UIColorError
+                )
+
+                RecordRunHistoryFailure(reason)
+                ShowLauncher(true)
+                return
+            }
+
+
+            QueueCurrentRetryCount := 0
+
+
             RepeatRunCompleted++
+
+
+            RecordRunHistoryCycle()
 
 
             if QueueRunning {
@@ -898,6 +1034,9 @@ MonitorLauncherState() {
 
             MacroRunning :=
                 false
+
+
+            RecordRunHistorySuccess()
 
 
             CompleteCycleStatusUI()
@@ -1045,17 +1184,8 @@ MonitorLauncherState() {
     }
 
 
-    if IsInGameScreen() {
-
-        if IsLauncherVisible() {
-            LauncherGui.Hide()
-        }
-
-
-        return
-    }
-
-
+    ; Idle/configuration state: keep the launcher visible regardless of
+    ; the current BTD6 screen. It only hides during an actual run.
     if !IsLauncherVisible() {
 
         ShowLauncher(

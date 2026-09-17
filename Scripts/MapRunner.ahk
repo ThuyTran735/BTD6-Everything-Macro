@@ -49,7 +49,69 @@ ShouldSelectHeroForCurrentCycle() {
 }
 
 
+GetLauncherRunToken() {
+    tokenPrefix := "--btd6-run-token="
+
+    for argument in A_Args {
+        if InStr(argument, tokenPrefix) != 1
+            continue
+
+        token := SubStr(argument, StrLen(tokenPrefix) + 1)
+        if RegExMatch(token, "^[A-Za-z0-9_-]+$")
+            return token
+    }
+
+    return ""
+}
+
+
+GetLauncherRunResultPath(token := "") {
+    if token = ""
+        token := GetLauncherRunToken()
+
+    if token = ""
+        return ""
+
+    return A_Temp . "\\BTD6EverythingMacro_RunResult_" . token . ".ini"
+}
+
+
+WriteLauncherRunResult(status, reason := "") {
+    path := GetLauncherRunResultPath()
+    if path = ""
+        return false
+
+    try {
+        IniWrite(status, path, "Result", "Status")
+        IniWrite(reason, path, "Result", "Reason")
+        return true
+    }
+
+    return false
+}
+
+
 RunMapStrategy(strategy) {
+    try {
+        result := RunMapStrategyCore(strategy)
+    }
+    catch Error as err {
+        WriteLauncherRunResult("Failed", "UNHANDLED ERROR: " . err.Message)
+        throw
+    }
+
+    if result {
+        WriteLauncherRunResult("Success")
+    }
+    else {
+        WriteLauncherRunResult("Failed", "SCRIPT RETURNED FAILURE")
+    }
+
+    return result
+}
+
+
+RunMapStrategyCore(strategy) {
     global RunConfig
 
     ; Every new cycle starts with completely fresh
@@ -155,117 +217,49 @@ RunMapStrategy(strategy) {
     if !WaitForGameLoad()
         return false
 
-    maxAttempts := HasProp(
-        RunConfig,
-        "maxAttempts"
+    ResetRoundTracking()
+    ResetTowerSetup()
+
+
+    pregameResult := RunPregameStrategy(
+        strategy
     )
-        ? RunConfig.maxAttempts
-        : 3
 
 
-    Loop maxAttempts {
-        attempt := A_Index
-
-
-        ResetRoundTracking()
-        ResetTowerSetup()
-
-
-        pregameResult := RunPregameStrategy(
-            strategy
-        )
-
-
-        if pregameResult = "Victory" {
-            if !HandleVictory()
-                return false
-
-            return true
-        }
-
-
-        if pregameResult = "Defeat" {
-            if attempt >= maxAttempts {
-                ToolTip(
-                    "Maximum attempts reached."
-                    "`nAttempts: "
-                    attempt
-                )
-
-                Sleep(2000)
-                ToolTip()
-
-                return false
-            }
-
-
-            if !HandleDefeat()
-                return false
-
-
-            ; No CHIMPS OK after restarting.
-            if !WaitForGameLoad()
-                return false
-
-
-            continue
-        }
-
-
-        if pregameResult = false
+    if pregameResult = "Victory" {
+        if !HandleVictory()
             return false
 
-
-        ResetRoundTracking()
-
-
-        if !StartGame()
-            return false
+        return true
+    }
 
 
-        result := RunStrategy(
-            strategy
-        )
-
-
-        if result = "Victory" {
-            if !HandleVictory()
-                return false
-
-            return true
-        }
-
-
-        if result = "Defeat" {
-            if attempt >= maxAttempts {
-                ToolTip(
-                    "Maximum attempts reached."
-                    "`nAttempts: "
-                    attempt
-                )
-
-                Sleep(2000)
-                ToolTip()
-
-                return false
-            }
-
-
-            if !HandleDefeat()
-                return false
-
-
-            ; Restart goes directly back into CHIMPS.
-            ; Do not search for CHIMPS OK again.
-            if !WaitForGameLoad()
-                return false
-
-
-            continue
-        }
-
-
+    if pregameResult = "Defeat" {
         return false
+    }
+
+
+    if pregameResult = false
+        return false
+
+
+    ResetRoundTracking()
+
+
+    if !StartGame()
+        return false
+
+
+    result := RunStrategy(
+        strategy
+    )
+
+
+    if result = "Victory" {
+        if !HandleVictory()
+            return false
+
+        return true
     }
 
 

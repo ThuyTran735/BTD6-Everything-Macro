@@ -47,7 +47,7 @@ CreateCycleStatusUI() {
     CycleCancelButton := ""
 
 
-    hudWidth := 320
+    hudWidth := 348
     hudHeight := 78
 
 
@@ -95,7 +95,7 @@ CreateCycleStatusUI() {
     CycleStatusText :=
         CycleStatusGui.Add(
             "Text",
-            "x14 y10 w205 h22 Center c"
+            "x16 y10 w205 h22 Center c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             "CYCLE 1 / 1"
@@ -113,7 +113,7 @@ CreateCycleStatusUI() {
     CycleProgressText :=
         CycleStatusGui.Add(
             "Text",
-            "x14 y35 w205 h18 Center c"
+            "x16 y35 w205 h18 Center c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "1 CYCLE LEFT"
@@ -124,7 +124,7 @@ CreateCycleStatusUI() {
     CycleProgressBackground :=
         CycleStatusGui.Add(
             "Progress",
-            "x14 y59 w205 h8 c"
+            "x16 y59 w205 h8 c"
             . UIColorControlBorder
             . " Background"
             . UIColorControlBorder
@@ -137,7 +137,7 @@ CreateCycleStatusUI() {
     CycleProgressBar :=
         CycleStatusGui.Add(
             "Progress",
-            "x14 y59 w205 h8 Range0-100 c"
+            "x16 y59 w205 h8 Range0-100 c"
             . UIColorAccent
             . " Background"
             . UIColorControlBorder
@@ -150,9 +150,9 @@ CreateCycleStatusUI() {
     CycleCancelButton :=
         CreateDarkButton(
             CycleStatusGui,
-            231,
+            242,
             18,
-            76,
+            92,
             42,
             "CLOSE RUN",
             7
@@ -163,7 +163,7 @@ CreateCycleStatusUI() {
         CycleStatusGui,
         CycleCancelButton,
         "CLOSE RUN",
-        "Closes the active run by stopping the current cycle. If a queue is running, this stops the entire queue so no later jobs start automatically."
+        "Stops the active run.`n`nIf a queue is running, the entire queue stops and later jobs will not start."
     )
 
 
@@ -205,7 +205,7 @@ ShowCycleStatusUI() {
     )
 
 
-    hudWidth := 320
+    hudWidth := 348
     hudHeight := 78
 
 
@@ -270,7 +270,7 @@ UpdateCycleStatusPosition() {
     }
 
 
-    hudWidth := 320
+    hudWidth := 348
 
 
     centerX :=
@@ -353,6 +353,7 @@ UpdateCycleStatusUI() {
     global QueueTotalJobs
     global QueueTotalRuns
     global QueueCompletedRuns
+    global QueueCurrentRetryCount
 
 
     if !CycleStatusGui {
@@ -422,6 +423,15 @@ UpdateCycleStatusUI() {
             . currentCycle
             . " / "
             . RepeatRunTotal
+
+
+        if QueueCurrentRetryCount > 0 {
+            CycleStatusText.Text .=
+                "  -  RETRY "
+                . QueueCurrentRetryCount
+                . " / "
+                . GetQueueRetryLimit()
+        }
 
 
         if runsLeft = 1 {
@@ -630,7 +640,7 @@ RequestCancelMacroCycles(*) {
         "CLOSE RUN",
         RequestCancelMacroCyclesIfStillActive,
         CycleStatusGui,
-        "Stops the current run. If a queue is active, the entire queue is stopped and no later jobs start automatically."
+        "Stops the current run.`n`nIf a queue is active, the whole queue stops and later jobs will not start."
     )
 }
 
@@ -638,6 +648,7 @@ RequestCancelMacroCycles(*) {
 CancelMacroCycles(*) {
     global MacroRunning
     global RunningPid
+    global ActiveRunToken
 
     global CycleStatusGui
     global CycleStatusText
@@ -698,6 +709,10 @@ CancelMacroCycles(*) {
         0
 
 
+    ClearChildRunResult(ActiveRunToken)
+    ActiveRunToken := ""
+
+
     if CycleStatusGui {
 
         CycleStatusText.Text :=
@@ -750,7 +765,7 @@ CancelMacroCycles(*) {
 }
 
 
-ShowCycleInputPrompt(context := "run") {
+ShowCycleInputPrompt(context := "run", initialValue := 1) {
     global CycleInputGui
     global CycleInputEdit
     global CycleInputErrorText
@@ -782,13 +797,16 @@ ShowCycleInputPrompt(context := "run") {
     dialogHeight := 280
 
 
-    isQueuePrompt := context = "queue"
+    isQueuePrompt := (context = "queue" || context = "editqueue")
+    isEditQueuePrompt := context = "editqueue"
 
 
     CycleInputGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-            isQueuePrompt ? "Add to Queue" : "Run Macro"
+            isEditQueuePrompt
+            ? "Edit Queue Job"
+            : (isQueuePrompt ? "Add to Queue" : "Run Macro")
         )
 
 
@@ -829,7 +847,9 @@ ShowCycleInputPrompt(context := "run") {
         "x20 y20 w400 h30 Center c"
         . UIColorPrimaryText
         . " BackgroundTrans",
-        isQueuePrompt ? "ADD TO QUEUE" : "RUN CYCLES"
+        isEditQueuePrompt
+        ? "SAVE CHANGES"
+        : (isQueuePrompt ? "ADD TO QUEUE" : "RUN CYCLES")
     )
 
 
@@ -845,9 +865,11 @@ ShowCycleInputPrompt(context := "run") {
         "x20 y59 w400 h22 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        isQueuePrompt
-        ? "How many times should this script run in the queue?"
-        : "How many times should this strategy run?"
+        isEditQueuePrompt
+        ? "How many times should this edited job run?"
+        : (isQueuePrompt
+            ? "How many times should this script run in the queue?"
+            : "How many times should this strategy run?")
     )
 
 
@@ -892,7 +914,7 @@ ShowCycleInputPrompt(context := "run") {
             . UIColorInputText
             . " Background"
             . UIColorInputBackground,
-            "1"
+            initialValue
         )
 
 
@@ -932,7 +954,9 @@ ShowCycleInputPrompt(context := "run") {
             211,
             184,
             44,
-            isQueuePrompt ? "ADD TO QUEUE" : "RUN MACRO",
+            isEditQueuePrompt
+            ? "SAVE CHANGES"
+            : (isQueuePrompt ? "ADD TO QUEUE" : "RUN MACRO"),
             8
         )
 
@@ -952,10 +976,14 @@ ShowCycleInputPrompt(context := "run") {
     CreateHelpBadgeForButton(
         CycleInputGui,
         runButton,
-        isQueuePrompt ? "ADD TO QUEUE" : "RUN COUNT",
-        isQueuePrompt
-        ? "Confirms how many times this script should be added to the queue. Enter a whole number from 1 to 1,000,000."
-        : "Confirms how many times the selected script should run. Enter a whole number from 1 to 1,000,000."
+        isEditQueuePrompt
+        ? "SAVE CHANGES"
+        : (isQueuePrompt ? "ADD TO QUEUE" : "RUN COUNT"),
+        isEditQueuePrompt
+        ? "Saves the edited job with this run count.`n`nEnter a whole number from 1 to 1,000,000."
+        : (isQueuePrompt
+            ? "Sets how many times this queued job should run.`n`nEnter a whole number from 1 to 1,000,000."
+            : "Sets how many times the selected script should run.`n`nEnter a whole number from 1 to 1,000,000.")
     )
 
 
@@ -963,7 +991,7 @@ ShowCycleInputPrompt(context := "run") {
         CycleInputGui,
         cancelButton,
         "CLOSE",
-        "Closes this prompt without starting or adding the pending run."
+        "Closes this prompt without starting, adding, or saving the pending run."
     )
 
 

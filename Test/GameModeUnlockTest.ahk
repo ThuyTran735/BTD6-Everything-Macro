@@ -10,8 +10,6 @@ global RunConfig := {
     gameMode: "Deflation",
 
     hero: false,
-
-    maxAttempts: 1,
     wingmonkeyMK: false,
 
     startRound: 31,

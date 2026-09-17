@@ -12,9 +12,6 @@ MonkeyMeadowEasy() {
 
         hero: "Quincy",
 
-        ; Maximum number of attempts before giving up.
-        maxAttempts: 3,
-
         ; Set true if Wingmonkey Monkey Knowledge is enabled.
         wingmonkeyMK: false
     }

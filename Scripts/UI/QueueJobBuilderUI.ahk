@@ -28,8 +28,21 @@ global QueueBuilderExpFavoriteHelp := ""
 global QueueBuilderMapFavoriteButton := ""
 global QueueBuilderExpFavoriteButton := ""
 
+global QueueBuilderEditIndex := 0
+global QueueBuilderIsEditing := false
+
 
 ShowQueueJobBuilder(*) {
+    OpenQueueJobBuilder(0)
+}
+
+
+OpenQueueJobBuilderForEdit(editIndex) {
+    OpenQueueJobBuilder(editIndex)
+}
+
+
+OpenQueueJobBuilder(editIndex := 0) {
     global QueueBuilderGui
     global QueueBuilderJobTypeDropdown
     global QueueBuilderCategoryDropdown
@@ -57,6 +70,9 @@ ShowQueueJobBuilder(*) {
 
     global CurrentMode
     global MacroRunning
+    global MacroJobQueue
+    global QueueBuilderEditIndex
+    global QueueBuilderIsEditing
 
     global UIColorBackground
     global UIColorAccent
@@ -68,12 +84,20 @@ ShowQueueJobBuilder(*) {
     }
 
 
+    CloseAllSecondaryMenus()
+
+    QueueBuilderEditIndex := editIndex
+    QueueBuilderIsEditing := (
+        editIndex >= 1
+        && editIndex <= MacroJobQueue.Length
+    )
+
+
     CloseAllDarkDropdowns()
     CloseModePicker()
     CloseScriptPicker()
     CloseQueueManager()
     CloseContextHelp()
-    CloseQueueJobBuilder()
 
 
     categories :=
@@ -104,7 +128,7 @@ ShowQueueJobBuilder(*) {
     QueueBuilderGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-            "Add Queue Job"
+            QueueBuilderIsEditing ? "Edit Queue Job" : "Add Queue Job"
         )
 
 
@@ -125,7 +149,7 @@ ShowQueueJobBuilder(*) {
 
     AddUIOutlinedText(
         QueueBuilderGui,
-        "ADD QUEUE JOB",
+        QueueBuilderIsEditing ? "EDIT QUEUE JOB" : "ADD QUEUE JOB",
         20,
         18,
         480,
@@ -147,7 +171,9 @@ ShowQueueJobBuilder(*) {
         "x20 y55 w480 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        "Choose exactly what should be added to the queue"
+        QueueBuilderIsEditing
+        ? "Update this queued job without changing its position"
+        : "Choose exactly what should be added to the queue"
     )
 
 
@@ -173,7 +199,10 @@ ShowQueueJobBuilder(*) {
                 "Map Script",
                 "Monkey EXP Grind"
             ],
-            CurrentMode = "Monkey EXP Grind" ? 2 : 1,
+            QueueBuilderIsEditing
+            && MacroJobQueue[QueueBuilderEditIndex].mode = "Monkey EXP Grind"
+            ? 2
+            : (CurrentMode = "Monkey EXP Grind" ? 2 : 1),
             5
         )
 
@@ -183,7 +212,7 @@ ShowQueueJobBuilder(*) {
         QueueBuilderJobTypeDropdown,
         QueueBuilderJobTypeLabel,
         "JOB TYPE",
-        "Choose the kind of queued job you want to add.`n`nMAP SCRIPT lets you choose a map category, map, and exact strategy.`n`nMONKEY EXP GRIND lets you choose a tower type and its .ahk script."
+        "Choose what kind of job this is.`n`nMAP SCRIPT: choose a map and strategy.`n`nMONKEY EXP GRIND: choose a tower group and EXP script."
     )
 
 
@@ -217,7 +246,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderCategoryDropdown,
             QueueBuilderCategoryLabel,
             "MAP CATEGORY",
-            "Choose the BTD6 map category for this queue job, such as Beginner, Intermediate, Advanced, or Expert.`n`nThe Map list below updates automatically to only show maps from the selected category."
+            "Choose the map category for this job.`n`nThe Map list updates automatically to show maps from that category."
         )
 
 
@@ -251,7 +280,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderMapDropdown,
             QueueBuilderMapLabel,
             "MAP",
-            "Choose the map for this queued job.`n`nOnly maps that contain at least one runnable .ahk strategy are shown. Changing the map refreshes the Strategy list below."
+            "Choose the map for this job.`n`nOnly maps with a usable strategy are shown. Changing the map also updates the Strategy list."
         )
 
 
@@ -287,7 +316,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderStrategyDropdown,
             QueueBuilderStrategyLabel,
             "STRATEGY",
-            "Choose the exact .ahk strategy that the queue should run for the selected map.`n`nDifficulty is shown before the filename so strategies with similar names are easy to tell apart."
+            "Choose the strategy this job should run.`n`nThe difficulty appears before the filename to make similar scripts easier to tell apart."
         )
 
 
@@ -327,7 +356,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderExpTypeDropdown,
             QueueBuilderExpTypeLabel,
             "TOWER TYPE",
-            "Choose Primary, Military, Magic, or Support.`n`nThe Tower Script list below reads only the .ahk files inside that type's Monkey EXP Grind folder."
+            "Choose Primary, Military, Magic, or Support.`n`nThe Tower Script list updates to show scripts from that group."
         )
 
 
@@ -373,7 +402,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderExpScriptDropdown,
             QueueBuilderExpScriptLabel,
             "TOWER SCRIPT",
-            "Choose the exact Monkey EXP Grind .ahk file to queue.`n`nThe .ahk extension stays visible, and the list updates whenever you change Tower Type."
+            "Choose the exact Monkey EXP Grind script for this job.`n`nThe .ahk extension stays visible so you know exactly which file will run."
         )
 
 
@@ -399,7 +428,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderGui,
             QueueBuilderMapDropdown,
             "FAVORITES",
-            "Click ☆ to favorite the selected map. ★ means it is already a favorite. Favorite maps move to the top everywhere map dropdowns are used."
+            "Click ☆ to favorite the selected map.`n`n★ means it is already a favorite. Favorites move to the top of map lists."
         )
 
 
@@ -421,7 +450,7 @@ ShowQueueJobBuilder(*) {
             QueueBuilderGui,
             QueueBuilderExpScriptDropdown,
             "FAVORITES",
-            "Click ☆ to favorite the selected Monkey EXP script. ★ means it is already a favorite. Favorite EXP scripts move to the top everywhere EXP dropdowns are used."
+            "Click ☆ to favorite the selected EXP script.`n`n★ means it is already a favorite. Favorites move to the top of EXP script lists."
         )
 
 
@@ -436,7 +465,7 @@ ShowQueueJobBuilder(*) {
             404,
             290,
             46,
-            "ADD TO QUEUE",
+            QueueBuilderIsEditing ? "SAVE CHANGES" : "ADD TO QUEUE",
             9
         )
 
@@ -456,8 +485,10 @@ ShowQueueJobBuilder(*) {
     CreateHelpBadgeForButton(
         QueueBuilderGui,
         addButton,
-        "ADD TO QUEUE",
-        "Adds the selected script as a new job at the bottom of the queue.`n`nAfter clicking it, enter how many times that job should run. You can reorder or remove it later in the Queue Manager."
+        QueueBuilderIsEditing ? "SAVE CHANGES" : "ADD TO QUEUE",
+        QueueBuilderIsEditing
+        ? "Saves your changes to this queue job.`n`nThe job stays in the same position in the queue."
+        : "Adds this as a new job at the bottom of the queue.`n`nNext, choose how many times it should run. You can edit or move it later."
     )
 
 
@@ -465,7 +496,7 @@ ShowQueueJobBuilder(*) {
         QueueBuilderGui,
         cancelButton,
         "CLOSE",
-        "Closes the Add Queue Job window without changing the queue."
+        "Closes this window without changing the queue."
     )
 
 
@@ -536,6 +567,10 @@ ShowQueueJobBuilder(*) {
     RefreshQueueBuilderMapStrategies()
     RefreshQueueBuilderExpScripts()
     QueueBuilderJobTypeChanged()
+
+    if QueueBuilderIsEditing {
+        InitializeQueueBuilderEditSelection()
+    }
 
 
     QueueBuilderGui.Show(
@@ -823,8 +858,115 @@ RefreshQueueBuilderExpScripts() {
 }
 
 
+QueueBuilderPathsMatch(pathA, pathB) {
+    return StrLower(StrReplace(pathA, "/", "\"))
+        = StrLower(StrReplace(pathB, "/", "\"))
+}
+
+
+InitializeQueueBuilderEditSelection() {
+    global QueueBuilderEditIndex
+    global MacroJobQueue
+    global QueueBuilderJobTypeDropdown
+    global QueueBuilderCategoryDropdown
+    global QueueBuilderMapDropdown
+    global QueueBuilderStrategyDropdown
+    global QueueBuilderMapStrategies
+    global QueueBuilderExpTypeDropdown
+    global QueueBuilderExpScriptDropdown
+    global CategoryData
+
+    if (
+        QueueBuilderEditIndex < 1
+        || QueueBuilderEditIndex > MacroJobQueue.Length
+    ) {
+        return false
+    }
+
+    job := MacroJobQueue[QueueBuilderEditIndex]
+
+    if job.mode = "Monkey EXP Grind" {
+        QueueBuilderJobTypeDropdown.Choose(2)
+        QueueBuilderJobTypeChanged()
+
+        towerTypes := GetMonkeyExpTowerTypes()
+
+        for typeIndex, towerType in towerTypes {
+            scripts := GetMonkeyExpScripts(towerType)
+
+            for scriptIndex, script in scripts {
+                if QueueBuilderPathsMatch(script.path, job.path) {
+                    QueueBuilderExpTypeDropdown.Choose(typeIndex)
+                    RefreshQueueBuilderExpScripts()
+                    QueueBuilderExpScriptDropdown.Choose(scriptIndex)
+                    UpdateQueueBuilderExpFavoriteButton()
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    QueueBuilderJobTypeDropdown.Choose(1)
+    QueueBuilderJobTypeChanged()
+    categories := GetConfiguredCategories()
+
+    for categoryIndex, categoryName in categories {
+        maps := GetMapNamesForCategory(categoryName)
+
+        for mapIndex, mapName in maps {
+            if !CategoryData.Has(categoryName) {
+                continue
+            }
+
+            category := CategoryData[categoryName]
+
+            if !category.directories.Has(mapName) {
+                continue
+            }
+
+            scripts := GetMapScripts(category.directories[mapName])
+
+            for difficulty in ["Easy", "Medium", "Hard"] {
+                for candidate in scripts[difficulty] {
+                    if QueueBuilderPathsMatch(candidate.path, job.path) {
+                        QueueBuilderCategoryDropdown.Choose(categoryIndex)
+                        RefreshQueueBuilderMapFavorites(false)
+
+                        currentMaps := GetMapNamesForCategory(categoryName)
+                        chosenMapIndex := FindTextIndex(currentMaps, mapName)
+
+                        if chosenMapIndex > 0 {
+                            QueueBuilderMapDropdown.Choose(chosenMapIndex)
+                        }
+
+                        RefreshQueueBuilderMapStrategies()
+
+                        for strategyIndex, strategy in QueueBuilderMapStrategies {
+                            if QueueBuilderPathsMatch(strategy.path, job.path) {
+                                QueueBuilderStrategyDropdown.Choose(strategyIndex)
+                                break
+                            }
+                        }
+
+                        UpdateQueueBuilderMapFavoriteButton()
+                        return true
+                    }
+                }
+            }
+        }
+    }
+
+    return false
+}
+
+
 AddQueueBuilderSelection(*) {
     global QueueBuilderJobTypeDropdown
+    global QueueBuilderIsEditing
+    global QueueBuilderEditIndex
+    global MacroJobQueue
     global QueueBuilderStrategyDropdown
     global QueueBuilderMapStrategies
 
@@ -847,6 +989,30 @@ AddQueueBuilderSelection(*) {
                 path := strategy.path
                 label := strategy.label
 
+
+                if QueueBuilderIsEditing {
+                    currentRuns := MacroJobQueue[QueueBuilderEditIndex].runs
+                    editIndex := QueueBuilderEditIndex
+                    DestroyQueueJobBuilder(false)
+                    runCount := ShowCycleInputPrompt("editqueue", currentRuns)
+
+                    if runCount < 1 {
+                        ShowQueueManager()
+                        return false
+                    }
+
+                    MacroJobQueue[editIndex] := {
+                        path: path,
+                        label: label,
+                        mode: "Default",
+                        runs: runCount
+                    }
+
+                    SetQueueHistorySource()
+                    UpdateQueueLauncherButton()
+                    ShowQueueManager()
+                    return true
+                }
 
                 CloseQueueJobBuilder()
 
@@ -887,6 +1053,30 @@ AddQueueBuilderSelection(*) {
                 . script.name
 
 
+            if QueueBuilderIsEditing {
+                currentRuns := MacroJobQueue[QueueBuilderEditIndex].runs
+                editIndex := QueueBuilderEditIndex
+                DestroyQueueJobBuilder(false)
+                runCount := ShowCycleInputPrompt("editqueue", currentRuns)
+
+                if runCount < 1 {
+                    ShowQueueManager()
+                    return false
+                }
+
+                MacroJobQueue[editIndex] := {
+                    path: path,
+                    label: label,
+                    mode: "Monkey EXP Grind",
+                    runs: runCount
+                }
+
+                SetQueueHistorySource()
+                UpdateQueueLauncherButton()
+                ShowQueueManager()
+                return true
+            }
+
             CloseQueueJobBuilder()
 
 
@@ -910,6 +1100,20 @@ AddQueueBuilderSelection(*) {
 
 
 CloseQueueJobBuilder(*) {
+    global QueueBuilderIsEditing
+
+    returnToQueue := QueueBuilderIsEditing
+    DestroyQueueJobBuilder(false)
+
+    if returnToQueue {
+        ShowQueueManager()
+    } else {
+        ShowLauncher(true)
+    }
+}
+
+
+DestroyQueueJobBuilder(returnToQueue := false) {
     global QueueBuilderGui
     global QueueBuilderJobTypeDropdown
     global QueueBuilderCategoryDropdown
@@ -923,16 +1127,15 @@ CloseQueueJobBuilder(*) {
     global QueueBuilderExpFavoriteButton
     global QueueBuilderMapFavoriteHelp
     global QueueBuilderExpFavoriteHelp
-
+    global QueueBuilderEditIndex
+    global QueueBuilderIsEditing
 
     CloseAllDarkDropdowns()
-
 
     try {
         if QueueBuilderGui
             QueueBuilderGui.Destroy()
     }
-
 
     QueueBuilderGui := ""
     QueueBuilderJobTypeDropdown := ""
@@ -947,4 +1150,10 @@ CloseQueueJobBuilder(*) {
     QueueBuilderExpFavoriteButton := ""
     QueueBuilderMapFavoriteHelp := ""
     QueueBuilderExpFavoriteHelp := ""
+    QueueBuilderEditIndex := 0
+    QueueBuilderIsEditing := false
+
+    if returnToQueue {
+        ShowQueueManager()
+    }
 }

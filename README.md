@@ -1,6 +1,8 @@
 # BTD6 Everything Macro
 
-**Current version: V1.3**
+**Current version: V1.4**
+
+V1.4 adds persistent Run History under Settings, including last run, last failure, successful and failed runs, total completed cycles, recent queue/profile usage, and themed history clearing.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

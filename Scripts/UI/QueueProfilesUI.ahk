@@ -57,11 +57,11 @@ ShowQueueProfilesManager(*) {
 
     CloseAllDarkDropdowns()
     CloseContextHelp()
-    CloseQueueProfilesManager()
+    CloseAllSecondaryMenus()
 
     QueueProfilesGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Queue Profiles - V1.3"
+        "Queue Profiles - V1.4"
     )
     QueueProfilesGui.BackColor := UIColorBackground
 
@@ -77,7 +77,7 @@ ShowQueueProfilesManager(*) {
         QueueProfilesGui,
         680,
         "QUEUE PROFILES",
-        "Save and load complete queue setups. Profile notes and repeat count save automatically. LOAD applies the selected profile, SAVE CURRENT creates a new profile, UPDATE replaces its jobs, and MORE contains the less common profile actions."
+        "Save complete queue setups and load them later.`n`nNotes and repeat count save automatically. Use MORE for duplicate, rename, export, import, and delete."
     )
 
     SetUIBodyFont(QueueProfilesGui, 9, UIColorSecondaryText)
@@ -105,7 +105,7 @@ ShowQueueProfilesManager(*) {
         QueueProfilesGui,
         QueueProfileDropdown,
         "FAVORITES",
-        "Click ☆ to favorite the selected profile. ★ profiles stay at the top of the profile list."
+        "Click ☆ to favorite the selected profile.`n`n★ means it is a favorite. Favorite profiles stay at the top of the list."
     )
 
     CreateHelpBadgeForField(
@@ -113,7 +113,7 @@ ShowQueueProfilesManager(*) {
         QueueProfileDropdown,
         profileLabel,
         "PROFILE",
-        "Choose the queue profile you want to inspect or load. Favorites stay at the top of this dropdown."
+        "Choose a saved Queue Profile.`n`nYou can review it, load it, update it, or use MORE for extra actions."
     )
 
     SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
@@ -129,7 +129,7 @@ ShowQueueProfilesManager(*) {
         205,
         192,
         "PROFILE NOTES",
-        "Type a short description for the selected profile. It saves automatically after you stop typing, so there is no separate save button."
+        "Write notes about this profile.`n`nYour changes save automatically after you stop typing."
     )
 
     SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
@@ -182,7 +182,7 @@ ShowQueueProfilesManager(*) {
         203,
         288,
         "REPEAT PROFILE",
-        "Choose how many times the complete profile should be repeated when loaded. The value saves automatically and the summary above updates before you load it."
+        "Choose how many times the entire profile should repeat when loaded.`n`nThis saves automatically, and the totals update right away."
     )
 
     QueueProfileRepeatMinusButton := CreateDarkButton(
@@ -244,26 +244,26 @@ ShowQueueProfilesManager(*) {
     moreButton := CreateDarkButton(QueueProfilesGui, 406, 386, 112, 44, "MORE", 8)
     closeButton := CreateDarkButton(QueueProfilesGui, 528, 386, 112, 44, "CLOSE", 8)
 
-    CreateHelpBadgeForButton(QueueProfilesGui, loadButton, "LOAD PROFILE", "Replaces the current queue with this profile. Repeat Entire Profile is applied automatically.")
-    CreateHelpBadgeForButton(QueueProfilesGui, saveButton, "SAVE CURRENT", "Saves the queue you currently built as a new profile.")
-    CreateHelpBadgeForButton(QueueProfilesGui, updateButton, "UPDATE PROFILE", "Replaces the selected profile's jobs with your current queue while keeping its name, favorite state, notes, and repeat count.")
-    CreateHelpBadgeForButton(QueueProfilesGui, moreButton, "MORE ACTIONS", "Opens less common profile actions: Duplicate, Rename, Export, Import, and Delete.")
+    CreateHelpBadgeForButton(QueueProfilesGui, loadButton, "LOAD PROFILE", "Loads this profile into the queue.`n`nYour current queue is replaced, and the saved repeat amount is applied.")
+    CreateHelpBadgeForButton(QueueProfilesGui, saveButton, "SAVE CURRENT", "Saves your current queue as a new Queue Profile.")
+    CreateHelpBadgeForButton(QueueProfilesGui, updateButton, "UPDATE PROFILE", "Updates the selected profile with your current queue.`n`nIts name, favorite status, notes, and repeat amount stay the same.")
+    CreateHelpBadgeForButton(QueueProfilesGui, moreButton, "MORE ACTIONS", "Opens extra profile tools: Duplicate, Rename, Export, Import, and Delete.")
     CreateHelpBadgeForButton(
         QueueProfilesGui,
         closeButton,
         "CLOSE",
-        "Closes Queue Profiles and returns to the previous UI without changing the current queue or deleting any saved profiles."
+        "Closes Queue Profiles.`n`nYour current queue and saved profiles are not changed."
     )
 
     loadButton.OnEvent("Click", LoadSelectedQueueProfile)
     saveButton.OnEvent("Click", SaveCurrentQueueProfile)
     updateButton.OnEvent("Click", UpdateSelectedQueueProfile)
     moreButton.OnEvent("Click", ShowQueueProfileMoreActions)
-    closeButton.OnEvent("Click", CloseQueueProfilesManager)
+    closeButton.OnEvent("Click", CloseQueueProfilesAndReturnToQueue)
 
     QueueProfileDropdown.OnEvent("Change", QueueProfileSelectionChanged)
-    QueueProfilesGui.OnEvent("Close", CloseQueueProfilesManager)
-    QueueProfilesGui.OnEvent("Escape", CloseQueueProfilesManager)
+    QueueProfilesGui.OnEvent("Close", CloseQueueProfilesAndReturnToQueue)
+    QueueProfilesGui.OnEvent("Escape", CloseQueueProfilesAndReturnToQueue)
 
     SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorSuccess)
     QueueProfileStatusText := QueueProfilesGui.Add(
@@ -773,6 +773,11 @@ LoadSelectedQueueProfile(*) {
     }
 
     MacroJobQueue := expanded
+
+    SetQueueHistorySource(
+        "PROFILE: " . record.name
+    )
+
     RefreshQueueManager()
     UpdateQueueLauncherButton()
 
@@ -868,6 +873,9 @@ ShowQueueProfileMoreActions(*) {
     global UIColorSecondaryText
 
     CloseQueueProfileMoreActions()
+    if QueueProfilesGui {
+        try QueueProfilesGui.Hide()
+    }
     CloseAllDarkDropdowns()
     CloseContextHelp()
 
@@ -878,7 +886,7 @@ ShowQueueProfileMoreActions(*) {
 
     QueueProfileMoreGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox" . ownerOption,
-        "Profile Actions - V1.3"
+        "Profile Actions - V1.4"
     )
     QueueProfileMoreGui.BackColor := UIColorBackground
 
@@ -909,47 +917,47 @@ ShowQueueProfileMoreActions(*) {
     exportButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(ExportSelectedQueueProfile))
     importButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(ImportQueueProfile))
     deleteButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(DeleteSelectedQueueProfile))
-    closeButton.OnEvent("Click", CloseQueueProfileMoreActions)
+    closeButton.OnEvent("Click", CloseQueueProfileMoreActionsAndReturn)
 
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         duplicateButton,
         "DUPLICATE PROFILE",
-        "Creates a new copy of the selected profile, including its queued jobs, run counts, notes, repeat count, and favorite state."
+        "Creates a copy of the selected profile.`n`nThe copy keeps its jobs, run counts, notes, repeat amount, and favorite status."
     )
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         renameButton,
         "RENAME PROFILE",
-        "Changes the name of the selected profile without changing its jobs, notes, repeat count, or favorite state."
+        "Changes only the profile name.`n`nIts jobs, notes, repeat amount, and favorite status stay the same."
     )
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         exportButton,
         "EXPORT PROFILE",
-        "Saves the selected profile as a portable .ini file so it can be backed up, shared, or imported into another copy of the macro."
+        "Saves this profile as an .ini file.`n`nYou can back it up, share it, or import it into another copy of the macro."
     )
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         importButton,
         "IMPORT PROFILE",
-        "Loads a previously exported profile .ini file into your saved profiles. You do not need to select an existing profile first."
+        "Imports a Queue Profile from an .ini file.`n`nThe imported profile is added to your saved profiles."
     )
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         deleteButton,
         "DELETE PROFILE",
-        "Permanently deletes the selected saved profile. This does not delete any map or EXP scripts used by that profile."
+        "Permanently deletes the selected Queue Profile.`n`nThe map and EXP scripts used by it are not deleted."
     )
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         closeButton,
         "CLOSE",
-        "Closes More Profile Actions and returns to the Queue Profiles window without changing the selected profile."
+        "Closes this window and returns to Queue Profiles.`n`nNothing is changed."
     )
 
-    QueueProfileMoreGui.OnEvent("Close", CloseQueueProfileMoreActions)
-    QueueProfileMoreGui.OnEvent("Escape", CloseQueueProfileMoreActions)
+    QueueProfileMoreGui.OnEvent("Close", CloseQueueProfileMoreActionsAndReturn)
+    QueueProfileMoreGui.OnEvent("Escape", CloseQueueProfileMoreActionsAndReturn)
 
     QueueProfileMoreGui.Show("Hide w320 h380")
     ApplyDarkWindowStyle(QueueProfileMoreGui)
@@ -959,7 +967,24 @@ ShowQueueProfileMoreActions(*) {
 
 RunQueueProfileMoreAction(callback, *) {
     CloseQueueProfileMoreActions()
+    ShowQueueProfilesAfterMoreActions()
     callback.Call()
+}
+
+
+ShowQueueProfilesAfterMoreActions() {
+    global QueueProfilesGui
+
+    if QueueProfilesGui {
+        try QueueProfilesGui.Show("w680 h490 Center")
+        try WinActivate("ahk_id " . QueueProfilesGui.Hwnd)
+    }
+}
+
+
+CloseQueueProfileMoreActionsAndReturn(*) {
+    CloseQueueProfileMoreActions()
+    ShowQueueProfilesAfterMoreActions()
 }
 
 
@@ -1164,7 +1189,7 @@ DeleteSelectedQueueProfile(*) {
             record.path
         ),
         QueueProfilesGui,
-        "Permanently deletes this saved queue profile. Map and EXP script files are not deleted."
+        "Deletes this saved Queue Profile permanently.`n`nMap and EXP script files are not deleted."
     )
 }
 
@@ -1282,14 +1307,14 @@ PromptQueueProfileName(promptText, defaultName := "") {
         QueueProfileNameGui,
         saveButton,
         "PROFILE NAME",
-        "Confirms the queue profile name. Saved profiles remain available after restarting the launcher."
+        "Saves this profile name.`n`nQueue Profiles remain available after restarting the launcher."
     )
 
     CreateHelpBadgeForButton(
         QueueProfileNameGui,
         cancelButton,
         "CLOSE",
-        "Closes this profile-name prompt without saving the pending name change."
+        "Closes this prompt without saving the new name."
     )
 
     saveButton.OnEvent("Click", ConfirmQueueProfileName)
@@ -1300,7 +1325,7 @@ PromptQueueProfileName(promptText, defaultName := "") {
     ApplyDarkWindowStyle(QueueProfileNameGui)
 
     if QueueProfilesGui {
-        try QueueProfilesGui.Opt("+Disabled")
+        try QueueProfilesGui.Hide()
     }
 
     QueueProfileNameGui.Show("w" . dialogWidth . " h" . dialogHeight . " Center")
@@ -1375,13 +1400,19 @@ CloseQueueProfileNamePrompt() {
     }
 
     if QueueProfilesGui {
-        try QueueProfilesGui.Opt("-Disabled")
+        try QueueProfilesGui.Show("w680 h490 Center")
         try WinActivate("ahk_id " . QueueProfilesGui.Hwnd)
     }
 
     QueueProfileNameGui := ""
     QueueProfileNameEdit := ""
     QueueProfileNameErrorText := ""
+}
+
+
+CloseQueueProfilesAndReturnToQueue(*) {
+    CloseQueueProfilesManager()
+    ShowQueueManager()
 }
 
 

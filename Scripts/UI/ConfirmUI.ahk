@@ -6,6 +6,39 @@ global UIConfirmCallback := ""
 global UIConfirmOwner := ""
 
 
+GetConfirmationSettingsFilePath() {
+    return A_ScriptDir . "\\UserData\\Settings.ini"
+}
+
+
+AreThemedConfirmationsEnabled() {
+    path := GetConfirmationSettingsFilePath()
+
+    try {
+        value := IniRead(path, "Confirmations", "Enabled", "1")
+        return value != "0"
+    }
+
+    return true
+}
+
+
+SetThemedConfirmationsEnabled(enabled) {
+    settingsDir := A_ScriptDir . "\\UserData"
+
+    if !DirExist(settingsDir) {
+        DirCreate(settingsDir)
+    }
+
+    IniWrite(
+        enabled ? "1" : "0",
+        GetConfirmationSettingsFilePath(),
+        "Confirmations",
+        "Enabled"
+    )
+}
+
+
 ShowThemedConfirmation(
     title,
     message,
@@ -21,6 +54,14 @@ ShowThemedConfirmation(
     global UIColorBackground
     global UIColorError
     global UIColorSecondaryText
+
+
+    if !AreThemedConfirmationsEnabled() {
+        if confirmCallback {
+            confirmCallback.Call()
+        }
+        return
+    }
 
 
     CloseThemedConfirmation()
@@ -128,7 +169,7 @@ ShowThemedConfirmation(
         UIConfirmGui,
         backButton,
         "GO BACK",
-        "Closes this confirmation without making the destructive change."
+        "Cancels this action and closes the confirmation.`n`nNothing is changed."
     )
 
 

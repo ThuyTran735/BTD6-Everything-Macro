@@ -305,7 +305,7 @@ ShowContextHelp(
 
     UIHelpGui.Add(
         "Progress",
-        "x0 y0 w470 h4 c"
+        "x0 y0 w520 h4 c"
         . UIColorAccent
         . " Background"
         . UIColorAccent
@@ -319,7 +319,7 @@ ShowContextHelp(
         title,
         24,
         20,
-        422,
+        472,
         34,
         12,
         "Center"
@@ -328,14 +328,14 @@ ShowContextHelp(
 
     SetUIBodyFont(
         UIHelpGui,
-        10,
+        11,
         UIColorSecondaryText
     )
 
 
     UIHelpGui.Add(
         "Text",
-        "x34 y72 w402 h160 Center c"
+        "x36 y74 w448 h176 Left c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         body
@@ -345,10 +345,10 @@ ShowContextHelp(
     closeButton :=
         CreateDarkButton(
             UIHelpGui,
-            120,
-            248,
-            230,
-            42,
+            130,
+            270,
+            260,
+            44,
             "GOT IT",
             9
         )
@@ -373,7 +373,7 @@ ShowContextHelp(
 
 
     UIHelpGui.Show(
-        "Hide w470 h312"
+        "Hide w520 h330"
     )
 
 
@@ -383,7 +383,7 @@ ShowContextHelp(
 
 
     UIHelpGui.Show(
-        "w470 h312 Center"
+        "w520 h330 Center"
     )
 }
 

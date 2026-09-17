@@ -10,10 +10,7 @@ ShowModePicker(*) {
 
 
     CloseAllDarkDropdowns()
-
-
-    CloseScriptPicker()
-    CloseQueueManager()
+    CloseAllSecondaryMenus()
 
 
     try {
@@ -143,7 +140,7 @@ ShowModePicker(*) {
         ModePickerGui,
         useButton,
         "USE SELECTED",
-        "Switches the launcher to the highlighted mode. The controls on the main window update to match that mode."
+        "Uses the highlighted mode.`n`nThe main launcher changes its controls to match your selection."
     )
 
 
@@ -151,7 +148,7 @@ ShowModePicker(*) {
         ModePickerGui,
         cancelButton,
         "CLOSE",
-        "Closes the mode picker without changing the current launcher mode."
+        "Closes this window without changing the current mode."
     )
 
 
@@ -165,13 +162,13 @@ ShowModePicker(*) {
 
     cancelButton.OnEvent(
         "Click",
-        CloseModePicker
+        CloseModePickerAndReturnToLauncher
     )
 
 
     ModePickerGui.OnEvent(
         "Close",
-        CloseModePicker
+        CloseModePickerAndReturnToLauncher
     )
 
 
@@ -239,6 +236,7 @@ SelectLauncherMode(
 
 
     ApplyLauncherMode()
+    ShowLauncher(true)
 }
 
 
@@ -314,7 +312,9 @@ ApplyLauncherMode() {
 
 
         RunButton.Enabled := true
-        AddQueueButton.Enabled := true
+        if AddQueueButton {
+            AddQueueButton.Enabled := true
+        }
 
         RunButton.Text :=
             "RUN MACRO"
@@ -380,8 +380,9 @@ ApplyLauncherMode() {
         RunButton.Enabled :=
             scriptCount > 0
 
-        AddQueueButton.Enabled :=
-            true
+        if AddQueueButton {
+            AddQueueButton.Enabled := true
+        }
 
         RunButton.Text :=
             "RUN MACRO"
@@ -469,7 +470,9 @@ ApplyLauncherMode() {
 
 
         RunButton.Enabled := false
-        AddQueueButton.Enabled := true
+        if AddQueueButton {
+            AddQueueButton.Enabled := true
+        }
 
         RunButton.Text :=
             "RUN MACRO"
@@ -486,6 +489,12 @@ ApplyLauncherMode() {
 
         return
     }
+}
+
+
+CloseModePickerAndReturnToLauncher(*) {
+    CloseModePicker()
+    ShowLauncher(true)
 }
 
 

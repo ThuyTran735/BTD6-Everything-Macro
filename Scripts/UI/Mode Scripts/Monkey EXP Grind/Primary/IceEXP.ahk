@@ -117,6 +117,9 @@ IceEXP() {
             TowerSetup["Ice C"],
             "204"
         )],
+
+        [60, 1000, () => UseAbility("1")]
+        [60, 1250, () => UseAbility("2")]
     ]
 
     return RunMapStrategy(strategy)

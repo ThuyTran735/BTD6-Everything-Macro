@@ -219,7 +219,7 @@ ShowScriptPicker(
             382,
             460,
             38,
-            "CANCEL",
+            "CLOSE",
             8
         )
 
@@ -245,7 +245,7 @@ ShowScriptPicker(
     CreateHelpBadgeForButton(
         ScriptPickerGui,
         cancelButton,
-        "CANCEL",
+        "CLOSE",
         "Closes the strategy picker without running or queueing a strategy."
     )
 

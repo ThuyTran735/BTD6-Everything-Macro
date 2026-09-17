@@ -134,7 +134,7 @@ ShowModePicker(*) {
             225,
             155,
             46,
-            "CANCEL",
+            "CLOSE",
             9
         )
 
@@ -150,7 +150,7 @@ ShowModePicker(*) {
     CreateHelpBadgeForButton(
         ModePickerGui,
         cancelButton,
-        "CANCEL",
+        "CLOSE",
         "Closes the mode picker without changing the current launcher mode."
     )
 

@@ -27,7 +27,8 @@ CreateLauncherUI() {
     global AddQueueButton
     global QueueButton
     global ModeButton
-    global LogsButton
+    global SettingsButton
+    global CloseButton
 
     global CategoryHelpBadge
     global MapHelpBadge
@@ -79,7 +80,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.12"
+        "BTD6 Everything Macro - V1.3"
     )
 
 
@@ -133,7 +134,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.12"
+        "V1.3"
     )
 
 
@@ -266,7 +267,7 @@ CreateLauncherUI() {
             LauncherGui,
             20,
             250,
-            230,
+            160,
             44,
             "RUN MACRO",
             9
@@ -276,12 +277,24 @@ CreateLauncherUI() {
     AddQueueButton :=
         CreateDarkButton(
             LauncherGui,
-            260,
+            190,
             250,
-            110,
+            100,
             44,
             "ADD QUEUE",
             8
+        )
+
+
+    CloseButton :=
+        CreateDarkButton(
+            LauncherGui,
+            300,
+            250,
+            70,
+            44,
+            "CLOSE",
+            7
         )
 
 
@@ -321,14 +334,14 @@ CreateLauncherUI() {
         )
 
 
-    LogsButton :=
+    SettingsButton :=
         CreateDarkButton(
             LauncherGui,
             260,
             306,
             110,
             36,
-            "LOGS",
+            "SETTINGS",
             8
         )
 
@@ -339,8 +352,19 @@ CreateLauncherUI() {
     )
 
 
-    LogsButton.Enabled :=
-        false
+    SettingsButton.OnEvent(
+        "Click",
+        ShowContextHelp.Bind(
+            "SETTINGS",
+            "Settings will live here as the launcher grows. This button is reserved for configurable macro and UI options in a future update."
+        )
+    )
+
+
+    CloseButton.OnEvent(
+        "Click",
+        RequestCloseLauncher
+    )
 
 
     CreateHelpBadgeForButton(
@@ -377,9 +401,17 @@ CreateLauncherUI() {
 
     CreateHelpBadgeForButton(
         LauncherGui,
-        LogsButton,
-        "LOGS",
-        "This control is reserved for run logs and diagnostics. It is currently disabled until the logging feature is added."
+        SettingsButton,
+        "SETTINGS",
+        "Opens launcher settings. The settings panel is reserved for configurable macro and UI options as they are added."
+    )
+
+
+    CreateHelpBadgeForButton(
+        LauncherGui,
+        CloseButton,
+        "CLOSE",
+        "Closes BTD6 Everything Macro completely. Any queue that is not currently running is discarded when the launcher exits."
     )
 
 
@@ -582,7 +614,7 @@ CreateLauncherUI() {
 
     LauncherGui.OnEvent(
         "Close",
-        (*) => ExitApp()
+        RequestCloseLauncher
     )
 
 
@@ -607,6 +639,20 @@ CreateLauncherUI() {
 
     ShowLauncher(
         true
+    )
+}
+
+
+RequestCloseLauncher(*) {
+    global LauncherGui
+
+    ShowThemedConfirmation(
+        "CLOSE MACRO?",
+        "Close BTD6 Everything Macro?`n`nAny queue that is not currently running will be discarded.",
+        "CLOSE MACRO",
+        ExitApp,
+        LauncherGui,
+        "Closes BTD6 Everything Macro completely after confirmation."
     )
 }
 

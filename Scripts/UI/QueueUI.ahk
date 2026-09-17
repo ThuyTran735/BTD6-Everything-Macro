@@ -700,6 +700,27 @@ RemoveSelectedQueueJob(*) {
 
 ClearMacroQueue(*) {
     global MacroJobQueue
+    global QueueGui
+
+
+    if MacroJobQueue.Length = 0 {
+        return
+    }
+
+
+    ShowThemedConfirmation(
+        "CLEAR QUEUE?",
+        "Remove all " . MacroJobQueue.Length . " queued job(s)?`n`nThis only clears the current queue. Saved Queue Profiles are not deleted.",
+        "CLEAR QUEUE",
+        ClearMacroQueueConfirmed,
+        QueueGui,
+        "Removes every job from the current queue. Saved Queue Profiles and .ahk files remain unchanged."
+    )
+}
+
+
+ClearMacroQueueConfirmed(*) {
+    global MacroJobQueue
 
 
     MacroJobQueue := []

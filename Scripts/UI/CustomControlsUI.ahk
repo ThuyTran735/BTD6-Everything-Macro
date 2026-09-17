@@ -14,7 +14,8 @@ CreateDarkButton(
     width,
     height,
     text,
-    fontSize := 8
+    fontSize := 8,
+    style := ""
 ) {
     return DarkButton(
         guiObject,
@@ -23,7 +24,8 @@ CreateDarkButton(
         width,
         height,
         text,
-        fontSize
+        fontSize,
+        style
     )
 }
 
@@ -58,7 +60,8 @@ class DarkButton {
         width,
         height,
         text,
-        fontSize := 8
+        fontSize := 8,
+        style := ""
     ) {
         global UIColorBackground
         global UIColorControlBorder
@@ -79,6 +82,11 @@ class DarkButton {
         this.Height := height
 
         this.FontSize := fontSize
+
+        this.AutoStyle := (style = "")
+        this.Style := this.AutoStyle
+            ? GetDarkButtonStyleForText(text)
+            : style
 
         this.ClickCallback := ""
         this.ClickExclusions := []
@@ -236,6 +244,15 @@ class DarkButton {
 
         set {
             this.TextControl.Text := value
+
+            if this.AutoStyle {
+                newStyle := GetDarkButtonStyleForText(value)
+
+                if newStyle != this.Style {
+                    this.Style := newStyle
+                    this.ShowRestState()
+                }
+            }
         }
     }
 
@@ -578,6 +595,8 @@ class DarkButton {
 
     ShowPressedState() {
         global UIColorAccent
+        global UIColorSuccess
+        global UIColorError
 
         global UIColorControlPressedTop
         global UIColorControlPressedBottom
@@ -586,11 +605,31 @@ class DarkButton {
         global UIColorControlText
 
 
+        accentColor := UIColorAccent
+        pressedTop := UIColorControlPressedTop
+        pressedBottom := UIColorControlPressedBottom
+        pressedHighlight := UIColorControlPressedHighlight
+
+
+        if this.Style = "Success" {
+            accentColor := UIColorSuccess
+            pressedTop := BlendUIColors("272C35", UIColorSuccess, 0.62)
+            pressedBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.48)
+            pressedHighlight := UIColorSuccess
+        }
+        else if this.Style = "Danger" {
+            accentColor := UIColorError
+            pressedTop := BlendUIColors("272C35", UIColorError, 0.62)
+            pressedBottom := BlendUIColors("1B1F26", UIColorError, 0.48)
+            pressedHighlight := UIColorError
+        }
+
+
         SetUIProgressColor(
             this.Glow,
             BlendUIColors(
                 "101216",
-                UIColorAccent,
+                accentColor,
                 0.72
             )
         )
@@ -598,25 +637,25 @@ class DarkButton {
 
         SetUIProgressColor(
             this.Border,
-            UIColorAccent
+            accentColor
         )
 
 
         SetUIProgressColor(
             this.Top,
-            UIColorControlPressedTop
+            pressedTop
         )
 
 
         SetUIProgressColor(
             this.Bottom,
-            UIColorControlPressedBottom
+            pressedBottom
         )
 
 
         SetUIProgressColor(
             this.Highlight,
-            UIColorControlPressedHighlight
+            pressedHighlight
         )
 
 
@@ -631,10 +670,11 @@ class DarkButton {
         )
     }
 
-
     ShowRestState() {
         global UIColorBackground
         global UIColorPanel
+        global UIColorSuccess
+        global UIColorError
 
         global UIColorControlBorder
         global UIColorControlTop
@@ -671,9 +711,20 @@ class DarkButton {
             )
 
 
+            restHighlight := UIColorControlHighlight
+
+
+            if this.Style = "Success" {
+                restHighlight := UIColorSuccess
+            }
+            else if this.Style = "Danger" {
+                restHighlight := UIColorError
+            }
+
+
             SetUIProgressColor(
                 this.Highlight,
-                UIColorControlHighlight
+                restHighlight
             )
 
 
@@ -747,6 +798,24 @@ class DarkButton {
 
         return false
     }
+}
+
+
+GetDarkButtonStyleForText(text) {
+    normalized := StrUpper(Trim(text))
+
+
+    if RegExMatch(normalized, "^(RUN|START)(\s|$)") {
+        return "Success"
+    }
+
+
+    if RegExMatch(normalized, "^CLOSE(\s|$)") {
+        return "Danger"
+    }
+
+
+    return "Default"
 }
 
 

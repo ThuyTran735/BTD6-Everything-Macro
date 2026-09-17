@@ -448,7 +448,7 @@ ShowQueueJobBuilder(*) {
             404,
             155,
             46,
-            "CANCEL",
+            "CLOSE",
             9
         )
 
@@ -464,7 +464,7 @@ ShowQueueJobBuilder(*) {
     CreateHelpBadgeForButton(
         QueueBuilderGui,
         cancelButton,
-        "CANCEL",
+        "CLOSE",
         "Closes the Add Queue Job window without changing the queue."
     )
 

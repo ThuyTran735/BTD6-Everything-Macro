@@ -154,7 +154,7 @@ CreateCycleStatusUI() {
             18,
             76,
             42,
-            "CANCEL",
+            "CLOSE RUN",
             7
         )
 
@@ -162,14 +162,14 @@ CreateCycleStatusUI() {
     CreateHelpBadgeForButton(
         CycleStatusGui,
         CycleCancelButton,
-        "CANCEL RUN",
-        "Stops the current cycle. If a queue is running, this cancels the entire queue so no later jobs start automatically."
+        "CLOSE RUN",
+        "Closes the active run by stopping the current cycle. If a queue is running, this stops the entire queue so no later jobs start automatically."
     )
 
 
     CycleCancelButton.OnEvent(
         "Click",
-        CancelMacroCycles
+        RequestCancelMacroCycles
     )
 
 
@@ -591,6 +591,50 @@ HideCycleStatusUI() {
 }
 
 
+RequestCancelMacroCyclesIfStillActive(*) {
+    global MacroRunning
+    global RunningPid
+    global QueueRunning
+
+
+    if !MacroRunning && !QueueRunning && !RunningPid {
+        return
+    }
+
+
+    CancelMacroCycles()
+}
+
+
+RequestCancelMacroCycles(*) {
+    global MacroRunning
+    global RunningPid
+    global QueueRunning
+    global CycleStatusGui
+
+
+    if !MacroRunning && !QueueRunning && !RunningPid {
+        return
+    }
+
+
+    actionText :=
+        QueueRunning
+        ? "the entire active queue"
+        : "the active run"
+
+
+    ShowThemedConfirmation(
+        "CLOSE ACTIVE RUN?",
+        "Stop " . actionText . " now?`n`nCurrent progress will stop and later queued runs will not start automatically.",
+        "CLOSE RUN",
+        RequestCancelMacroCyclesIfStillActive,
+        CycleStatusGui,
+        "Stops the current run. If a queue is active, the entire queue is stopped and no later jobs start automatically."
+    )
+}
+
+
 CancelMacroCycles(*) {
     global MacroRunning
     global RunningPid
@@ -718,8 +762,9 @@ ShowCycleInputPrompt(context := "run") {
     global UIColorPrimaryText
     global UIColorSecondaryText
     global UIColorError
-    global UIColorControlBorder
-    global UIColorControlBottom
+    global UIColorInputBorder
+    global UIColorInputBackground
+    global UIColorInputText
 
 
     CloseCycleInputUI()
@@ -743,7 +788,7 @@ ShowCycleInputPrompt(context := "run") {
     CycleInputGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-            isQueuePrompt ? "Run Script" : "Run Macro"
+            isQueuePrompt ? "Add to Queue" : "Run Macro"
         )
 
 
@@ -784,7 +829,7 @@ ShowCycleInputPrompt(context := "run") {
         "x20 y20 w400 h30 Center c"
         . UIColorPrimaryText
         . " BackgroundTrans",
-        isQueuePrompt ? "RUN SCRIPT" : "RUN CYCLES"
+        isQueuePrompt ? "ADD TO QUEUE" : "RUN CYCLES"
     )
 
 
@@ -825,9 +870,9 @@ ShowCycleInputPrompt(context := "run") {
     CycleInputGui.Add(
         "Progress",
         "x29 y120 w382 h48 c"
-        . UIColorControlBorder
+        . UIColorInputBorder
         . " Background"
-        . UIColorControlBorder
+        . UIColorInputBorder
         . " Disabled",
         100
     )
@@ -844,9 +889,9 @@ ShowCycleInputPrompt(context := "run") {
         CycleInputGui.Add(
             "Edit",
             "x31 y122 w378 h44 Center Limit7 c"
-            . UIColorPrimaryText
+            . UIColorInputText
             . " Background"
-            . UIColorControlBottom,
+            . UIColorInputBackground,
             "1"
         )
 
@@ -855,26 +900,6 @@ ShowCycleInputPrompt(context := "run") {
         CycleInputEdit
     )
 
-
-    try {
-        DllCall(
-            "uxtheme\SetWindowTheme",
-            "Ptr",
-            CycleInputEdit.Hwnd,
-            "Str",
-            "",
-            "Str",
-            ""
-        )
-    }
-
-
-    CycleInputEdit.Opt(
-        "c"
-        . UIColorPrimaryText
-        . " Background"
-        . UIColorControlBottom
-    )
 
 
     CycleInputEdit.OnEvent(
@@ -907,7 +932,7 @@ ShowCycleInputPrompt(context := "run") {
             211,
             184,
             44,
-            isQueuePrompt ? "RUN SCRIPT" : "RUN MACRO",
+            isQueuePrompt ? "ADD TO QUEUE" : "RUN MACRO",
             8
         )
 
@@ -919,7 +944,7 @@ ShowCycleInputPrompt(context := "run") {
             211,
             184,
             44,
-            "CANCEL",
+            "CLOSE",
             8
         )
 
@@ -927,7 +952,7 @@ ShowCycleInputPrompt(context := "run") {
     CreateHelpBadgeForButton(
         CycleInputGui,
         runButton,
-        isQueuePrompt ? "RUN SCRIPT" : "RUN COUNT",
+        isQueuePrompt ? "ADD TO QUEUE" : "RUN COUNT",
         isQueuePrompt
         ? "Confirms how many times this script should be added to the queue. Enter a whole number from 1 to 1,000,000."
         : "Confirms how many times the selected script should run. Enter a whole number from 1 to 1,000,000."
@@ -937,7 +962,7 @@ ShowCycleInputPrompt(context := "run") {
     CreateHelpBadgeForButton(
         CycleInputGui,
         cancelButton,
-        "CANCEL",
+        "CLOSE",
         "Closes this prompt without starting or adding the pending run."
     )
 

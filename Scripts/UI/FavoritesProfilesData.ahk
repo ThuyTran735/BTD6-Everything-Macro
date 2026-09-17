@@ -393,17 +393,31 @@ GetQueueProfileRecords() {
             RegExReplace(A_LoopFileName, "i)\.ini$")
         )
 
-        favorite := IniRead(
-            profilePath,
-            "Profile",
-            "Favorite",
-            "0"
-        ) = "1"
+        favorite := IniRead(profilePath, "Profile", "Favorite", "0") = "1"
+        repeatCount := Max(1, Integer(IniRead(profilePath, "Profile", "RepeatCount", "1")))
+        description := IniRead(profilePath, "Profile", "Description", "")
+        jobCount := Max(0, Integer(IniRead(profilePath, "Profile", "JobCount", "0")))
+
+        enabledJobs := 0
+        totalRuns := 0
+        Loop jobCount {
+            section := "Job" . A_Index
+            enabled := IniRead(profilePath, section, "Enabled", "1") != "0"
+            if enabled {
+                enabledJobs++
+                totalRuns += Max(1, Integer(IniRead(profilePath, section, "Runs", "1")))
+            }
+        }
 
         record := {
             name: profileName,
             path: profilePath,
-            favorite: favorite
+            favorite: favorite,
+            repeatCount: repeatCount,
+            description: description,
+            jobCount: jobCount,
+            enabledJobs: enabledJobs,
+            totalRuns: totalRuns
         }
 
         if favorite {
@@ -447,30 +461,26 @@ WriteQueueProfile(profileName, jobs, existingPath := "") {
     EnsureQueueProfilesDirectory()
 
     profilePath := existingPath
-
     if profilePath = "" {
-        profilePath := GetQueueProfilesDirectory()
-            . "\"
-            . profileName
-            . ".ini"
+        profilePath := GetQueueProfilesDirectory() . "\" . profileName . ".ini"
     }
 
     favorite := "0"
+    description := ""
+    repeatCount := "1"
 
     try {
         if FileExist(profilePath) {
-            favorite := IniRead(
-                profilePath,
-                "Profile",
-                "Favorite",
-                "0"
-            )
-
+            favorite := IniRead(profilePath, "Profile", "Favorite", "0")
+            description := IniRead(profilePath, "Profile", "Description", "")
+            repeatCount := IniRead(profilePath, "Profile", "RepeatCount", "1")
             FileDelete(profilePath)
         }
 
         IniWrite(profileName, profilePath, "Profile", "Name")
         IniWrite(favorite, profilePath, "Profile", "Favorite")
+        IniWrite(description, profilePath, "Profile", "Description")
+        IniWrite(Max(1, Integer(repeatCount)), profilePath, "Profile", "RepeatCount")
         IniWrite(jobs.Length, profilePath, "Profile", "JobCount")
 
         for index, job in jobs {
@@ -483,26 +493,19 @@ WriteQueueProfile(profileName, jobs, existingPath := "") {
             jobLabel := job.HasOwnProp("label") ? job.label : job.path
             jobMode := job.HasOwnProp("mode") ? job.mode : ""
             jobRuns := job.HasOwnProp("runs") ? Max(1, job.runs) : 1
+            jobEnabled := (!job.HasOwnProp("enabled") || job.enabled) ? "1" : "0"
 
-            IniWrite(
-                MakeProjectRelativePath(job.path),
-                profilePath,
-                section,
-                "Path"
-            )
-
+            IniWrite(MakeProjectRelativePath(job.path), profilePath, section, "Path")
             IniWrite(jobLabel, profilePath, section, "Label")
             IniWrite(jobMode, profilePath, section, "Mode")
             IniWrite(jobRuns, profilePath, section, "Runs")
+            IniWrite(jobEnabled, profilePath, section, "Enabled")
         }
     }
     catch {
         return false
     }
 
-    ; Verify the profile is actually present and readable before reporting
-    ; success to the UI. This prevents a silent save failure from leaving
-    ; the profile dropdown empty.
     if !FileExist(profilePath) {
         return false
     }
@@ -530,24 +533,11 @@ ReadQueueProfileJobs(profilePath) {
         return jobs
     }
 
-    jobCount := Integer(
-        IniRead(
-            profilePath,
-            "Profile",
-            "JobCount",
-            "0"
-        )
-    )
+    jobCount := Integer(IniRead(profilePath, "Profile", "JobCount", "0"))
 
     Loop jobCount {
         section := "Job" . A_Index
-
-        storedPath := IniRead(
-            profilePath,
-            section,
-            "Path",
-            ""
-        )
+        storedPath := IniRead(profilePath, section, "Path", "")
 
         if storedPath = "" {
             continue
@@ -558,17 +548,77 @@ ReadQueueProfileJobs(profilePath) {
                 path: ResolveStoredProjectPath(storedPath),
                 label: IniRead(profilePath, section, "Label", storedPath),
                 mode: IniRead(profilePath, section, "Mode", "Default"),
-                runs: Max(
-                    1,
-                    Integer(
-                        IniRead(profilePath, section, "Runs", "1")
-                    )
-                )
+                runs: Max(1, Integer(IniRead(profilePath, section, "Runs", "1"))),
+                enabled: IniRead(profilePath, section, "Enabled", "1") != "0"
             }
         )
     }
 
     return jobs
+}
+
+
+GetQueueProfileDescription(profilePath) {
+    if !FileExist(profilePath) {
+        return ""
+    }
+
+    return IniRead(profilePath, "Profile", "Description", "")
+}
+
+
+GetQueueProfileRepeatCount(profilePath) {
+    if !FileExist(profilePath) {
+        return 1
+    }
+
+    return Max(1, Integer(IniRead(profilePath, "Profile", "RepeatCount", "1")))
+}
+
+
+SetQueueProfileDetails(profilePath, description, repeatCount) {
+    if !FileExist(profilePath) {
+        return false
+    }
+
+    repeatCount := Max(1, Min(99, Integer(repeatCount)))
+    description := Trim(StrReplace(StrReplace(description, "`r", " "), "`n", " "))
+
+    try {
+        IniWrite(description, profilePath, "Profile", "Description")
+        IniWrite(repeatCount, profilePath, "Profile", "RepeatCount")
+    }
+    catch {
+        return false
+    }
+
+    return true
+}
+
+
+GetQueueProfileSummary(profilePath, repeatOverride := "") {
+    jobs := ReadQueueProfileJobs(profilePath)
+    repeatCount := repeatOverride = ""
+        ? GetQueueProfileRepeatCount(profilePath)
+        : Max(1, Min(99, Integer(repeatOverride)))
+
+    jobsPerPass := 0
+    runsPerPass := 0
+
+    for job in jobs {
+        if !job.HasOwnProp("enabled") || job.enabled {
+            jobsPerPass++
+            runsPerPass += job.runs
+        }
+    }
+
+    return {
+        jobsPerPass: jobsPerPass,
+        repeatCount: repeatCount,
+        queueJobs: jobsPerPass * repeatCount,
+        runsPerPass: runsPerPass,
+        totalRuns: runsPerPass * repeatCount
+    }
 }
 
 

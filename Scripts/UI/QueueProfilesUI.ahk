@@ -6,6 +6,16 @@ global QueueProfileDropdown := ""
 global QueueProfileFavoriteButton := ""
 global QueueProfileFavoriteHelpBadge := ""
 global QueueProfileStatusText := ""
+global QueueProfileSummaryText := ""
+global QueueProfileDescriptionEdit := ""
+global QueueProfileNotesScrollTrack := ""
+global QueueProfileNotesScrollThumb := ""
+global QueueProfileNotesWheelHooked := false
+global QueueProfileRepeatEdit := ""
+global QueueProfileRepeatMinusButton := ""
+global QueueProfileRepeatPlusButton := ""
+global QueueProfileDetailsLoading := false
+global QueueProfileMoreGui := ""
 global QueueProfileRecords := []
 
 global QueueProfileNameGui := ""
@@ -21,13 +31,25 @@ ShowQueueProfilesManager(*) {
     global QueueProfileFavoriteButton
     global QueueProfileFavoriteHelpBadge
     global QueueProfileStatusText
-
+    global QueueProfileSummaryText
+    global QueueProfileDescriptionEdit
+    global QueueProfileNotesScrollTrack
+    global QueueProfileNotesScrollThumb
+    global QueueProfileNotesWheelHooked
+    global QueueProfileRepeatEdit
+    global QueueProfileRepeatMinusButton
+    global QueueProfileRepeatPlusButton
     global MacroRunning
-
     global UIColorBackground
     global UIColorAccent
+    global UIColorPrimaryText
     global UIColorSecondaryText
+    global UIColorMutedText
     global UIColorSuccess
+    global UIColorInputBorder
+    global UIColorInputBackground
+    global UIColorInputText
+    global UIColorControlBorder
 
     if MacroRunning {
         return
@@ -39,236 +61,242 @@ ShowQueueProfilesManager(*) {
 
     QueueProfilesGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Queue Profiles - V1.12"
+        "Queue Profiles - V1.3"
     )
-
     QueueProfilesGui.BackColor := UIColorBackground
 
     QueueProfilesGui.Add(
         "Progress",
-        "x0 y0 w560 h4 c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
+        "x0 y0 w680 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
         100
     )
 
-    AddUIOutlinedText(
-        QueueProfilesGui,
-        "QUEUE PROFILES",
-        20,
-        18,
-        520,
-        34,
-        13,
-        "Center"
-    )
+    AddUIOutlinedText(QueueProfilesGui, "QUEUE PROFILES", 20, 18, 640, 34, 13, "Center")
 
     CreateHelpBadgeForHeader(
         QueueProfilesGui,
-        560,
+        680,
         "QUEUE PROFILES",
-        "Save the current queue as a reusable profile, then load it later with one click. UPDATE replaces a saved profile with the queue you currently have. RENAME changes only its name. Starred profiles stay at the top of this list."
+        "Save and load complete queue setups. Profile notes and repeat count save automatically. LOAD applies the selected profile, SAVE CURRENT creates a new profile, UPDATE replaces its jobs, and MORE contains the less common profile actions."
     )
 
-    SetUIBodyFont(
-        QueueProfilesGui,
-        9,
-        UIColorSecondaryText
-    )
-
+    SetUIBodyFont(QueueProfilesGui, 9, UIColorSecondaryText)
     QueueProfilesGui.Add(
         "Text",
-        "x20 y55 w520 h20 Center c"
-        . UIColorSecondaryText
-        . " BackgroundTrans",
-        "Save and reuse complete queue setups"
+        "x20 y55 w640 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Save, describe, repeat, and reuse complete queue setups"
     )
 
-    QueueProfileLabel :=
-        AddUIOutlinedText(
-        QueueProfilesGui,
-        "SELECT PROFILE",
-        30,
-        88,
-        470,
-        22,
-        9
-    )
-
+    profileLabel := AddUIOutlinedText(QueueProfilesGui, "SELECT PROFILE", 40, 88, 600, 22, 9)
     QueueProfileDropdown := CreateDarkDropdown(
         QueueProfilesGui,
-        30,
+        40,
         112,
-        470,
+        600,
         ["No saved profiles"],
         1,
         5
     )
 
-    QueueProfileFavoriteButton := CreateFavoriteButtonForField(
+    QueueProfileFavoriteButton := CreateFavoriteButtonForField(QueueProfilesGui, QueueProfileDropdown)
+    QueueProfileFavoriteButton.OnEvent("Click", ToggleSelectedQueueProfileFavorite)
+
+    QueueProfileFavoriteHelpBadge := CreateFavoriteHelpBadgeForField(
         QueueProfilesGui,
-        QueueProfileDropdown
+        QueueProfileDropdown,
+        "FAVORITES",
+        "Click ☆ to favorite the selected profile. ★ profiles stay at the top of the profile list."
     )
-
-    QueueProfileFavoriteButton.OnEvent(
-        "Click",
-        ToggleSelectedQueueProfileFavorite
-    )
-
-    QueueProfileFavoriteHelpBadge :=
-        CreateFavoriteHelpBadgeForField(
-            QueueProfilesGui,
-            QueueProfileDropdown,
-            "FAVORITES",
-            "Click ☆ to favorite the selected profile. ★ means it is already a favorite. Favorite profiles automatically move to the top of the profile dropdown."
-        )
 
     CreateHelpBadgeForField(
         QueueProfilesGui,
         QueueProfileDropdown,
-        QueueProfileLabel,
+        profileLabel,
         "PROFILE",
-        "Choose a saved queue profile to load, update, rename, delete, or favorite."
+        "Choose the queue profile you want to inspect or load. Favorites stay at the top of this dropdown."
     )
 
-    loadButton := CreateDarkButton(
-        QueueProfilesGui,
-        30,
-        166,
-        155,
-        42,
-        "LOAD",
-        9
+    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
+    QueueProfileSummaryText := QueueProfilesGui.Add(
+        "Text",
+        "x40 y154 w600 h22 Center c" . UIColorMutedText . " BackgroundTrans",
+        "NO PROFILE SELECTED"
     )
 
-    saveButton := CreateDarkButton(
+    AddUIOutlinedText(QueueProfilesGui, "DESCRIPTION / NOTES", 40, 190, 260, 22, 9)
+    CreateHelpBadge(
         QueueProfilesGui,
-        202,
-        166,
-        155,
-        42,
-        "SAVE CURRENT",
-        8
+        205,
+        192,
+        "PROFILE NOTES",
+        "Type a short description for the selected profile. It saves automatically after you stop typing, so there is no separate save button."
     )
 
-    updateButton := CreateDarkButton(
-        QueueProfilesGui,
-        374,
-        166,
-        155,
-        42,
-        "UPDATE",
-        9
+    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
+    QueueProfilesGui.Add(
+        "Text",
+        "x480 y195 w160 h18 Right c" . UIColorMutedText . " BackgroundTrans",
+        "SAVES AUTOMATICALLY"
     )
 
-    renameButton := CreateDarkButton(
-        QueueProfilesGui,
-        30,
-        220,
-        155,
-        42,
-        "RENAME",
-        9
+    QueueProfilesGui.Add(
+        "Progress",
+        "x39 y217 w602 h50 c" . UIColorInputBorder
+        . " Background" . UIColorInputBorder . " Disabled",
+        100
     )
 
-    deleteButton := CreateDarkButton(
+    SetUIBodyFont(QueueProfilesGui, 10, UIColorPrimaryText)
+    QueueProfileDescriptionEdit := QueueProfilesGui.Add(
+        "Edit",
+        "x41 y219 w580 h46 Limit2000 Multi WantReturn c" . UIColorInputText
+        . " Background" . UIColorInputBackground,
+        ""
+    )
+    ApplyDarkControlTheme(QueueProfileDescriptionEdit)
+    QueueProfileDescriptionEdit.OnEvent("Change", QueueProfileNotesChanged)
+
+    QueueProfileNotesScrollTrack := QueueProfilesGui.Add(
+        "Progress",
+        "x630 y223 w6 h38 c" . UIColorControlBorder
+        . " Background" . UIColorControlBorder . " Disabled",
+        100
+    )
+    QueueProfileNotesScrollThumb := QueueProfilesGui.Add(
+        "Progress",
+        "x630 y223 w6 h38 c" . UIColorAccent
+        . " Background" . UIColorAccent . " Disabled",
+        100
+    )
+    QueueProfileNotesScrollTrack.Visible := false
+    QueueProfileNotesScrollThumb.Visible := false
+
+    if !QueueProfileNotesWheelHooked {
+        OnMessage(0x020A, QueueProfileNotesMouseWheel)
+        QueueProfileNotesWheelHooked := true
+    }
+
+    AddUIOutlinedText(QueueProfilesGui, "REPEAT ENTIRE PROFILE", 40, 286, 210, 22, 9)
+    CreateHelpBadge(
         QueueProfilesGui,
-        202,
-        220,
-        155,
-        42,
-        "DELETE",
-        9
+        203,
+        288,
+        "REPEAT PROFILE",
+        "Choose how many times the complete profile should be repeated when loaded. The value saves automatically and the summary above updates before you load it."
     )
 
-    closeButton := CreateDarkButton(
+    QueueProfileRepeatMinusButton := CreateDarkButton(
         QueueProfilesGui,
-        374,
-        220,
-        155,
+        40,
+        313,
         42,
+        44,
+        "-",
+        11
+    )
+
+    QueueProfilesGui.Add(
+        "Progress",
+        "x91 y313 w76 h44 c" . UIColorInputBorder
+        . " Background" . UIColorInputBorder . " Disabled",
+        100
+    )
+
+    SetUIBodyBoldFont(QueueProfilesGui, 11, UIColorPrimaryText)
+    QueueProfileRepeatEdit := QueueProfilesGui.Add(
+        "Edit",
+        "x93 y315 w72 h40 Center Limit2 c" . UIColorInputText
+        . " Background" . UIColorInputBackground,
+        "1"
+    )
+    ApplyDarkControlTheme(QueueProfileRepeatEdit)
+    QueueProfileRepeatEdit.OnEvent("Change", QueueProfileRepeatChanged)
+
+    QueueProfileRepeatPlusButton := CreateDarkButton(
+        QueueProfilesGui,
+        176,
+        313,
+        42,
+        44,
+        "+",
+        11
+    )
+
+    QueueProfileRepeatMinusButton.OnEvent(
+        "Click",
+        AdjustQueueProfileRepeat.Bind(-1)
+    )
+    QueueProfileRepeatPlusButton.OnEvent(
+        "Click",
+        AdjustQueueProfileRepeat.Bind(1)
+    )
+
+    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorSecondaryText)
+    QueueProfilesGui.Add(
+        "Text",
+        "x238 y323 w402 h24 c" . UIColorSecondaryText . " BackgroundTrans",
+        "VALID RANGE: 1-99  |  TOTALS UPDATE AUTOMATICALLY"
+    )
+
+    loadButton := CreateDarkButton(QueueProfilesGui, 40, 386, 112, 44, "LOAD PROFILE", 7)
+    saveButton := CreateDarkButton(QueueProfilesGui, 162, 386, 112, 44, "SAVE CURRENT", 7)
+    updateButton := CreateDarkButton(QueueProfilesGui, 284, 386, 112, 44, "UPDATE", 8)
+    moreButton := CreateDarkButton(QueueProfilesGui, 406, 386, 112, 44, "MORE", 8)
+    closeButton := CreateDarkButton(QueueProfilesGui, 528, 386, 112, 44, "CLOSE", 8)
+
+    CreateHelpBadgeForButton(QueueProfilesGui, loadButton, "LOAD PROFILE", "Replaces the current queue with this profile. Repeat Entire Profile is applied automatically.")
+    CreateHelpBadgeForButton(QueueProfilesGui, saveButton, "SAVE CURRENT", "Saves the queue you currently built as a new profile.")
+    CreateHelpBadgeForButton(QueueProfilesGui, updateButton, "UPDATE PROFILE", "Replaces the selected profile's jobs with your current queue while keeping its name, favorite state, notes, and repeat count.")
+    CreateHelpBadgeForButton(QueueProfilesGui, moreButton, "MORE ACTIONS", "Opens less common profile actions: Duplicate, Rename, Export, Import, and Delete.")
+    CreateHelpBadgeForButton(
+        QueueProfilesGui,
+        closeButton,
         "CLOSE",
-        9
+        "Closes Queue Profiles and returns to the previous UI without changing the current queue or deleting any saved profiles."
     )
 
     loadButton.OnEvent("Click", LoadSelectedQueueProfile)
     saveButton.OnEvent("Click", SaveCurrentQueueProfile)
     updateButton.OnEvent("Click", UpdateSelectedQueueProfile)
-    renameButton.OnEvent("Click", RenameSelectedQueueProfile)
-    deleteButton.OnEvent("Click", DeleteSelectedQueueProfile)
+    moreButton.OnEvent("Click", ShowQueueProfileMoreActions)
     closeButton.OnEvent("Click", CloseQueueProfilesManager)
 
-    CreateHelpBadgeForButton(
-        QueueProfilesGui,
-        loadButton,
-        "LOAD PROFILE",
-        "Replaces the current queue with every job and run count stored in the selected profile."
-    )
-
-    CreateHelpBadgeForButton(
-        QueueProfilesGui,
-        saveButton,
-        "SAVE CURRENT",
-        "Saves the queue you currently built as a new named profile. The profile is stored in UserData so it remains available after restarting the launcher."
-    )
-
-    CreateHelpBadgeForButton(
-        QueueProfilesGui,
-        updateButton,
-        "UPDATE PROFILE",
-        "Replaces the selected profile's saved jobs with the queue you currently have. Its name and favorite state are preserved."
-    )
-
-    CreateHelpBadgeForButton(
-        QueueProfilesGui,
-        renameButton,
-        "RENAME PROFILE",
-        "Changes the selected profile's name without changing any of its saved queue jobs."
-    )
-
-    CreateHelpBadgeForButton(
-        QueueProfilesGui,
-        deleteButton,
-        "DELETE PROFILE",
-        "Deletes the selected saved profile. This does not delete any map or Monkey EXP .ahk scripts."
-    )
-
-    SetUIBodyBoldFont(
-        QueueProfilesGui,
-        8,
-        UIColorSuccess
-    )
-
-    QueueProfileStatusText := QueueProfilesGui.Add(
-        "Text",
-        "x30 y282 w500 h20 Center c"
-        . UIColorSuccess
-        . " BackgroundTrans",
-        "READY"
-    )
-
-    QueueProfileDropdown.OnEvent(
-        "Change",
-        UpdateQueueProfileFavoriteButton
-    )
-
+    QueueProfileDropdown.OnEvent("Change", QueueProfileSelectionChanged)
     QueueProfilesGui.OnEvent("Close", CloseQueueProfilesManager)
     QueueProfilesGui.OnEvent("Escape", CloseQueueProfilesManager)
 
-    QueueProfilesGui.Show("Hide w560 h325")
+    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorSuccess)
+    QueueProfileStatusText := QueueProfilesGui.Add(
+        "Text",
+        "x40 y448 w600 h22 Center c" . UIColorSuccess . " BackgroundTrans",
+        "READY"
+    )
+
+    QueueProfilesGui.Show("Hide w680 h490")
     ApplyDarkWindowStyle(QueueProfilesGui)
-
     RefreshQueueProfilesManager(false)
-
-    QueueProfilesGui.Show("w560 h325 Center")
+    QueueProfilesGui.Show("w680 h490 Center")
 }
 
 
-RefreshQueueProfilesManager(
-    keepSelection := true
-) {
+SetQueueProfileStatus(text, color := "") {
+    global QueueProfileStatusText
+    global UIColorSuccess
+
+    if !QueueProfileStatusText {
+        return
+    }
+
+    if color = "" {
+        color := UIColorSuccess
+    }
+
+    QueueProfileStatusText.SetFont("c" . color)
+    QueueProfileStatusText.Text := text
+}
+
+
+RefreshQueueProfilesManager(keepSelection := true) {
     global QueueProfileDropdown
     global QueueProfileRecords
 
@@ -277,7 +305,6 @@ RefreshQueueProfilesManager(
     }
 
     selectedName := keepSelection ? QueueProfileDropdown.Text : ""
-
     QueueProfileRecords := GetQueueProfileRecords()
     names := []
 
@@ -293,14 +320,11 @@ RefreshQueueProfilesManager(
     }
     else {
         QueueProfileDropdown.Add(names)
-
         selectedIndex := FindTextIndex(names, selectedName)
-        QueueProfileDropdown.Choose(
-            selectedIndex > 0 ? selectedIndex : 1
-        )
+        QueueProfileDropdown.Choose(selectedIndex > 0 ? selectedIndex : 1)
     }
 
-    UpdateQueueProfileFavoriteButton()
+    QueueProfileSelectionChanged()
 }
 
 
@@ -313,7 +337,6 @@ GetSelectedQueueProfileRecord() {
     }
 
     selectedName := QueueProfileDropdown.Text
-
     for record in QueueProfileRecords {
         if record.name = selectedName {
             return record
@@ -324,59 +347,867 @@ GetSelectedQueueProfileRecord() {
 }
 
 
+QueueProfileSelectionChanged(*) {
+    UpdateQueueProfileFavoriteButton()
+    RefreshSelectedQueueProfileDetails()
+}
+
+
 UpdateQueueProfileFavoriteButton(*) {
     global QueueProfileFavoriteButton
-    global QueueProfileFavoriteHelpBadge
 
     if !QueueProfileFavoriteButton {
         return
     }
 
     record := GetSelectedQueueProfileRecord()
-
     QueueProfileFavoriteButton.Enabled := record ? true : false
-
-    SetFavoriteButtonState(
-        QueueProfileFavoriteButton,
-        record ? record.favorite : false
-    )
+    SetFavoriteButtonState(QueueProfileFavoriteButton, record ? record.favorite : false)
 }
 
 
 ToggleSelectedQueueProfileFavorite(*) {
     record := GetSelectedQueueProfileRecord()
-
     if !record {
         return
     }
 
-    SetQueueProfileFavorite(
-        record.path,
-        !record.favorite
-    )
-
+    SetQueueProfileFavorite(record.path, !record.favorite)
     RefreshQueueProfilesManager(true)
 }
 
 
-PromptQueueProfileName(
-    promptText,
-    defaultName := ""
+RefreshSelectedQueueProfileDetails() {
+    global QueueProfileSummaryText
+    global QueueProfileDescriptionEdit
+    global QueueProfileRepeatEdit
+    global QueueProfileRepeatMinusButton
+    global QueueProfileRepeatPlusButton
+    global QueueProfileDetailsLoading
+
+    QueueProfileDetailsLoading := true
+
+    record := GetSelectedQueueProfileRecord()
+
+    if !record {
+        if QueueProfileSummaryText
+            QueueProfileSummaryText.Text := "NO PROFILE SELECTED"
+        if QueueProfileDescriptionEdit {
+            QueueProfileDescriptionEdit.Value := ""
+            QueueProfileDescriptionEdit.Enabled := false
+            UpdateQueueProfileNotesScrollbar()
+        }
+        if QueueProfileRepeatEdit {
+            QueueProfileRepeatEdit.Value := "1"
+            QueueProfileRepeatEdit.Enabled := false
+        }
+        if QueueProfileRepeatMinusButton
+            QueueProfileRepeatMinusButton.Enabled := false
+        if QueueProfileRepeatPlusButton
+            QueueProfileRepeatPlusButton.Enabled := false
+        QueueProfileDetailsLoading := false
+        return
+    }
+
+    QueueProfileDescriptionEdit.Enabled := true
+    QueueProfileRepeatEdit.Enabled := true
+    QueueProfileRepeatMinusButton.Enabled := true
+    QueueProfileRepeatPlusButton.Enabled := true
+    QueueProfileDescriptionEdit.Value := GetQueueProfileDescription(record.path)
+    ScrollQueueProfileNotesToTop()
+    UpdateQueueProfileNotesScrollbar()
+    QueueProfileRepeatEdit.Value := GetQueueProfileRepeatCount(record.path)
+    QueueProfileDetailsLoading := false
+    RefreshQueueProfileSummary()
+}
+
+
+CloneQueueProfileJob(job) {
+    cloned := {
+        path: job.path,
+        label: job.HasOwnProp("label") ? job.label : job.path,
+        mode: job.HasOwnProp("mode") ? job.mode : "",
+        runs: job.HasOwnProp("runs") ? Max(1, job.runs) : 1
+    }
+
+    if job.HasOwnProp("enabled") {
+        cloned.enabled := job.enabled
+    }
+
+    return cloned
+}
+
+
+RefreshQueueProfileSummary(repeatOverride := "") {
+    global QueueProfileSummaryText
+
+    if !QueueProfileSummaryText {
+        return
+    }
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        QueueProfileSummaryText.Text := "NO PROFILE SELECTED"
+        return
+    }
+
+    summary := GetQueueProfileSummary(record.path, repeatOverride)
+
+    QueueProfileSummaryText.Text :=
+        summary.jobsPerPass
+        . " JOB" . (summary.jobsPerPass = 1 ? "" : "S")
+        . "  x" . summary.repeatCount
+        . "  =  " . summary.queueJobs
+        . " QUEUE JOB" . (summary.queueJobs = 1 ? "" : "S")
+        . "  -  " . summary.totalRuns
+        . " TOTAL RUN" . (summary.totalRuns = 1 ? "" : "S")
+}
+
+
+
+QueueProfileNotesChanged(*) {
+    UpdateQueueProfileNotesScrollbar()
+    QueueProfileDetailsChanged()
+}
+
+
+ScrollQueueProfileNotesToTop() {
+    global QueueProfileDescriptionEdit
+
+    if !QueueProfileDescriptionEdit {
+        return
+    }
+
+    try DllCall(
+        "SendMessage",
+        "Ptr",
+        QueueProfileDescriptionEdit.Hwnd,
+        "UInt",
+        0x00B6,
+        "Ptr",
+        0,
+        "Ptr",
+        -32767,
+        "Ptr"
+    )
+}
+
+
+QueueProfileNotesMouseWheel(wParam, lParam, msg, hwnd) {
+    global QueueProfileDescriptionEdit
+
+    if !QueueProfileDescriptionEdit || !QueueProfileDescriptionEdit.Enabled {
+        return
+    }
+
+    if hwnd != QueueProfileDescriptionEdit.Hwnd {
+        return
+    }
+
+    delta := (wParam >> 16) & 0xFFFF
+    if delta > 32767 {
+        delta -= 65536
+    }
+
+    lines := delta > 0 ? -2 : 2
+
+    try DllCall(
+        "SendMessage",
+        "Ptr",
+        QueueProfileDescriptionEdit.Hwnd,
+        "UInt",
+        0x00B6,
+        "Ptr",
+        0,
+        "Ptr",
+        lines,
+        "Ptr"
+    )
+
+    SetTimer(UpdateQueueProfileNotesScrollbar, -10)
+    return 0
+}
+
+
+UpdateQueueProfileNotesScrollbar(*) {
+    global QueueProfileDescriptionEdit
+    global QueueProfileNotesScrollTrack
+    global QueueProfileNotesScrollThumb
+
+    if !QueueProfileDescriptionEdit || !QueueProfileNotesScrollTrack || !QueueProfileNotesScrollThumb {
+        return
+    }
+
+    if !QueueProfileDescriptionEdit.Enabled {
+        QueueProfileNotesScrollTrack.Visible := false
+        QueueProfileNotesScrollThumb.Visible := false
+        return
+    }
+
+    lineCount := 1
+    firstVisible := 0
+
+    try lineCount := DllCall(
+        "SendMessage",
+        "Ptr",
+        QueueProfileDescriptionEdit.Hwnd,
+        "UInt",
+        0x00BA,
+        "Ptr",
+        0,
+        "Ptr",
+        0,
+        "Ptr"
+    )
+
+    try firstVisible := DllCall(
+        "SendMessage",
+        "Ptr",
+        QueueProfileDescriptionEdit.Hwnd,
+        "UInt",
+        0x00CE,
+        "Ptr",
+        0,
+        "Ptr",
+        0,
+        "Ptr"
+    )
+
+    visibleLines := 2
+    needsScroll := lineCount > visibleLines
+
+    QueueProfileNotesScrollTrack.Visible := needsScroll
+    QueueProfileNotesScrollThumb.Visible := needsScroll
+
+    if !needsScroll {
+        return
+    }
+
+    trackY := 223
+    trackHeight := 38
+    thumbHeight := Max(14, Floor(trackHeight * visibleLines / lineCount))
+    thumbHeight := Min(trackHeight, thumbHeight)
+    maxFirst := Max(1, lineCount - visibleLines)
+    travel := Max(0, trackHeight - thumbHeight)
+    thumbY := trackY + Round(travel * Min(firstVisible, maxFirst) / maxFirst)
+
+    QueueProfileNotesScrollThumb.Move(630, thumbY, 6, thumbHeight)
+}
+
+
+AdjustQueueProfileRepeat(delta, *) {
+    global QueueProfileRepeatEdit
+
+    if !QueueProfileRepeatEdit || !QueueProfileRepeatEdit.Enabled {
+        return
+    }
+
+    rawRepeat := Trim(QueueProfileRepeatEdit.Value)
+    current := RegExMatch(rawRepeat, "^\d+$")
+        ? Integer(rawRepeat)
+        : 1
+
+    nextValue := Max(1, Min(99, current + delta))
+
+    if nextValue = current {
+        return
+    }
+
+    QueueProfileRepeatEdit.Value := nextValue
+    QueueProfileRepeatChanged()
+    QueueProfileRepeatEdit.Focus()
+}
+
+
+PreviewQueueProfileRepeatChanged(*) {
+    global QueueProfileRepeatEdit
+
+    if !QueueProfileRepeatEdit {
+        return
+    }
+
+    rawRepeat := Trim(QueueProfileRepeatEdit.Value)
+    if rawRepeat = "" || !RegExMatch(rawRepeat, "^\d+$") {
+        return
+    }
+
+    repeatCount := Integer(rawRepeat)
+    if repeatCount < 1 || repeatCount > 99 {
+        return
+    }
+
+    RefreshQueueProfileSummary(repeatCount)
+}
+
+
+QueueProfileRepeatChanged(*) {
+    PreviewQueueProfileRepeatChanged()
+    QueueProfileDetailsChanged()
+}
+
+
+QueueProfileDetailsChanged(*) {
+    global QueueProfileDetailsLoading
+
+    if QueueProfileDetailsLoading {
+        return
+    }
+
+    AutoSaveSelectedQueueProfileDetails()
+}
+
+
+AutoSaveSelectedQueueProfileDetails(*) {
+    global QueueProfileDescriptionEdit
+    global QueueProfileRepeatEdit
+    global QueueProfileDetailsLoading
+    global UIColorError
+    global UIColorSuccess
+
+    if QueueProfileDetailsLoading {
+        return
+    }
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        return
+    }
+
+    rawRepeat := Trim(QueueProfileRepeatEdit.Value)
+    if rawRepeat = "" || !RegExMatch(rawRepeat, "^\d+$") {
+        SetQueueProfileStatus("REPEAT COUNT MUST BE 1 - 99", UIColorError)
+        return
+    }
+
+    repeatCount := Integer(rawRepeat)
+    if repeatCount < 1 || repeatCount > 99 {
+        SetQueueProfileStatus("REPEAT COUNT MUST BE 1 - 99", UIColorError)
+        return
+    }
+
+    if !SetQueueProfileDetails(record.path, QueueProfileDescriptionEdit.Value, repeatCount) {
+        SetQueueProfileStatus("COULD NOT SAVE PROFILE DETAILS", UIColorError)
+        return
+    }
+
+    record.description := QueueProfileDescriptionEdit.Value
+    record.repeatCount := repeatCount
+    RefreshQueueProfileSummary(repeatCount)
+    SetQueueProfileStatus("CHANGES SAVED AUTOMATICALLY", UIColorSuccess)
+}
+
+
+SaveCurrentQueueProfile(*) {
+    global MacroJobQueue
+    global QueueProfileDropdown
+    global QueueProfileRecords
+    global UIColorError
+    global UIColorSuccess
+
+    if MacroJobQueue.Length = 0 {
+        SetQueueProfileStatus("QUEUE IS EMPTY", UIColorError)
+        return
+    }
+
+    profileName := PromptQueueProfileName("Enter a name for this queue profile.")
+    if profileName = "" {
+        return
+    }
+
+    if FindQueueProfileRecord(profileName) {
+        SetQueueProfileStatus("PROFILE EXISTS - USE UPDATE", UIColorError)
+        return
+    }
+
+    savedPath := WriteQueueProfile(profileName, MacroJobQueue)
+    if !savedPath {
+        SetQueueProfileStatus("COULD NOT SAVE PROFILE", UIColorError)
+        return
+    }
+
+    savedJobs := ReadQueueProfileJobs(savedPath)
+    if savedJobs.Length != MacroJobQueue.Length {
+        SetQueueProfileStatus("PROFILE SAVE VERIFY FAILED", UIColorError)
+        return
+    }
+
+    RefreshQueueProfilesManager(false)
+    names := []
+    for record in QueueProfileRecords {
+        names.Push(record.name)
+    }
+
+    index := FindTextIndex(names, profileName)
+    if index > 0 {
+        QueueProfileDropdown.Choose(index, true)
+    }
+
+    SetQueueProfileStatus("PROFILE SAVED", UIColorSuccess)
+}
+
+
+LoadSelectedQueueProfile(*) {
+    global MacroJobQueue
+    global UIColorError
+    global UIColorSuccess
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    jobs := ReadQueueProfileJobs(record.path)
+    if jobs.Length = 0 {
+        SetQueueProfileStatus("PROFILE HAS NO JOBS", UIColorError)
+        return
+    }
+
+    repeatCount := GetQueueProfileRepeatCount(record.path)
+    expanded := []
+
+    Loop repeatCount {
+        for job in jobs {
+            expanded.Push(CloneQueueProfileJob(job))
+        }
+    }
+
+    MacroJobQueue := expanded
+    RefreshQueueManager()
+    UpdateQueueLauncherButton()
+
+    SetQueueProfileStatus(
+        "PROFILE LOADED - " . repeatCount . " PASS" . (repeatCount = 1 ? "" : "ES"),
+        UIColorSuccess
+    )
+}
+
+
+UpdateSelectedQueueProfile(*) {
+    global MacroJobQueue
+    global UIColorError
+    global UIColorSuccess
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    if MacroJobQueue.Length = 0 {
+        SetQueueProfileStatus("QUEUE IS EMPTY", UIColorError)
+        return
+    }
+
+    if !WriteQueueProfile(record.name, MacroJobQueue, record.path) {
+        SetQueueProfileStatus("COULD NOT UPDATE PROFILE", UIColorError)
+        return
+    }
+
+    RefreshQueueProfilesManager(true)
+    SetQueueProfileStatus("PROFILE UPDATED", UIColorSuccess)
+}
+
+
+DuplicateSelectedQueueProfile(*) {
+    global QueueProfileDropdown
+    global QueueProfileRecords
+    global UIColorError
+    global UIColorSuccess
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    newName := PromptQueueProfileName("Enter a name for the duplicated profile.", record.name . " Copy")
+    if newName = "" {
+        return
+    }
+
+    if FindQueueProfileRecord(newName) {
+        SetQueueProfileStatus("PROFILE NAME ALREADY EXISTS", UIColorError)
+        return
+    }
+
+    jobs := ReadQueueProfileJobs(record.path)
+    newPath := WriteQueueProfile(newName, jobs)
+    if !newPath {
+        SetQueueProfileStatus("COULD NOT DUPLICATE PROFILE", UIColorError)
+        return
+    }
+
+    SetQueueProfileDetails(
+        newPath,
+        GetQueueProfileDescription(record.path),
+        GetQueueProfileRepeatCount(record.path)
+    )
+    SetQueueProfileFavorite(newPath, record.favorite)
+
+    RefreshQueueProfilesManager(false)
+    names := []
+    for profile in QueueProfileRecords {
+        names.Push(profile.name)
+    }
+
+    index := FindTextIndex(names, newName)
+    if index > 0 {
+        QueueProfileDropdown.Choose(index, true)
+    }
+
+    SetQueueProfileStatus("PROFILE DUPLICATED", UIColorSuccess)
+}
+
+
+ShowQueueProfileMoreActions(*) {
+    global QueueProfilesGui
+    global QueueProfileMoreGui
+    global UIColorBackground
+    global UIColorAccent
+    global UIColorSecondaryText
+
+    CloseQueueProfileMoreActions()
+    CloseAllDarkDropdowns()
+    CloseContextHelp()
+
+    ownerOption := ""
+    if QueueProfilesGui {
+        try ownerOption := " +Owner" . QueueProfilesGui.Hwnd
+    }
+
+    QueueProfileMoreGui := Gui(
+        "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox" . ownerOption,
+        "Profile Actions - V1.3"
+    )
+    QueueProfileMoreGui.BackColor := UIColorBackground
+
+    QueueProfileMoreGui.Add(
+        "Progress",
+        "x0 y0 w320 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
+        100
+    )
+
+    AddUIOutlinedText(QueueProfileMoreGui, "MORE PROFILE ACTIONS", 20, 18, 280, 30, 11, "Center")
+
+    SetUIBodyFont(QueueProfileMoreGui, 8, UIColorSecondaryText)
+    QueueProfileMoreGui.Add(
+        "Text",
+        "x20 y53 w280 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Less common profile tools"
+    )
+
+    duplicateButton := CreateDarkButton(QueueProfileMoreGui, 40, 84, 240, 40, "DUPLICATE", 8)
+    renameButton := CreateDarkButton(QueueProfileMoreGui, 40, 132, 240, 40, "RENAME", 8)
+    exportButton := CreateDarkButton(QueueProfileMoreGui, 40, 180, 240, 40, "EXPORT", 8)
+    importButton := CreateDarkButton(QueueProfileMoreGui, 40, 228, 240, 40, "IMPORT", 8)
+    deleteButton := CreateDarkButton(QueueProfileMoreGui, 40, 276, 240, 40, "DELETE", 8)
+    closeButton := CreateDarkButton(QueueProfileMoreGui, 40, 324, 240, 40, "CLOSE", 8)
+
+    duplicateButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(DuplicateSelectedQueueProfile))
+    renameButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(RenameSelectedQueueProfile))
+    exportButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(ExportSelectedQueueProfile))
+    importButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(ImportQueueProfile))
+    deleteButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(DeleteSelectedQueueProfile))
+    closeButton.OnEvent("Click", CloseQueueProfileMoreActions)
+
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        duplicateButton,
+        "DUPLICATE PROFILE",
+        "Creates a new copy of the selected profile, including its queued jobs, run counts, notes, repeat count, and favorite state."
+    )
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        renameButton,
+        "RENAME PROFILE",
+        "Changes the name of the selected profile without changing its jobs, notes, repeat count, or favorite state."
+    )
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        exportButton,
+        "EXPORT PROFILE",
+        "Saves the selected profile as a portable .ini file so it can be backed up, shared, or imported into another copy of the macro."
+    )
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        importButton,
+        "IMPORT PROFILE",
+        "Loads a previously exported profile .ini file into your saved profiles. You do not need to select an existing profile first."
+    )
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        deleteButton,
+        "DELETE PROFILE",
+        "Permanently deletes the selected saved profile. This does not delete any map or EXP scripts used by that profile."
+    )
+    CreateHelpBadgeForButton(
+        QueueProfileMoreGui,
+        closeButton,
+        "CLOSE",
+        "Closes More Profile Actions and returns to the Queue Profiles window without changing the selected profile."
+    )
+
+    QueueProfileMoreGui.OnEvent("Close", CloseQueueProfileMoreActions)
+    QueueProfileMoreGui.OnEvent("Escape", CloseQueueProfileMoreActions)
+
+    QueueProfileMoreGui.Show("Hide w320 h380")
+    ApplyDarkWindowStyle(QueueProfileMoreGui)
+    QueueProfileMoreGui.Show("w320 h380 Center")
+}
+
+
+RunQueueProfileMoreAction(callback, *) {
+    CloseQueueProfileMoreActions()
+    callback.Call()
+}
+
+
+CloseQueueProfileMoreActions(*) {
+    global QueueProfileMoreGui
+
+    try {
+        if QueueProfileMoreGui
+            QueueProfileMoreGui.Destroy()
+    }
+
+    QueueProfileMoreGui := ""
+}
+
+
+ExportSelectedQueueProfile(*) {
+    global QueueProfilesGui
+    global UIColorError
+    global UIColorSuccess
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    if QueueProfilesGui {
+        try QueueProfilesGui.Opt("+OwnDialogs")
+    }
+
+    destination := ""
+    try destination := FileSelect(
+        "S16",
+        A_Desktop . "\\" . record.name . ".ini",
+        "Export Queue Profile",
+        "Queue Profile (*.ini)"
+    )
+
+    if destination = "" {
+        return
+    }
+
+    if !RegExMatch(destination, "i)\\.ini$") {
+        destination .= ".ini"
+    }
+
+    try FileCopy(record.path, destination, true)
+    catch {
+        SetQueueProfileStatus("COULD NOT EXPORT PROFILE", UIColorError)
+        return
+    }
+
+    SetQueueProfileStatus("PROFILE EXPORTED", UIColorSuccess)
+}
+
+
+ImportQueueProfile(*) {
+    global QueueProfileDropdown
+    global QueueProfileRecords
+    global QueueProfilesGui
+    global UIColorError
+    global UIColorSuccess
+
+    if QueueProfilesGui {
+        try QueueProfilesGui.Opt("+OwnDialogs")
+    }
+
+    source := ""
+    try source := FileSelect(
+        1,
+        "",
+        "Import Queue Profile",
+        "Queue Profile (*.ini)"
+    )
+
+    if source = "" || !FileExist(source) {
+        return
+    }
+
+    try sourceJobs := ReadQueueProfileJobs(source)
+    catch {
+        SetQueueProfileStatus("INVALID PROFILE FILE", UIColorError)
+        return
+    }
+
+    if sourceJobs.Length = 0 {
+        SetQueueProfileStatus("INVALID OR EMPTY PROFILE", UIColorError)
+        return
+    }
+
+    defaultName := IniRead(
+        source,
+        "Profile",
+        "Name",
+        RegExReplace(RegExReplace(source, "^.*\\"), "i)\\.ini$")
+    )
+
+    newName := PromptQueueProfileName("Choose the local name for this imported profile.", defaultName)
+    if newName = "" {
+        return
+    }
+
+    if FindQueueProfileRecord(newName) {
+        SetQueueProfileStatus("PROFILE NAME ALREADY EXISTS", UIColorError)
+        return
+    }
+
+    newPath := WriteQueueProfile(newName, sourceJobs)
+    if !newPath {
+        SetQueueProfileStatus("COULD NOT IMPORT PROFILE", UIColorError)
+        return
+    }
+
+    SetQueueProfileDetails(
+        newPath,
+        GetQueueProfileDescription(source),
+        GetQueueProfileRepeatCount(source)
+    )
+    SetQueueProfileFavorite(
+        newPath,
+        IniRead(source, "Profile", "Favorite", "0") = "1"
+    )
+
+    RefreshQueueProfilesManager(false)
+    names := []
+    for record in QueueProfileRecords {
+        names.Push(record.name)
+    }
+
+    index := FindTextIndex(names, newName)
+    if index > 0 {
+        QueueProfileDropdown.Choose(index, true)
+    }
+
+    SetQueueProfileStatus("PROFILE IMPORTED", UIColorSuccess)
+}
+
+
+RenameSelectedQueueProfile(*) {
+    global QueueProfileDropdown
+    global QueueProfileRecords
+    global UIColorError
+    global UIColorSuccess
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    newName := PromptQueueProfileName("Enter the new profile name.", record.name)
+    if newName = "" || newName = record.name {
+        return
+    }
+
+    if FindQueueProfileRecord(newName) {
+        SetQueueProfileStatus("PROFILE NAME ALREADY EXISTS", UIColorError)
+        return
+    }
+
+    newPath := GetQueueProfilesDirectory() . "\\" . newName . ".ini"
+
+    try {
+        FileMove(record.path, newPath, false)
+        IniWrite(newName, newPath, "Profile", "Name")
+    }
+    catch {
+        SetQueueProfileStatus("COULD NOT RENAME PROFILE", UIColorError)
+        return
+    }
+
+    RefreshQueueProfilesManager(false)
+    names := []
+    for profile in QueueProfileRecords {
+        names.Push(profile.name)
+    }
+
+    index := FindTextIndex(names, newName)
+    if index > 0 {
+        QueueProfileDropdown.Choose(index, true)
+    }
+
+    SetQueueProfileStatus("PROFILE RENAMED", UIColorSuccess)
+}
+
+
+DeleteSelectedQueueProfile(*) {
+    global QueueProfilesGui
+    global UIColorError
+
+    record := GetSelectedQueueProfileRecord()
+    if !record {
+        SetQueueProfileStatus("NO PROFILE SELECTED", UIColorError)
+        return
+    }
+
+    ShowThemedConfirmation(
+        "DELETE PROFILE?",
+        "Delete '" . record.name . "' permanently?`n`nThis cannot be undone.",
+        "DELETE PROFILE",
+        DeleteQueueProfileConfirmed.Bind(
+            record.path
+        ),
+        QueueProfilesGui,
+        "Permanently deletes this saved queue profile. Map and EXP script files are not deleted."
+    )
+}
+
+
+DeleteQueueProfileConfirmed(
+    profilePath,
+    *
 ) {
+    global UIColorError
+    global UIColorSuccess
+
+    if !FileExist(profilePath) {
+        SetQueueProfileStatus("PROFILE NO LONGER EXISTS", UIColorError)
+        RefreshQueueProfilesManager(false)
+        return
+    }
+
+    try FileDelete(profilePath)
+    catch {
+        SetQueueProfileStatus("COULD NOT DELETE PROFILE", UIColorError)
+        return
+    }
+
+    RefreshQueueProfilesManager(false)
+    SetQueueProfileStatus("PROFILE DELETED", UIColorSuccess)
+}
+
+
+PromptQueueProfileName(promptText, defaultName := "") {
     global QueueProfilesGui
     global QueueProfileNameGui
     global QueueProfileNameEdit
     global QueueProfileNameErrorText
     global QueueProfileNameResult
     global QueueProfileNameFinished
-
     global UIColorBackground
     global UIColorAccent
     global UIColorPrimaryText
     global UIColorSecondaryText
     global UIColorError
-    global UIColorControlBorder
-    global UIColorControlBottom
+    global UIColorInputBorder
+    global UIColorInputBackground
+    global UIColorInputText
 
     CloseQueueProfileNamePrompt()
     CloseAllDarkDropdowns()
@@ -387,8 +1218,8 @@ PromptQueueProfileName(
 
     dialogWidth := 440
     dialogHeight := 276
-
     ownerOption := ""
+
     if QueueProfilesGui {
         try ownerOption := " +Owner" . QueueProfilesGui.Hwnd
     }
@@ -397,10 +1228,7 @@ PromptQueueProfileName(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox" . ownerOption,
         "Queue Profile Name"
     )
-
     QueueProfileNameGui.BackColor := UIColorBackground
-    QueueProfileNameGui.MarginX := 0
-    QueueProfileNameGui.MarginY := 0
 
     QueueProfileNameGui.Add(
         "Progress",
@@ -409,24 +1237,14 @@ PromptQueueProfileName(
         100
     )
 
-    SetUIHeadingFont(
-        QueueProfileNameGui,
-        13,
-        UIColorPrimaryText
-    )
-
+    SetUIHeadingFont(QueueProfileNameGui, 13, UIColorPrimaryText)
     QueueProfileNameGui.Add(
         "Text",
         "x20 y20 w400 h30 Center c" . UIColorPrimaryText . " BackgroundTrans",
         "QUEUE PROFILE NAME"
     )
 
-    SetUIBodyFont(
-        QueueProfileNameGui,
-        9,
-        UIColorSecondaryText
-    )
-
+    SetUIBodyFont(QueueProfileNameGui, 9, UIColorSecondaryText)
     QueueProfileNameGui.Add(
         "Text",
         "x30 y60 w380 h38 Center c" . UIColorSecondaryText . " BackgroundTrans",
@@ -435,102 +1253,49 @@ PromptQueueProfileName(
 
     QueueProfileNameGui.Add(
         "Progress",
-        "x29 y112 w382 h48 c" . UIColorControlBorder
-        . " Background" . UIColorControlBorder . " Disabled",
+        "x29 y112 w382 h48 c" . UIColorInputBorder
+        . " Background" . UIColorInputBorder . " Disabled",
         100
     )
 
-    SetUIBodyBoldFont(
-        QueueProfileNameGui,
-        11,
-        UIColorPrimaryText
-    )
-
+    SetUIBodyBoldFont(QueueProfileNameGui, 11, UIColorPrimaryText)
     QueueProfileNameEdit := QueueProfileNameGui.Add(
         "Edit",
-        "x31 y114 w378 h44 Center Limit80 c" . UIColorPrimaryText
-        . " Background" . UIColorControlBottom,
+        "x31 y114 w378 h44 Center Limit80 c" . UIColorInputText
+        . " Background" . UIColorInputBackground,
         defaultName
     )
-
     ApplyDarkControlTheme(QueueProfileNameEdit)
+    QueueProfileNameEdit.OnEvent("Change", QueueProfileNameChanged)
 
-    try {
-        DllCall(
-            "uxtheme\SetWindowTheme",
-            "Ptr", QueueProfileNameEdit.Hwnd,
-            "Str", "",
-            "Str", ""
-        )
-    }
-
-    QueueProfileNameEdit.Opt(
-        "c" . UIColorPrimaryText . " Background" . UIColorControlBottom
-    )
-
-    QueueProfileNameEdit.OnEvent(
-        "Change",
-        QueueProfileNameChanged
-    )
-
-    SetUIBodyFont(
-        QueueProfileNameGui,
-        8,
-        UIColorError
-    )
-
+    SetUIBodyFont(QueueProfileNameGui, 8, UIColorError)
     QueueProfileNameErrorText := QueueProfileNameGui.Add(
         "Text",
         "x20 y169 w400 h34 Center c" . UIColorError . " BackgroundTrans",
         ""
     )
 
-    saveButton := CreateDarkButton(
-        QueueProfileNameGui,
-        30,
-        211,
-        184,
-        44,
-        "SAVE NAME",
-        8
-    )
-
-    cancelButton := CreateDarkButton(
-        QueueProfileNameGui,
-        226,
-        211,
-        184,
-        44,
-        "CANCEL",
-        8
-    )
+    saveButton := CreateDarkButton(QueueProfileNameGui, 30, 211, 184, 44, "SAVE NAME", 8)
+    cancelButton := CreateDarkButton(QueueProfileNameGui, 226, 211, 184, 44, "CLOSE", 8)
 
     CreateHelpBadgeForButton(
         QueueProfileNameGui,
         saveButton,
         "PROFILE NAME",
-        "Confirms the queue profile name. Profile names are stored locally in UserData and remain available after restarting the launcher."
+        "Confirms the queue profile name. Saved profiles remain available after restarting the launcher."
     )
 
-    saveButton.OnEvent(
-        "Click",
-        ConfirmQueueProfileName
+    CreateHelpBadgeForButton(
+        QueueProfileNameGui,
+        cancelButton,
+        "CLOSE",
+        "Closes this profile-name prompt without saving the pending name change."
     )
 
-    cancelButton.OnEvent(
-        "Click",
-        CancelQueueProfileName
-    )
-
-    QueueProfileNameGui.OnEvent(
-        "Close",
-        CancelQueueProfileName
-    )
-
-    QueueProfileNameGui.OnEvent(
-        "Escape",
-        CancelQueueProfileName
-    )
+    saveButton.OnEvent("Click", ConfirmQueueProfileName)
+    cancelButton.OnEvent("Click", CancelQueueProfileName)
+    QueueProfileNameGui.OnEvent("Close", CancelQueueProfileName)
+    QueueProfileNameGui.OnEvent("Escape", CancelQueueProfileName)
 
     ApplyDarkWindowStyle(QueueProfileNameGui)
 
@@ -538,10 +1303,7 @@ PromptQueueProfileName(
         try QueueProfilesGui.Opt("+Disabled")
     }
 
-    QueueProfileNameGui.Show(
-        "w" . dialogWidth . " h" . dialogHeight . " Center"
-    )
-
+    QueueProfileNameGui.Show("w" . dialogWidth . " h" . dialogHeight . " Center")
     try WinActivate("ahk_id " . QueueProfileNameGui.Hwnd)
     QueueProfileNameEdit.Focus()
 
@@ -551,7 +1313,6 @@ PromptQueueProfileName(
 
     result := QueueProfileNameResult
     CloseQueueProfileNamePrompt()
-
     return result
 }
 
@@ -567,7 +1328,6 @@ ConfirmQueueProfileName(*) {
     }
 
     value := Trim(QueueProfileNameEdit.Value)
-
     if value = "" {
         QueueProfileNameErrorText.Text := "ENTER A PROFILE NAME"
         return
@@ -575,7 +1335,7 @@ ConfirmQueueProfileName(*) {
 
     if !IsValidQueueProfileName(value) {
         QueueProfileNameErrorText.Text :=
-            "INVALID CHARACTERS  -  DO NOT USE  \ / : * ? "
+            "INVALID CHARACTERS  -  DO NOT USE  \\ / : * ? "
             . Chr(34)
             . " < > | [ ] ="
         return
@@ -597,7 +1357,6 @@ CancelQueueProfileName(*) {
 
 QueueProfileNameChanged(*) {
     global QueueProfileNameErrorText
-
     if QueueProfileNameErrorText {
         QueueProfileNameErrorText.Text := ""
     }
@@ -609,13 +1368,10 @@ CloseQueueProfileNamePrompt() {
     global QueueProfileNameGui
     global QueueProfileNameEdit
     global QueueProfileNameErrorText
-    global QueueProfileNameResult
-    global QueueProfileNameFinished
 
     try {
-        if QueueProfileNameGui {
+        if QueueProfileNameGui
             QueueProfileNameGui.Destroy()
-        }
     }
 
     if QueueProfilesGui {
@@ -629,332 +1385,29 @@ CloseQueueProfileNamePrompt() {
 }
 
 
-SetQueueProfileStatus(
-    message,
-    color := ""
-) {
-    global QueueProfileStatusText
-    global UIColorSuccess
-
-    if !QueueProfileStatusText {
-        return
-    }
-
-    if color = "" {
-        color := UIColorSuccess
-    }
-
-    QueueProfileStatusText.Text := message
-    QueueProfileStatusText.SetFont("c" . color)
-}
-
-
-SaveCurrentQueueProfile(*) {
-    global MacroJobQueue
-    global QueueProfileDropdown
-    global QueueProfileRecords
-    global UIColorError
-    global UIColorSuccess
-
-    if MacroJobQueue.Length = 0 {
-        SetQueueProfileStatus(
-            "QUEUE IS EMPTY",
-            UIColorError
-        )
-        return
-    }
-
-    profileName := PromptQueueProfileName(
-        "Enter a name for this queue profile."
-    )
-
-    if profileName = "" {
-        return
-    }
-
-    if !IsValidQueueProfileName(profileName) {
-        SetQueueProfileStatus(
-            "INVALID PROFILE NAME",
-            UIColorError
-        )
-        return
-    }
-
-    if FindQueueProfileRecord(profileName) {
-        SetQueueProfileStatus(
-            "PROFILE EXISTS - USE UPDATE",
-            UIColorError
-        )
-        return
-    }
-
-    savedPath := WriteQueueProfile(profileName, MacroJobQueue)
-
-    if !savedPath {
-        SetQueueProfileStatus(
-            "COULD NOT SAVE PROFILE",
-            UIColorError
-        )
-        return
-    }
-
-    ; Do not report success until the profile can be read back with the same
-    ; number of jobs that were in the queue.
-    savedJobs := ReadQueueProfileJobs(savedPath)
-
-    if savedJobs.Length != MacroJobQueue.Length {
-        SetQueueProfileStatus(
-            "PROFILE SAVE VERIFY FAILED",
-            UIColorError
-        )
-        return
-    }
-
-    RefreshQueueProfilesManager(false)
-
-    ; Select the profile that was just saved from the refreshed records.
-    names := []
-    for record in QueueProfileRecords {
-        names.Push(record.name)
-    }
-
-    index := FindTextIndex(names, profileName)
-    if index > 0 {
-        QueueProfileDropdown.Choose(index)
-    }
-
-    UpdateQueueProfileFavoriteButton()
-
-    SetQueueProfileStatus(
-        "PROFILE SAVED",
-        UIColorSuccess
-    )
-}
-
-
-LoadSelectedQueueProfile(*) {
-    global MacroJobQueue
-    global UIColorError
-    global UIColorSuccess
-
-    record := GetSelectedQueueProfileRecord()
-
-    if !record {
-        SetQueueProfileStatus(
-            "NO PROFILE SELECTED",
-            UIColorError
-        )
-        return
-    }
-
-    jobs := ReadQueueProfileJobs(record.path)
-
-    if jobs.Length = 0 {
-        SetQueueProfileStatus(
-            "PROFILE HAS NO JOBS",
-            UIColorError
-        )
-        return
-    }
-
-    MacroJobQueue := jobs
-
-    RefreshQueueManager()
-    UpdateQueueLauncherButton()
-
-    SetQueueProfileStatus(
-        "PROFILE LOADED",
-        UIColorSuccess
-    )
-}
-
-
-UpdateSelectedQueueProfile(*) {
-    global MacroJobQueue
-    global UIColorError
-    global UIColorSuccess
-
-    record := GetSelectedQueueProfileRecord()
-
-    if !record {
-        SetQueueProfileStatus(
-            "NO PROFILE SELECTED",
-            UIColorError
-        )
-        return
-    }
-
-    if MacroJobQueue.Length = 0 {
-        SetQueueProfileStatus(
-            "QUEUE IS EMPTY",
-            UIColorError
-        )
-        return
-    }
-
-    if !WriteQueueProfile(
-        record.name,
-        MacroJobQueue,
-        record.path
-    ) {
-        SetQueueProfileStatus(
-            "COULD NOT UPDATE PROFILE",
-            UIColorError
-        )
-        return
-    }
-
-    RefreshQueueProfilesManager(true)
-
-    SetQueueProfileStatus(
-        "PROFILE UPDATED",
-        UIColorSuccess
-    )
-}
-
-
-RenameSelectedQueueProfile(*) {
-    global QueueProfileDropdown
-    global UIColorError
-    global UIColorSuccess
-
-    record := GetSelectedQueueProfileRecord()
-
-    if !record {
-        SetQueueProfileStatus(
-            "NO PROFILE SELECTED",
-            UIColorError
-        )
-        return
-    }
-
-    newName := PromptQueueProfileName(
-        "Enter the new profile name.",
-        record.name
-    )
-
-    if newName = "" || newName = record.name {
-        return
-    }
-
-    if !IsValidQueueProfileName(newName) {
-        SetQueueProfileStatus(
-            "INVALID PROFILE NAME",
-            UIColorError
-        )
-        return
-    }
-
-    if FindQueueProfileRecord(newName) {
-        SetQueueProfileStatus(
-            "PROFILE NAME ALREADY EXISTS",
-            UIColorError
-        )
-        return
-    }
-
-    newPath := GetQueueProfilesDirectory()
-        . "\"
-        . newName
-        . ".ini"
-
-    try {
-        FileMove(record.path, newPath, false)
-        IniWrite(newName, newPath, "Profile", "Name")
-    }
-    catch {
-        SetQueueProfileStatus(
-            "COULD NOT RENAME PROFILE",
-            UIColorError
-        )
-        return
-    }
-
-    RefreshQueueProfilesManager(false)
-
-    names := []
-    for profile in GetQueueProfileRecords() {
-        names.Push(profile.name)
-    }
-
-    index := FindTextIndex(names, newName)
-    if index > 0 {
-        QueueProfileDropdown.Choose(index)
-    }
-
-    UpdateQueueProfileFavoriteButton()
-
-    SetQueueProfileStatus(
-        "PROFILE RENAMED",
-        UIColorSuccess
-    )
-}
-
-
-DeleteSelectedQueueProfile(*) {
-    global QueueProfilesGui
-    global UIColorError
-    global UIColorSuccess
-
-    record := GetSelectedQueueProfileRecord()
-
-    if !record {
-        SetQueueProfileStatus(
-            "NO PROFILE SELECTED",
-            UIColorError
-        )
-        return
-    }
-
-    if QueueProfilesGui {
-        try QueueProfilesGui.Opt("+OwnDialogs")
-    }
-
-    result := MsgBox(
-        "Delete queue profile '"
-        . record.name
-        . "'?",
-        "Delete Queue Profile",
-        "YesNo Icon!"
-    )
-
-    if result != "Yes" {
-        return
-    }
-
-    try FileDelete(record.path)
-    catch {
-        SetQueueProfileStatus(
-            "COULD NOT DELETE PROFILE",
-            UIColorError
-        )
-        return
-    }
-
-    RefreshQueueProfilesManager(false)
-
-    SetQueueProfileStatus(
-        "PROFILE DELETED",
-        UIColorSuccess
-    )
-}
-
-
 CloseQueueProfilesManager(*) {
     global QueueProfilesGui
     global QueueProfileDropdown
     global QueueProfileFavoriteButton
     global QueueProfileFavoriteHelpBadge
     global QueueProfileStatusText
+    global QueueProfileSummaryText
+    global QueueProfileDescriptionEdit
+    global QueueProfileNotesScrollTrack
+    global QueueProfileNotesScrollThumb
+    global QueueProfileRepeatEdit
+    global QueueProfileRepeatMinusButton
+    global QueueProfileRepeatPlusButton
+    global QueueProfileDetailsLoading
     global QueueProfileRecords
 
+    CloseQueueProfileMoreActions()
     CloseQueueProfileNamePrompt()
     CloseAllDarkDropdowns()
 
     try {
-        if QueueProfilesGui {
+        if QueueProfilesGui
             QueueProfilesGui.Destroy()
-        }
     }
 
     QueueProfilesGui := ""
@@ -962,5 +1415,13 @@ CloseQueueProfilesManager(*) {
     QueueProfileFavoriteButton := ""
     QueueProfileFavoriteHelpBadge := ""
     QueueProfileStatusText := ""
+    QueueProfileSummaryText := ""
+    QueueProfileDescriptionEdit := ""
+    QueueProfileNotesScrollTrack := ""
+    QueueProfileNotesScrollThumb := ""
+    QueueProfileRepeatEdit := ""
+    QueueProfileRepeatMinusButton := ""
+    QueueProfileRepeatPlusButton := ""
+    QueueProfileDetailsLoading := false
     QueueProfileRecords := []
 }

@@ -26,7 +26,8 @@ global RunButton := ""
 global AddQueueButton := ""
 global QueueButton := ""
 global ModeButton := ""
-global LogsButton := ""
+global SettingsButton := ""
+global CloseButton := ""
 
 global CategoryHelpBadge := ""
 global MapHelpBadge := ""
@@ -97,6 +98,7 @@ global CategoryData := Map()
 #Include CustomControlsUI.ahk
 #Include CustomDropdownUI.ahk
 #Include HelpUI.ahk
+#Include ConfirmUI.ahk
 #Include UIHelpers.ahk
 #Include FavoritesProfilesData.ahk
 #Include FavoritesUI.ahk

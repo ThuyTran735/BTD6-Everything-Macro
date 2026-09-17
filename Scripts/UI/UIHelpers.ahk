@@ -504,9 +504,72 @@ ApplyDarkWindowStyle(
 ApplyDarkControlTheme(
     control
 ) {
+    global UIColorInputBackground
+    global UIColorInputText
+
+
     if !control {
 
         return
+    }
+
+
+    ; Use a flat native edit surface and let our custom Progress border
+    ; provide the outline. This keeps every input consistent with the
+    ; rest of the dark UI instead of inheriting a Windows light edge.
+    try {
+        control.Opt(
+            "-Border -E0x200 -VScroll -HScroll c"
+            . UIColorInputText
+            . " Background"
+            . UIColorInputBackground
+        )
+    }
+
+
+    ; Remove the native horizontal/vertical scrollbar style bits directly.
+    ; Some Windows themes can keep drawing the small up/down arrow chrome
+    ; on Edit controls even after -VScroll/-HScroll has been applied.
+    try {
+        style := DllCall(
+            "GetWindowLongPtr",
+            "Ptr",
+            control.Hwnd,
+            "Int",
+            -16,
+            "Ptr"
+        )
+
+        style &= ~0x00300000
+
+        DllCall(
+            "SetWindowLongPtr",
+            "Ptr",
+            control.Hwnd,
+            "Int",
+            -16,
+            "Ptr",
+            style,
+            "Ptr"
+        )
+
+        DllCall(
+            "SetWindowPos",
+            "Ptr",
+            control.Hwnd,
+            "Ptr",
+            0,
+            "Int",
+            0,
+            "Int",
+            0,
+            "Int",
+            0,
+            "Int",
+            0,
+            "UInt",
+            0x37
+        )
     }
 
 
@@ -518,8 +581,8 @@ ApplyDarkControlTheme(
             control.Hwnd,
             "Str",
             "DarkMode_Explorer",
-            "Ptr",
-            0
+            "Str",
+            ""
         )
     }
 

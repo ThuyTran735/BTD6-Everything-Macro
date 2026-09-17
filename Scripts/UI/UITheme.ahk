@@ -12,6 +12,10 @@ global UIColorAccent := "4C8DFF"
 
 global UIColorControlBorder := "343A46"
 
+global UIColorInputBorder := "303844"
+global UIColorInputBackground := "0F1319"
+global UIColorInputText := "F5F7FA"
+
 global UIColorControlTop := "272C35"
 global UIColorControlBottom := "1B1F26"
 

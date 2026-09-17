@@ -136,6 +136,10 @@ DesperadoEXP() {
             TowerSetup["Desperado E"],
             "210"
         )],
+
+        [60, 8000, () => UseAbility("1")],
+        [60, 8250, () => UseAbility("2")],
+        [60, 8500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

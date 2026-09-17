@@ -79,7 +79,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.1"
+        "BTD6 Everything Macro - V1.11"
     )
 
 
@@ -133,7 +133,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.1"
+        "V1.11"
     )
 
 

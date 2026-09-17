@@ -39,7 +39,7 @@ ShowQueueProfilesManager(*) {
 
     QueueProfilesGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Queue Profiles - V1.1"
+        "Queue Profiles - V1.11"
     )
 
     QueueProfilesGui.BackColor := UIColorBackground

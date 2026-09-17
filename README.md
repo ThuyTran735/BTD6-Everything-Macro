@@ -1,8 +1,8 @@
 # BTD6 Everything Macro
 
-**Current version: V1.5**
+**Current version: V1.6**
 
-V1.5 adds per-run logging with detailed failure reasons, a dedicated Logs UI with export/open/delete controls, cleaner Settings controls, an optional Daily Chest check before every cycle, and faster Deflation pregame upgrading with safe upgrade timeouts.
+V1.6 adds GitHub update detection with automatic and manual checks in Settings. It compares the installed version with the Current version published in this repository README and notifies you when a newer version is available.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

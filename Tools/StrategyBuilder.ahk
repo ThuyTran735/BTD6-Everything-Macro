@@ -9,7 +9,7 @@ CoordMode("Mouse", "Screen")
 ; Use CAPTURE COORDS and press F2 while your mouse is over the desired
 ; placement location in BTD6.
 
-global AppVersion := "1.5"
+global AppVersion := "1.6"
 global Entities := []
 global UpgradeActions := []
 global NextMonkeyIndex := 1
@@ -45,7 +45,7 @@ BuildGui() {
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, OutputEdit, StatusText
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoices
 
-    MainGui := Gui("+Resize +MinSize1040x720", "BTD6 Strategy Builder V1.5")
+    MainGui := Gui("+Resize +MinSize1040x720", "BTD6 Strategy Builder V1.6")
     MainGui.BackColor := "1E1E1E"
     MainGui.SetFont("s10 cF2F2F2", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())

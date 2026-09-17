@@ -3,7 +3,7 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; Lightweight V1.5 shared-code smoke test.
+; Lightweight V1.6 shared-code smoke test.
 ; This does not click or type into BTD6.
 
 checks := []
@@ -14,7 +14,7 @@ checks.Push(["Logs directory", InStr(GetLogsDirectory(), "UserData\Logs") > 0])
 checks.Push(["Monkey Meadow map data", MapData.Has("Monkey Meadow") && MapData["Monkey Meadow"].category = "Beginner"])
 
 passed := 0
-report := "BTD6 Everything Macro V1.5 - Core Smoke Test`n"
+report := "BTD6 Everything Macro V1.6 - Core Smoke Test`n"
 
 for check in checks {
     ok := check[2]
@@ -24,5 +24,5 @@ for check in checks {
 
 report .= "`n`n" passed "/" checks.Length " checks passed."
 
-MsgBox(report, "BTD6 V1.5 Test")
+MsgBox(report, "BTD6 V1.6 Test")
 ExitApp()

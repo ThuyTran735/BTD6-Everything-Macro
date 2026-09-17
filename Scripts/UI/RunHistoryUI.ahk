@@ -178,7 +178,7 @@ ShowRunHistoryUI(*) {
 
     RunHistoryGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Run History - V1.5"
+        "Run History - V1.6"
     )
     RunHistoryGui.BackColor := UIColorBackground
 

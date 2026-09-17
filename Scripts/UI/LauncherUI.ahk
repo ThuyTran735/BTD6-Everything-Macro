@@ -22,6 +22,7 @@ CreateLauncherUI() {
     global MonkeyExpScriptDropdown
 
     global StatusText
+    global UpdateLinkText
 
     global RunButton
     global AddQueueButton
@@ -80,7 +81,7 @@ CreateLauncherUI() {
 
     LauncherGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "BTD6 Everything Macro - V1.5"
+        "BTD6 Everything Macro - V1.6"
     )
 
 
@@ -134,7 +135,7 @@ CreateLauncherUI() {
         "x170 y53 w55 h20 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
-        "V1.5"
+        "V1.6"
     )
 
 
@@ -445,6 +446,27 @@ CreateLauncherUI() {
             . " BackgroundTrans",
             "READY"
         )
+
+
+    SetUIBodyBoldFont(
+        LauncherGui,
+        9,
+        UIColorAccent
+    )
+
+
+    UpdateLinkText :=
+        LauncherGui.Add(
+            "Text",
+            "x238 y356 w112 h20 Left c"
+            . UIColorAccent
+            . " BackgroundTrans Hidden",
+            "Click to Update"
+        )
+
+
+    UpdateLinkText.SetFont("Underline")
+    UpdateLinkText.OnEvent("Click", OpenUpdateRepository)
 
 
     MapDropdown :=

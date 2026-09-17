@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 
-; V1.5 automatic game-mode unlock end-to-end test.
+; V1.6 automatic game-mode unlock end-to-end test.
 ; Launch the REAL Deflation map script so prerequisite path discovery uses
 ; the same filename/location rules as production runs.
 
@@ -11,7 +11,7 @@ if !FileExist(testScript) {
     MsgBox(
         "Could not find the Deflation strategy used by this test:"
         "`n`n" testScript,
-        "BTD6 V1.5 Unlock Test"
+        "BTD6 V1.6 Unlock Test"
     )
     ExitApp()
 }
@@ -29,16 +29,16 @@ try {
     MsgBox(
         "Could not launch the map strategy."
         "`n`n" err.Message,
-        "BTD6 V1.5 Unlock Test"
+        "BTD6 V1.6 Unlock Test"
     )
     ExitApp()
 }
 
 if !FileExist(resultPath) {
     MsgBox(
-        "The map strategy exited without writing a V1.5 run result."
+        "The map strategy exited without writing a V1.6 run result."
         "`nCheck the latest file in UserData\Logs for details.",
-        "BTD6 V1.5 Unlock Test"
+        "BTD6 V1.6 Unlock Test"
     )
     ExitApp()
 }
@@ -52,7 +52,7 @@ if status = "Success" {
     MsgBox(
         "Game-mode unlock test completed successfully."
         "`n`nRequested mode: Deflation",
-        "BTD6 V1.5 Unlock Test"
+        "BTD6 V1.6 Unlock Test"
     )
 } else {
     MsgBox(
@@ -60,7 +60,7 @@ if status = "Success" {
         "`n`nStatus: " status
         "`nReason: " (reason != "" ? reason : "No reason returned")
         "`n`nCheck UserData\Logs for the full run log.",
-        "BTD6 V1.5 Unlock Test"
+        "BTD6 V1.6 Unlock Test"
     )
 }
 

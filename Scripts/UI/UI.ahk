@@ -111,6 +111,7 @@ global CategoryData := Map()
 #Include QueueProfilesUI.ahk
 #Include RunHistoryUI.ahk
 #Include RetryRecoveryUI.ahk
+#Include ..\UpdateChecker.ahk
 #Include SettingsUI.ahk
 #Include QueueUI.ahk
 #Include ScriptPickerUI.ahk

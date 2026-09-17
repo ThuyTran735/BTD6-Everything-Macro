@@ -3,7 +3,7 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; V1.5 manual placement test.
+; V1.6 manual placement test.
 ; Start inside a loaded BTD6 game with enough cash for the selected tower.
 global RunConfig := {
     category: "Beginner",
@@ -137,7 +137,7 @@ ShowCurrentTower() {
     hotkey := TowerHotkeys.Has(tower.type) ? TowerHotkeys[tower.type] : "NOT CONFIGURED"
 
     ToolTip(
-        "BTD6 V1.5 Placement Test"
+        "BTD6 V1.6 Placement Test"
         "`nSelected: " towerName
         "`nType: " tower.type
         "`nHotkey: " hotkey

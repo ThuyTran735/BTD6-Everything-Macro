@@ -27,7 +27,7 @@ ShowSettingsUI(*) {
 
     SettingsGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Settings - V1.5"
+        "Settings - V1.6"
     )
     SettingsGui.BackColor := UIColorBackground
 
@@ -43,7 +43,7 @@ ShowSettingsUI(*) {
         SettingsGui,
         500,
         "SETTINGS",
-        "Manage launcher behavior, recovery, Daily Chest automation, and diagnostics."
+        "Manage launcher behavior, recovery, Daily Chest automation, updates, and diagnostics."
     )
 
     SetUIBodyFont(SettingsGui, 9, UIColorSecondaryText)
@@ -83,14 +83,28 @@ ShowSettingsUI(*) {
 
     logsButton := CreateDarkButton(SettingsGui, 256, 262, 202, 38, "LOGS", 8, "Default")
 
+    SetUIBodyFont(SettingsGui, 8, UIColorMutedText)
+    SettingsGui.Add("Text", "x42 y320 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "UPDATES")
+
+    autoUpdatesEnabled := IsAutoUpdateCheckEnabled()
+    autoUpdatesButton := CreateDarkButton(
+        SettingsGui, 42, 344, 202, 40,
+        autoUpdatesEnabled ? "AUTO UPDATE CHECK: ON" : "AUTO UPDATE CHECK: OFF", 7
+    )
+
+    checkUpdatesButton := CreateDarkButton(
+        SettingsGui, 256, 344, 202, 40,
+        "CHECK FOR UPDATES", 7, "Default"
+    )
+
     SetUIBodyFont(SettingsGui, 8, UIColorSecondaryText)
     SettingsStatusText := SettingsGui.Add(
         "Text",
-        "x42 y316 w416 h34 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "Daily Chest can run before every map cycle. Logs are managed in their own menu."
+        "x42 y402 w416 h38 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Update checks compare this copy with the Current version listed on GitHub."
     )
 
-    closeButton := CreateDarkButton(SettingsGui, 90, 370, 320, 42, "CLOSE", 8)
+    closeButton := CreateDarkButton(SettingsGui, 90, 458, 320, 42, "CLOSE", 8)
 
     confirmationsButton.OnEvent("Click", ToggleConfirmationSetting.Bind(confirmationsButton))
     queueButtonsButton.OnEvent("Click", ToggleQueueLauncherButtonsSetting.Bind(queueButtonsButton))
@@ -98,6 +112,8 @@ ShowSettingsUI(*) {
     retryButton.OnEvent("Click", OpenRetryRecoveryFromSettings)
     dailyChestButton.OnEvent("Click", ToggleDailyChestSetting.Bind(dailyChestButton))
     logsButton.OnEvent("Click", OpenLogsFromSettings)
+    autoUpdatesButton.OnEvent("Click", ToggleAutoUpdateCheckSetting.Bind(autoUpdatesButton))
+    checkUpdatesButton.OnEvent("Click", CheckForUpdatesFromSettings)
     closeButton.OnEvent("Click", CloseSettingsAndReturnToLauncher)
 
     CreateHelpBadgeForButton(
@@ -125,6 +141,14 @@ ShowSettingsUI(*) {
         "Opens the Logs menu with logging, export, folder, and delete controls."
     )
     CreateHelpBadgeForButton(
+        SettingsGui, autoUpdatesButton, "AUTO UPDATE CHECK",
+        "When ON, the launcher checks your GitHub repository shortly after startup and notifies you only when a newer version is listed."
+    )
+    CreateHelpBadgeForButton(
+        SettingsGui, checkUpdatesButton, "CHECK FOR UPDATES",
+        "Checks https://github.com/ThuyTran735/BTD6-Everything-Macro now and compares the GitHub README version with this installed copy."
+    )
+    CreateHelpBadgeForButton(
         SettingsGui, closeButton, "CLOSE",
         "Closes Settings and returns to the main launcher."
     )
@@ -132,9 +156,9 @@ ShowSettingsUI(*) {
     SettingsGui.OnEvent("Close", CloseSettingsAndReturnToLauncher)
     SettingsGui.OnEvent("Escape", CloseSettingsAndReturnToLauncher)
 
-    SettingsGui.Show("Hide w500 h436")
+    SettingsGui.Show("Hide w500 h524")
     ApplyDarkWindowStyle(SettingsGui)
-    SettingsGui.Show("w500 h436 Center")
+    SettingsGui.Show("w500 h524 Center")
 }
 
 
@@ -202,6 +226,49 @@ ToggleDailyChestSetting(button, *) {
         enabled
             ? "Daily Chest opening enabled before every map cycle."
             : "Daily Chest opening disabled."
+    )
+}
+
+
+ToggleAutoUpdateCheckSetting(button, *) {
+    enabled := !IsAutoUpdateCheckEnabled()
+    SetAutoUpdateCheckEnabled(enabled)
+    button.Text := enabled ? "AUTO UPDATE CHECK: ON" : "AUTO UPDATE CHECK: OFF"
+    SetSettingsStatus(
+        enabled
+            ? "Automatic GitHub update checks enabled."
+            : "Automatic GitHub update checks disabled. Manual checks still work."
+    )
+}
+
+
+CheckForUpdatesFromSettings(*) {
+    SetSettingsStatus("Checking GitHub for a newer version...")
+
+    result := GetGitHubUpdateStatus()
+
+    if !result.ok {
+        SetSettingsStatus("Update check failed: " . result.error)
+        return
+    }
+
+    if result.updateAvailable {
+        ShowLauncherUpdateNotice(result.latestVersion)
+        SetSettingsStatus(
+            "Update available: V" . result.latestVersion
+            . "   |   Installed: V" . result.currentVersion
+        )
+        return
+    }
+
+    if CompareMacroVersions(result.latestVersion, result.currentVersion) = 0 {
+        SetSettingsStatus("You're up to date. Installed version: V" . result.currentVersion)
+        return
+    }
+
+    SetSettingsStatus(
+        "This copy is newer than GitHub. Installed: V" . result.currentVersion
+        . "   |   GitHub: V" . result.latestVersion
     )
 }
 
@@ -292,7 +359,7 @@ ShowLogsUI(*) {
 
     LogsGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Logs - V1.5"
+        "Logs - V1.6"
     )
     ; Keep native dialogs such as DirSelect/MsgBox in front of the Logs window.
     LogsGui.Opt("+OwnDialogs")

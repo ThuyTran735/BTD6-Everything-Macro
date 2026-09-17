@@ -1,6 +1,6 @@
 # BTD6 Everything Macro
 
-**Current version: V1.11**
+**Current version: V1.12**
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

@@ -924,16 +924,21 @@ MonitorLauncherState() {
 
         if IsHomeScreenVisible() {
 
+            ; Final-cycle completion is an explicit return to the
+            ; launcher. Keep it visible until the user starts another
+            ; run instead of allowing the normal screen monitor to
+            ; hide it again on the next timer tick.
+            ForceLauncherVisible :=
+                true
+
+
             ClearLauncherReturnPending()
             SetLauncherRunSuppressed(false)
 
 
-            if !IsLauncherVisible() {
-
-                ShowLauncher(
-                    false
-                )
-            }
+            ShowLauncher(
+                true
+            )
 
 
             return
@@ -957,8 +962,23 @@ MonitorLauncherState() {
         }
 
 
+        ; Fallback return: do not fall through into IsInGameScreen().
+        ; That could immediately hide the launcher again and strand
+        ; the user with no UI after a completed cycle.
+        ForceLauncherVisible :=
+            true
+
+
         ClearLauncherReturnPending()
         SetLauncherRunSuppressed(false)
+
+
+        ShowLauncher(
+            true
+        )
+
+
+        return
     }
 
 

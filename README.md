@@ -1,6 +1,6 @@
 # BTD6 Everything Macro
 
-**Current version: V1.5**
+**Current version: V1.7**
 
 V1.5 adds per-run logging with detailed failure reasons, a dedicated Logs UI with export/open/delete controls, cleaner Settings controls, an optional Daily Chest check before every cycle, and faster Deflation pregame upgrading with safe upgrade timeouts.
 

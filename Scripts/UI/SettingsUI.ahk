@@ -27,7 +27,7 @@ ShowSettingsUI(*) {
 
     SettingsGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Settings - V1.6"
+        GetVersionedTitle("Settings")
     )
     SettingsGui.BackColor := UIColorBackground
 
@@ -101,7 +101,7 @@ ShowSettingsUI(*) {
     SettingsStatusText := SettingsGui.Add(
         "Text",
         "x42 y402 w416 h38 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "Update checks compare this copy with the Current version listed on GitHub."
+        "Update checks compare this copy with the version file on GitHub."
     )
 
     closeButton := CreateDarkButton(SettingsGui, 90, 458, 320, 42, "CLOSE", 8)
@@ -146,7 +146,7 @@ ShowSettingsUI(*) {
     )
     CreateHelpBadgeForButton(
         SettingsGui, checkUpdatesButton, "CHECK FOR UPDATES",
-        "Checks https://github.com/ThuyTran735/BTD6-Everything-Macro now and compares the GitHub README version with this installed copy."
+        "Checks GitHub now and compares Scripts/Version.ahk with this installed copy."
     )
     CreateHelpBadgeForButton(
         SettingsGui, closeButton, "CLOSE",
@@ -359,7 +359,7 @@ ShowLogsUI(*) {
 
     LogsGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-        "Logs - V1.6"
+        GetVersionedTitle("Logs")
     )
     ; Keep native dialogs such as DirSelect/MsgBox in front of the Logs window.
     LogsGui.Opt("+OwnDialogs")

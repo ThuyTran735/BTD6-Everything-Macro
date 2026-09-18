@@ -120,7 +120,11 @@ UpgradeTower(
 
     ; Select the tower immediately.
     ;
-    ; Do not wait for round OCR before doing this.
+    ; Do not wait for round OCR or a full-screen FindText scan before
+    ; beginning the upgrade wait. The BTD6 upgrade panel opens on the
+    ; opposite side of the screen from the selected monkey, so infer the
+    ; expected side from the saved placement coordinate. Recovery logic
+    ; will verify/reopen the panel only if the normal path fails.
     Click(
         tower.x,
         tower.y
@@ -128,12 +132,12 @@ UpgradeTower(
 
 
     Sleep(
-        IsFastDeflationPregameUpgrade() ? 45 : 120
+        IsFastDeflationPregameUpgrade() ? 35 : 55
     )
 
 
     panelSide :=
-        GetUpgradePanelSide()
+        GetExpectedUpgradePanelSide(tower)
 
 
     if !panelSide {
@@ -379,6 +383,22 @@ UpgradeTower(
 }
 
 
+GetExpectedUpgradePanelSide(tower) {
+    if !HasProp(tower, "x") {
+        return false
+    }
+
+
+    ; BTD6 places the upgrade panel on the opposite side of the selected
+    ; monkey so it does not cover the tower itself. Using the saved X
+    ; coordinate avoids an expensive full-screen FindText scan on every
+    ; normal upgrade selection.
+    return tower.x < A_ScreenWidth // 2
+        ? "Right"
+        : "Left"
+}
+
+
 GetUpgradePanelSide() {
     global SellButtonPattern
 
@@ -535,7 +555,7 @@ WaitForUpgrade(
             if (
                 A_TickCount
                 - lastStateCheck
-                >= 200
+                >= 70
             ) {
 
                 lastStateCheck :=
@@ -557,7 +577,7 @@ WaitForUpgrade(
 
 
                 lastRoundHealth :=
-                    CheckRoundReadRecovery()
+                    CheckRoundReadRecovery(650)
 
 
                 if lastRoundHealth = "Recovered" {
@@ -601,7 +621,7 @@ WaitForUpgrade(
         if (
             A_TickCount
             - lastPanelCheck
-            >= (IsFastDeflationPregameUpgrade() ? 75 : 200)
+            >= (IsFastDeflationPregameUpgrade() ? 75 : 100)
         ) {
 
             lastPanelCheck :=
@@ -724,7 +744,9 @@ EnsureUpgradePanelOpen(
     ; Clear it before any click tries to reselect the tower.
     if !IsPregame {
 
-        WaitForLevelUpAfterNewBloon()
+        ; One immediate popup check only. Never block the normal monkey
+        ; selection path for the old 2500 ms level-up timeout.
+        WaitForLevelUpAfterNewBloon(0)
     }
 
 
@@ -737,7 +759,7 @@ EnsureUpgradePanelOpen(
 
         if !IsPregame {
 
-            WaitForLevelUpAfterNewBloon()
+            WaitForLevelUpAfterNewBloon(0)
         }
 
         Click(
@@ -747,7 +769,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            IsFastDeflationPregameUpgrade() ? 45 : 120
+            IsFastDeflationPregameUpgrade() ? 35 : 55
         )
 
 
@@ -783,7 +805,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            IsFastDeflationPregameUpgrade() ? 15 : 50
+            IsFastDeflationPregameUpgrade() ? 10 : 15
         )
     }
 
@@ -828,11 +850,11 @@ EnsureUpgradePanelOpen(
         }
 
 
-        WaitForLevelUpAfterNewBloon()
+        WaitForLevelUpAfterNewBloon(100)
 
 
         roundHealth :=
-            CheckRoundReadRecovery()
+            CheckRoundReadRecovery(650)
 
 
         if roundHealth = "Recovered" {
@@ -848,7 +870,7 @@ EnsureUpgradePanelOpen(
 
 
             Sleep(
-                120
+                55
             )
 
 
@@ -877,7 +899,7 @@ EnsureUpgradePanelOpen(
             if (
                 A_TickCount
                 - lastTowerRetry
-                >= 250
+                >= 70
             ) {
 
                 lastTowerRetry :=
@@ -891,7 +913,7 @@ EnsureUpgradePanelOpen(
 
 
                 Sleep(
-                    120
+                    55
                 )
 
 
@@ -913,7 +935,7 @@ EnsureUpgradePanelOpen(
 
         ; If roundHealth = "Waiting", do not click
         ; behind a likely unknown popup. The round
-        ; recovery timer will clear it after about 1.5 seconds.
+        ; recovery timer will clear it after the configured recovery delay.
         if (
             A_TickCount
             - startTick
@@ -925,7 +947,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            80
+            25
         )
     }
 }
@@ -1236,7 +1258,7 @@ BuyUpgrade(
 
 
     Sleep(
-        IsFastDeflationPregameUpgrade() ? 75 : 200
+        50
     )
 
 

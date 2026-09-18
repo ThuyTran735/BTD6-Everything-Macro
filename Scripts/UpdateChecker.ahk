@@ -1,13 +1,13 @@
 ﻿#Requires AutoHotkey v2.0
 
-; V1.6 update checking for the public GitHub repository.
-; The remote version is read from the README line:
-;   Current version: V1.6
+; Update checking for the public GitHub repository.
+; The remote version is read directly from Scripts/Version.ahk.
 
-global MacroCurrentVersion := "1.6"
 global UpdateRepositoryUrl := "https://github.com/ThuyTran735/BTD6-Everything-Macro"
-global UpdateReadmeApiUrl := "https://api.github.com/repos/ThuyTran735/BTD6-Everything-Macro/readme"
-global UpdateReadmeUrl := "https://raw.githubusercontent.com/ThuyTran735/BTD6-Everything-Macro/main/README.md"
+global UpdateVersionApiUrl := "https://api.github.com/repos/ThuyTran735/BTD6-Everything-Macro/contents/Scripts/Version.ahk"
+global UpdateVersionRawUrl := "https://raw.githubusercontent.com/ThuyTran735/BTD6-Everything-Macro/main/Scripts/Version.ahk"
+global UpdateLegacyVersionApiUrl := "https://api.github.com/repos/ThuyTran735/BTD6-Everything-Macro/contents/Scripts/UpdateChecker.ahk"
+global UpdateLegacyVersionRawUrl := "https://raw.githubusercontent.com/ThuyTran735/BTD6-Everything-Macro/main/Scripts/UpdateChecker.ahk"
 
 
 global UpdateCheckAnimationFrames := [
@@ -75,10 +75,10 @@ CompareMacroVersions(leftVersion, rightVersion) {
 }
 
 
-ParseVersionFromReadme(body) {
+ParseVersionFromVersionFile(body) {
     if RegExMatch(
         body,
-        "i)Current\s+version\s*:\s*V?([0-9]+(?:\.[0-9]+){1,2})",
+        "i)AppVersion\s*:=\s*\x22([0-9]+(?:\.[0-9]+){1,2})\x22",
         &match
     ) {
         return NormalizeMacroVersion(match[1])
@@ -88,22 +88,34 @@ ParseVersionFromReadme(body) {
 }
 
 
-FetchReadmeText(url, useGitHubApi := false) {
-    global MacroCurrentVersion
+ParseVersionFromLegacyUpdateChecker(body) {
+    if RegExMatch(
+        body,
+        "i)MacroCurrentVersion\s*:=\s*\x22([0-9]+(?:\.[0-9]+){1,2})\x22",
+        &match
+    ) {
+        return NormalizeMacroVersion(match[1])
+    }
 
-    ; Add a unique query value so WinHTTP/CDN/proxy caches cannot reuse an old README.
+    return ""
+}
+
+
+FetchVersionText(url, useGitHubApi := false) {
+    
+    ; Add a unique query value so WinHTTP/CDN/proxy caches cannot reuse an old version file.
     separator := InStr(url, "?") ? "&" : "?"
     requestUrl := url . separator . "_=" . A_TickCount
 
     request := ComObject("WinHttp.WinHttpRequest.5.1")
     request.SetTimeouts(2500, 2500, 2500, 5000)
     request.Open("GET", requestUrl, false)
-    request.SetRequestHeader("User-Agent", "BTD6-Everything-Macro-V" . MacroCurrentVersion)
+    request.SetRequestHeader("User-Agent", "BTD6-Everything-Macro-V" . GetAppVersion())
     request.SetRequestHeader("Cache-Control", "no-cache, no-store, max-age=0")
     request.SetRequestHeader("Pragma", "no-cache")
 
     if useGitHubApi {
-        ; GitHub returns README.md itself instead of JSON when this media type is requested.
+        ; GitHub returns Version.ahk itself instead of JSON when this media type is requested.
         request.SetRequestHeader("Accept", "application/vnd.github.raw+json")
         request.SetRequestHeader("X-GitHub-Api-Version", "2022-11-28")
     }
@@ -118,72 +130,109 @@ FetchReadmeText(url, useGitHubApi := false) {
 
 
 FetchLatestGitHubVersion() {
-    global UpdateReadmeApiUrl
-    global UpdateReadmeUrl
+    global UpdateVersionApiUrl
+    global UpdateVersionRawUrl
+    global UpdateLegacyVersionApiUrl
+    global UpdateLegacyVersionRawUrl
 
-    apiError := ""
+    errors := []
 
-    ; Primary path: GitHub API. This avoids stale raw.githubusercontent.com CDN data.
+    ; Preferred source for all new builds: the centralized version file.
     try {
-        body := FetchReadmeText(UpdateReadmeApiUrl, true)
-        version := ParseVersionFromReadme(body)
+        body := FetchVersionText(UpdateVersionApiUrl, true)
+        version := ParseVersionFromVersionFile(body)
 
         if version != "" {
             return {
                 ok: true,
                 latestVersion: version,
-                source: "GitHub API",
+                source: "GitHub Version.ahk",
                 error: ""
             }
         }
 
-        apiError := "GitHub API README did not contain a Current version line."
+        errors.Push("Version.ahk API did not contain AppVersion")
     }
     catch as err {
-        apiError := err.Message
+        errors.Push("Version.ahk API: " . err.Message)
     }
 
-    ; Fallback path: raw README with an explicit cache-busting query parameter.
     try {
-        body := FetchReadmeText(UpdateReadmeUrl, false)
-        version := ParseVersionFromReadme(body)
+        body := FetchVersionText(UpdateVersionRawUrl, false)
+        version := ParseVersionFromVersionFile(body)
 
         if version != "" {
             return {
                 ok: true,
                 latestVersion: version,
-                source: "Raw README fallback",
+                source: "Raw Version.ahk",
                 error: ""
             }
         }
 
-        return {
-            ok: false,
-            latestVersion: "",
-            source: "",
-            error: "Could not find the Current version line in README.md. API: " . apiError
-        }
+        errors.Push("Raw Version.ahk did not contain AppVersion")
     }
     catch as err {
-        return {
-            ok: false,
-            latestVersion: "",
-            source: "",
-            error: "GitHub API: " . apiError . " | Raw README: " . err.Message
+        errors.Push("Raw Version.ahk: " . err.Message)
+    }
+
+    ; Transition fallback for repositories that have not committed Version.ahk yet.
+    ; Older V1.6/V1.6.1 builds stored the version in UpdateChecker.ahk.
+    try {
+        body := FetchVersionText(UpdateLegacyVersionApiUrl, true)
+        version := ParseVersionFromLegacyUpdateChecker(body)
+
+        if version != "" {
+            return {
+                ok: true,
+                latestVersion: version,
+                source: "Legacy GitHub UpdateChecker.ahk",
+                error: ""
+            }
         }
+
+        errors.Push("Legacy UpdateChecker API did not contain MacroCurrentVersion")
+    }
+    catch as err {
+        errors.Push("Legacy UpdateChecker API: " . err.Message)
+    }
+
+    try {
+        body := FetchVersionText(UpdateLegacyVersionRawUrl, false)
+        version := ParseVersionFromLegacyUpdateChecker(body)
+
+        if version != "" {
+            return {
+                ok: true,
+                latestVersion: version,
+                source: "Legacy raw UpdateChecker.ahk",
+                error: ""
+            }
+        }
+
+        errors.Push("Legacy raw UpdateChecker did not contain MacroCurrentVersion")
+    }
+    catch as err {
+        errors.Push("Legacy raw UpdateChecker: " . err.Message)
+    }
+
+    return {
+        ok: false,
+        latestVersion: "",
+        source: "",
+        error: errors.Length ? errors[errors.Length] : "Could not read a remote version."
     }
 }
 
 
 GetGitHubUpdateStatus() {
-    global MacroCurrentVersion
-
+    
     remote := FetchLatestGitHubVersion()
 
     if !remote.ok {
         return {
             ok: false,
-            currentVersion: MacroCurrentVersion,
+            currentVersion: GetAppVersion(),
             latestVersion: "",
             source: "",
             updateAvailable: false,
@@ -193,10 +242,10 @@ GetGitHubUpdateStatus() {
 
     return {
         ok: true,
-        currentVersion: MacroCurrentVersion,
+        currentVersion: GetAppVersion(),
         latestVersion: remote.latestVersion,
         source: remote.source,
-        updateAvailable: CompareMacroVersions(remote.latestVersion, MacroCurrentVersion) > 0,
+        updateAvailable: CompareMacroVersions(remote.latestVersion, GetAppVersion()) > 0,
         error: ""
     }
 }

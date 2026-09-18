@@ -3,7 +3,7 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; Live round OCR/debug test for V1.6.
+; Live round OCR/debug test.
 ; Open any active game first, then run this file.
 global RunConfig := {
     category: "Beginner",
@@ -24,7 +24,7 @@ Loop {
     validatedRound := detectedRound ? ValidateRound(detectedRound) : LastRound
 
     ToolTip(
-        "BTD6 V1.6 Round Detection Test"
+        "BTD6 " . GetAppVersionLabel() . " Round Detection Test"
         "`nDetected OCR: " (detectedRound ? detectedRound : "Not Found")
         "`nValidated: " (validatedRound ? validatedRound : "Not Found")
         "`nLast Round: " LastRound

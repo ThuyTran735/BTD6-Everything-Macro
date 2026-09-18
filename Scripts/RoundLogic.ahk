@@ -488,7 +488,7 @@ GetValidatedRound() {
 }
 
 
-CheckRoundReadRecovery() {
+CheckRoundReadRecovery(timeoutMs := "") {
     detectedRound :=
         GetCurrentRound()
 
@@ -507,7 +507,7 @@ CheckRoundReadRecovery() {
     }
 
 
-    if HandleMissingRoundRead() {
+    if HandleMissingRoundRead(timeoutMs) {
 
         return "Recovered"
     }
@@ -517,9 +517,15 @@ CheckRoundReadRecovery() {
 }
 
 
-HandleMissingRoundRead() {
+HandleMissingRoundRead(timeoutMs := "") {
     global RoundReadMissingSince
     global RoundReadTimeoutMs
+
+
+    effectiveTimeoutMs :=
+        timeoutMs = ""
+            ? RoundReadTimeoutMs
+            : timeoutMs
 
 
     if RoundReadMissingSince = 0 {
@@ -535,7 +541,7 @@ HandleMissingRoundRead() {
     if (
         A_TickCount
         - RoundReadMissingSince
-        < RoundReadTimeoutMs
+        < effectiveTimeoutMs
     ) {
 
         return false

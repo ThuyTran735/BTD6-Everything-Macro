@@ -33,6 +33,12 @@ global MapData := Map(
         pattern: "|<>*106$20.01y0000000000000300000000000000000000000s00Dk03zU0zz0Dzy3zzwzzynz40T007U00s00C003U00s00C001U00M007U01m00C003U00k00A007001k00Q006001U00Q007001s00T007U00s00C003U0U"
     },
 
+    "Spa Pits", {
+        category: "Beginner",
+        page: 1,
+        pattern: "|<>*177$19.zzzzzzzzzrztny0tC0A606T03D01tU3wsDyATz7zzXz07y07w03s0DU0zU3zUDzkTzsTzwTzyTzzDzzzzzzzzzzzzzzzzzzzzzzzzs"
+    },
+
     "Intermediate Map", {
         category: "Intermediate",
         page: 6,

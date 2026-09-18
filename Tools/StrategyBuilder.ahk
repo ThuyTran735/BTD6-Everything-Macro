@@ -1,15 +1,15 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
+#Include ..\Scripts\Version.ahk
 
 CoordMode("Mouse", "Screen")
 
 ; BTD6 Everything Macro - Strategy Builder / Coordinate Tool
 ; ---------------------------------------------------------
 ; Build TowerSetup + strategy actions without hand-writing coordinates.
-; Use CAPTURE COORDS and press F2 while your mouse is over the desired
-; placement location in BTD6.
+; Press F2 at any time while this tool is open to instantly capture the current
+; mouse position as the placement coordinates. The button is an alternate capture mode.
 
-global AppVersion := "1.6"
 global Entities := []
 global UpgradeActions := []
 global NextMonkeyIndex := 1
@@ -45,7 +45,7 @@ BuildGui() {
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, OutputEdit, StatusText
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoices
 
-    MainGui := Gui("+Resize +MinSize1040x720", "BTD6 Strategy Builder V1.6")
+    MainGui := Gui("+Resize +MinSize1040x720", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "1E1E1E"
     MainGui.SetFont("s10 cF2F2F2", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())
@@ -62,9 +62,11 @@ BuildGui() {
 
     MainGui.AddText("x40 y105 w80 h20", "Map Name")
     MapNameEdit := MainGui.AddEdit("x120 y101 w210 h26", "MAP NAME")
+    SetEditTextBlack(MapNameEdit)
 
     MainGui.AddText("x350 y105 w85 h20", "Function")
     FunctionNameEdit := MainGui.AddEdit("x425 y101 w190 h26", "GeneratedMapStrategy")
+    SetEditTextBlack(FunctionNameEdit)
 
     MainGui.AddText("x635 y105 w70 h20", "Category")
     CategoryDDL := MainGui.AddDropDownList("x700 y101 w140 Choose1", CategoryChoices)
@@ -82,6 +84,7 @@ BuildGui() {
 
     MainGui.AddText("x40 y220 w65 h20", "Name")
     EntityNameEdit := MainGui.AddEdit("x105 y216 w155 h26", "Monkey A")
+    SetEditTextBlack(EntityNameEdit)
 
     MainGui.AddText("x275 y220 w45 h20", "Type")
     EntityTypeDDL := MainGui.AddDropDownList("x320 y216 w175 Choose1", TowerTypes)
@@ -97,14 +100,17 @@ BuildGui() {
 
     MainGui.AddText("x40 y292 w65 h20", "X")
     XEdit := MainGui.AddEdit("x105 y288 w75 h26 ReadOnly", "0")
+    SetEditTextBlack(XEdit)
     MainGui.AddText("x190 y292 w25 h20", "Y")
     YEdit := MainGui.AddEdit("x215 y288 w75 h26 ReadOnly", "0")
+    SetEditTextBlack(YEdit)
 
     CaptureBtn := MainGui.AddButton("x305 y286 w190 h30", "CAPTURE COORDS (F2)")
     CaptureBtn.OnEvent("Click", CaptureCoordinates)
 
     MainGui.AddText("x40 y330 w90 h20", "Place Round")
     PlaceRoundEdit := MainGui.AddEdit("x130 y326 w70 h26 Number", "0")
+    SetEditTextBlack(PlaceRoundEdit)
     MainGui.AddText("x215 y330 w275 h20 cAFAFAF", "Round 0 = pregame")
 
     AddEntityBtn := MainGui.AddButton("x40 y363 w220 h32", "ADD MONKEY / HERO")
@@ -130,12 +136,15 @@ BuildGui() {
 
     MainGui.AddText("x815 y220 w70 h20", "Upgrade")
     UpgradeEdit := MainGui.AddEdit("x880 y216 w90 h26", "000")
+    SetEditTextBlack(UpgradeEdit)
 
     MainGui.AddText("x560 y258 w45 h20", "Round")
     UpgradeRoundEdit := MainGui.AddEdit("x605 y254 w70 h26 Number", "0")
+    SetEditTextBlack(UpgradeRoundEdit)
 
     MainGui.AddText("x695 y258 w65 h20", "Delay ms")
     UpgradeDelayEdit := MainGui.AddEdit("x760 y254 w80 h26 Number", "0")
+    SetEditTextBlack(UpgradeDelayEdit)
     MainGui.AddText("x850 y258 w130 h20 cAFAFAF", "e.g. 002 / 024 / 520")
 
     AddUpgradeBtn := MainGui.AddButton("x560 y291 w200 h32", "ADD UPGRADE")
@@ -165,11 +174,17 @@ BuildGui() {
 
     StatusText := MainGui.AddText("x745 y550 w250 h22 cB7B7B7", "Ready")
     OutputEdit := MainGui.AddEdit("x40 y586 w955 h70 ReadOnly -Wrap VScroll", "")
+    SetEditTextBlack(OutputEdit)
 
     MainGui.SetFont("s8 c9E9E9E")
-    MainGui.AddText("x20 y687 w1000 h18", "Coordinate capture uses SCREEN coordinates. Click CAPTURE COORDS, move the cursor to the BTD6 placement spot, then press F2.")
+    MainGui.AddText("x20 y687 w1000 h18", "Coordinate capture uses SCREEN coordinates. Press F2 anytime for an instant capture, or use CAPTURE COORDS for guided capture mode.")
 
     MainGui.Show("w1040 h720")
+    Hotkey("F2", CaptureCoordinatesInstant, "On")
+}
+
+SetEditTextBlack(control) {
+    control.SetFont("c000000", "Segoe UI")
 }
 
 OnEntityTypeChanged(*) {
@@ -190,6 +205,17 @@ OnEntityTypeChanged(*) {
         else
             ChooseDropdownText(TargetingDDL, "First")
     }
+}
+
+CaptureCoordinatesInstant(*) {
+    global XEdit, YEdit, StatusText
+
+    MouseGetPos(&mx, &my)
+    XEdit.Value := mx
+    YEdit.Value := my
+    StatusText.Text := "Captured: " mx ", " my
+    ToolTip("Captured coordinates: " mx ", " my)
+    SetTimer(() => ToolTip(), -800)
 }
 
 CaptureCoordinates(*) {
@@ -396,7 +422,10 @@ RefreshActionEntityDropdown() {
             names.Push(entity.name)
     }
 
-    ActionEntityDDL.Delete()
+    ; CB_RESETCONTENT clears all items from a DropDownList/ComboBox.
+    ; Gui.DropDownList does not expose GetCount() in AutoHotkey v2.
+    DllCall("SendMessage", "Ptr", ActionEntityDDL.Hwnd, "UInt", 0x014B, "Ptr", 0, "Ptr", 0)
+
     if names.Length = 0 {
         ActionEntityDDL.Add(["Add a monkey first"])
         ActionEntityDDL.Choose(1)
@@ -638,13 +667,14 @@ NumberToLetters(number) {
 }
 
 ChooseDropdownText(control, wanted) {
-    Loop control.GetCount() {
-        if control.GetText(A_Index) = wanted {
-            control.Choose(A_Index)
-            return true
-        }
-    }
-    return false
+    ; CB_FINDSTRINGEXACT returns a zero-based combo-box item index.
+    ; Avoid unsupported Gui.DDL.GetCount() calls in AutoHotkey v2.
+    itemIndex := DllCall("SendMessage", "Ptr", control.Hwnd, "UInt", 0x0158, "Ptr", -1, "Str", wanted, "Ptr")
+    if itemIndex = -1
+        return false
+
+    control.Choose(itemIndex + 1)
+    return true
 }
 
 IntegerOrDefault(value, defaultValue := 0) {
@@ -680,6 +710,6 @@ SanitizeFileName(text) {
     text := Trim(text)
     if text = ""
         return "GeneratedMapStrategy"
-    text := RegExReplace(text, "[\\/:*?""<>|]", "_")
+    text := RegExReplace(text, "[\\/:*?\x22<>|]", "_")
     return text
 }

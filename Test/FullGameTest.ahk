@@ -3,7 +3,7 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; V1.6 end-to-end run test.
+; End-to-end run test.
 ; Uses the same RunMapStrategy() pipeline as real map scripts.
 global RunConfig := {
     category: "Beginner",
@@ -33,12 +33,12 @@ strategy := [
 result := RunMapStrategy(strategy)
 
 if result {
-    MsgBox("Full game test completed successfully.", "BTD6 V1.6 Test")
+    MsgBox("Full game test completed successfully.", "BTD6 " . GetAppVersionLabel() . " Test")
 } else {
     MsgBox(
         "Full game test failed."
         "`n`nReason: " GetRunFailureReason("Unknown failure"),
-        "BTD6 V1.6 Test"
+        "BTD6 " . GetAppVersionLabel() . " Test"
     )
 }
 

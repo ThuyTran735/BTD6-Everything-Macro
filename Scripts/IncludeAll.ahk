@@ -1,6 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\FindText.ahk
+#Include Version.ahk
 
 
 global RunConfig := {

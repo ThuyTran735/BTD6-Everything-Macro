@@ -52,6 +52,7 @@ MortarEXP() {
         [0, 0, () => PlaceTower(TowerSetup["Sniper A"])],
         [0, 0, () => PlaceTower(TowerSetup["Mortar A"])],
         [0, 0, () => PlaceTower(TowerSetup["Mortar B"])],
+
         [0, 0, () => UpgradeTower(TowerSetup["Sniper A"], "024")],
         [0, 0, () => UpgradeTower(TowerSetup["Mortar A"], "420")],
         [0, 0, () => UpgradeTower(TowerSetup["Mortar B"], "310")],
@@ -67,6 +68,10 @@ MortarEXP() {
             729,
             546
         )],
+
+        [60, 8000, () => UseAbility("1")],
+        [60, 8250, () => UseAbility("2")],
+        [60, 8500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

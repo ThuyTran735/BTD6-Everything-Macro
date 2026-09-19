@@ -43,9 +43,14 @@ SniperEXP() {
         [0, 0, () => PlaceTower(TowerSetup["Sniper A"])],
         [0, 0, () => PlaceTower(TowerSetup["Sniper B"])],
         [0, 0, () => PlaceTower(TowerSetup["Sniper C"])],
+
         [0, 0, () => UpgradeTower(TowerSetup["Sniper A"], "024")],
         [0, 0, () => UpgradeTower(TowerSetup["Sniper B"], "420")],
-        [0, 0, () => UpgradeTower(TowerSetup["Sniper C"], "130")]
+        [0, 0, () => UpgradeTower(TowerSetup["Sniper C"], "130")],
+
+        [60, 8000, () => UseAbility("1")],
+        [60, 8250, () => UseAbility("2")],
+        [60, 8500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

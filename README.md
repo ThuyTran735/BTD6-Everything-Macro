@@ -1,11 +1,12 @@
 # BTD6 Everything Macro
 
-**Current version: v1.9.0**
+**Current version: v1.9.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
+- Updated all completed Military Monkey EXP scripts to use all available abilities on Round 60
 - Added millisecond upgrade timing diagnostics for round detection, monkey selection, green-upgrade detection, hotkey sends, and purchase confirmation
 - Logs now record when the user manually closes an active run
 - Added dedicated Dartling Gunner aim and retarget helpers

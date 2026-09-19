@@ -52,9 +52,14 @@ BuccaneerEXP() {
         [0, 0, () => PlaceTower(TowerSetup["Buccaneer A"])],
         [0, 0, () => PlaceTower(TowerSetup["Buccaneer B"])],
         [0, 0, () => PlaceTower(TowerSetup["Buccaneer C"])],
+
         [0, 0, () => UpgradeTower(TowerSetup["Buccaneer A"], "402")],
         [0, 0, () => UpgradeTower(TowerSetup["Buccaneer B"], "320")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")]
+        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")],
+
+        [60, 8000, () => UseAbility("1")],
+        [60, 8250, () => UseAbility("2")],
+        [60, 8500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

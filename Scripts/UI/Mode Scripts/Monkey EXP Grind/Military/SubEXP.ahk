@@ -91,12 +91,17 @@ SubEXP() {
         [0, 0, () => PlaceTower(TowerSetup["Sub D"])],
         [0, 0, () => PlaceTower(TowerSetup["Sub E"])],
         [0, 0, () => PlaceTower(TowerSetup["Sub F"])],
+
         [0, 0, () => UpgradeTower(TowerSetup["Sub A"], "204")],
         [0, 0, () => UpgradeTower(TowerSetup["Sub B"], "204")],
         [0, 0, () => UpgradeTower(TowerSetup["Sub C"], "230")],
         [0, 0, () => UpgradeTower(TowerSetup["Sub D"], "230")],
         [0, 0, () => UpgradeTower(TowerSetup["Sub E"], "230")],
-        [0, 0, () => UpgradeTower(TowerSetup["Sub F"], "220")]
+        [0, 0, () => UpgradeTower(TowerSetup["Sub F"], "220")],
+
+        [60, 8000, () => UseAbility("1")],
+        [60, 8250, () => UseAbility("2")],
+        [60, 8500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

@@ -488,6 +488,32 @@ GetValidatedRound() {
 }
 
 
+; Fast strategy read: never starts popup-recovery work before a scheduled
+; action. If the round is briefly unreadable during a normal transition,
+; return the last validated round immediately and let WaitForRound() keep
+; polling at high frequency.
+GetValidatedRoundForStrategy() {
+    global LastRound
+
+
+    detectedRound :=
+        GetCurrentRound()
+
+
+    if !detectedRound {
+        return LastRound
+    }
+
+
+    ResetRoundReadFailureTracking()
+
+
+    return ValidateRound(
+        detectedRound
+    )
+}
+
+
 CheckRoundReadRecovery(timeoutMs := "") {
     detectedRound :=
         GetCurrentRound()
@@ -617,6 +643,10 @@ ResetRoundReadFailureTracking() {
 WaitForRound(
     targetRound
 ) {
+    global LastRound
+    global RoundReadMissingSince
+
+
     startingRound :=
         GetStartingRound()
 
@@ -650,24 +680,57 @@ WaitForRound(
 
 
     lastStateCheck :=
-        A_TickCount
+        0
 
 
     Loop {
 
-        currentRound :=
-            GetValidatedRound()
+        ; Keep the hot path focused on round detection. Full-screen popup /
+        ; victory / defeat scans are intentionally skipped while the round
+        ; counter is readable because those scans can take long enough to
+        ; delay a scheduled action by seconds.
+        detectedRound :=
+            GetCurrentRound()
 
 
-        if currentRound >= targetRound {
-            return true
+        if detectedRound {
+
+            ResetRoundReadFailureTracking()
+
+
+            currentRound :=
+                ValidateRound(
+                    detectedRound
+                )
+
+
+            if currentRound >= targetRound {
+                return true
+            }
+
+
+            Sleep(
+                20
+            )
+
+
+            continue
         }
 
 
+        ; The round display is actually missing. Keep the existing delayed
+        ; unknown-popup recovery alive, but do not launch expensive full-
+        ; screen state scans for a brief normal transition.
+        HandleMissingRoundRead()
+
+
         if (
-            A_TickCount
-            - lastStateCheck
-            >= 200
+            RoundReadMissingSince != 0
+            && A_TickCount - RoundReadMissingSince >= 350
+            && (
+                lastStateCheck = 0
+                || A_TickCount - lastStateCheck >= 500
+            )
         ) {
 
             lastStateCheck :=
@@ -690,10 +753,11 @@ WaitForRound(
 
 
         Sleep(
-            50
+            20
         )
     }
 }
+
 
 
 WaitForFinalRound() {

@@ -22,6 +22,7 @@ CreateLauncherUI() {
     global MonkeyExpScriptDropdown
 
     global StatusText
+    global UpdateCheckText
     global UpdateLinkText
 
     global RunButton
@@ -272,7 +273,7 @@ CreateLauncherUI() {
             250,
             queueButtonsEnabled ? 160 : 240,
             44,
-            "RUN MACRO",
+            "SELECT SCRIPT",
             9
         )
 
@@ -379,8 +380,8 @@ CreateLauncherUI() {
     CreateHelpBadgeForButton(
         LauncherGui,
         RunButton,
-        "RUN",
-        "Starts what you selected.`n`nIf your queue has jobs, this button becomes RUN QUEUE and starts that queue instead."
+        "PRIMARY ACTION",
+        "Default Mode opens the strategy picker.`n`nMonkey EXP Grind starts the selected grind script.`n`nIf your queue has jobs, this button becomes START QUEUE."
     )
 
 
@@ -438,19 +439,46 @@ CreateLauncherUI() {
     )
 
 
-    StatusText :=
+    ; Keep update-check text on its own row so its animation can never
+    ; collide with normal launcher status messages. These controls are
+    ; intentionally opaque so changing animated text cleanly erases the
+    ; previous frame instead of leaving transparent-text remnants.
+    SetUIBodyBoldFont(
+        LauncherGui,
+        8,
+        UIColorMutedText
+    )
+
+
+    UpdateCheckText :=
         LauncherGui.Add(
             "Text",
-            "x20 y356 w350 h20 Center c"
-            . UIColorSuccess
-            . " BackgroundTrans",
-            "READY"
+            "x20 y348 w350 h18 Center c"
+            . UIColorMutedText
+            . " Hidden",
+            ""
         )
 
 
     SetUIBodyBoldFont(
         LauncherGui,
         9,
+        UIColorSuccess
+    )
+
+
+    StatusText :=
+        LauncherGui.Add(
+            "Text",
+            "x20 y370 w350 h18 Center c"
+            . UIColorSuccess,
+            "READY"
+        )
+
+
+    SetUIBodyBoldFont(
+        LauncherGui,
+        8,
         UIColorAccent
     )
 
@@ -458,9 +486,9 @@ CreateLauncherUI() {
     UpdateLinkText :=
         LauncherGui.Add(
             "Text",
-            "x238 y356 w112 h20 Left c"
+            "x238 y348 w112 h18 Left c"
             . UIColorAccent
-            . " BackgroundTrans Hidden",
+            . " Hidden",
             "Click to Update"
         )
 

@@ -4,7 +4,6 @@
 global DailyChestPatterns := Map(
     "Available", "|<>*125$55.U0000001zk0000000zs0000000Ts000000M60000000000000000y00000000zU0E030M0zs0800S20zw0401zkUzy0301zw0TzU001zz0Tzk000zzkDzs000Tzs7zw000Tzy3zy000Dzz1zz0007zzUzzU003zzsTzk001zzs7zs000Tzw3zs000Dzy1zs0007zz0Ts0401zzUDkDy00zzU1UDz007zU00DzU01zVs0Dzk00000UDzw000000Tzz0k0000zzzvy0003zzzU",
 
-    "Close", "|<>*108$41.00000k000003k01U00Ds07k00zs0Tk03zs1zk0Dzw7zk0zzwDzk3zzwzzsDzzvzzszzzjzzvzzyDzzzzzsDzzzzzkDzzzzz0Tzzzzw0Tzzzzs0TzzzzU0Tzzzy00Tzzzs00TzzzU00Tzzz000Tzzw001zzzs003zzzk00Dzzzk00zzzzk01zzzzk07zzzzk0TzzzzU0zzzzzU3zzzzzU7zzzzzUTzyTzz1zzsTzz3zzUDzz3zy0Dzw1zk07zk1z007z01w003w01k003k0100030E"
 )
 
 
@@ -74,24 +73,9 @@ CollectDailyChest(silent := false) {
     ClickDailyChestRewardScreens()
 
 
-    ; Give the final reward screen time to settle.
-    Sleep(500)
-
-
-    ; Close the final screen if the Close
-    ; button is visible.
-    if DailyChestPatterns.Has("Close") {
-        closePattern :=
-            DailyChestPatterns["Close"]
-
-
-        if closePattern != "" {
-            WaitAndClickDailyChestPattern(
-                closePattern,
-                5000
-            )
-        }
-    }
+    ; The ten reward clicks advance through and close the Daily Chest flow.
+    ; Keep only a tiny settle before continuing.
+    Sleep(100)
 
 
     if !silent {
@@ -114,11 +98,11 @@ ClickDailyChestRewardScreens() {
     try {
         CoordMode("Mouse", "Screen")
 
-        Loop 5 {
+        Loop 10 {
             Click(583, 388)
 
-            if A_Index < 5
-                Sleep(350)
+            if A_Index < 10
+                Sleep(325)
         }
     }
     finally {
@@ -172,55 +156,8 @@ RunPreMapDailyChestIfEnabled() {
     try {
         result := CollectDailyChest(true)
 
-        ; If a chest was collected, give the home screen a brief moment
-        ; to settle before the map strategy process starts.
-        if result = true
-            Sleep(500)
-
         return result
     }
 
     return false
-}
-
-
-WaitAndClickDailyChestPattern(
-    pattern,
-    timeout := 5000
-) {
-    startTime :=
-        A_TickCount
-
-
-    Loop {
-        if FindText(
-            &X,
-            &Y,
-            0,
-            0,
-            A_ScreenWidth,
-            A_ScreenHeight,
-            0,
-            0,
-            pattern
-        ) {
-            Click(X, Y)
-
-            Sleep(500)
-
-            return true
-        }
-
-
-        if (
-            A_TickCount
-            - startTime
-            >= timeout
-        ) {
-            return false
-        }
-
-
-        Sleep(150)
-    }
 }

@@ -2,7 +2,7 @@
 
 ; Single source of truth for the installed application's version.
 ; Change only this value when bumping the local/runtime version.
-global AppVersion := "1.7"
+global AppVersion := "1.8"
 
 GetAppVersion() {
     global AppVersion
@@ -10,7 +10,7 @@ GetAppVersion() {
 }
 
 GetAppVersionLabel() {
-    return "V" . GetAppVersion()
+    return "v" . GetAppVersion()
 }
 
 GetVersionedTitle(baseTitle) {

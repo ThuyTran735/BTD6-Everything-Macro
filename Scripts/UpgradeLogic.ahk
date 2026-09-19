@@ -15,6 +15,77 @@ global UpgradeGreenColor := 0x4FD500
 global DeflationUpgradeWaitTimeoutMs := 5000
 
 
+; Tracks the tower whose upgrade panel is intentionally left open between
+; strategy actions. Reusing this selection avoids redundant monkey clicks
+; when multiple upgrades target the same tower on later rounds.
+global SelectedUpgradeTower := false
+global SelectedUpgradePanelSide := false
+
+
+ClearSelectedUpgradeTower() {
+    global SelectedUpgradeTower
+    global SelectedUpgradePanelSide
+
+    SelectedUpgradeTower := false
+    SelectedUpgradePanelSide := false
+
+    return true
+}
+
+
+CloseCachedUpgradePanel() {
+    global SelectedUpgradeTower
+
+    ; We intentionally leave the panel open after an upgrade so the same
+    ; monkey can be reused. Before a placement action, close that panel
+    ; first so its Sell button/panel cannot be mistaken for the new tower.
+    if IsObject(SelectedUpgradeTower) {
+        Send("{Esc}")
+        Sleep(25)
+    }
+
+    return ClearSelectedUpgradeTower()
+}
+
+
+CacheSelectedUpgradeTower(tower, panelSide := false) {
+    global SelectedUpgradeTower
+    global SelectedUpgradePanelSide
+
+    SelectedUpgradeTower := tower
+    SelectedUpgradePanelSide := panelSide
+
+    return true
+}
+
+
+IsUpgradeTowerSelected(tower) {
+    global SelectedUpgradeTower
+
+    return (
+        IsObject(SelectedUpgradeTower)
+        && ObjPtr(SelectedUpgradeTower) = ObjPtr(tower)
+    )
+}
+
+
+TryReuseSelectedUpgradeTower(tower, &panelSide) {
+    global SelectedUpgradePanelSide
+
+    if !IsUpgradeTowerSelected(tower) {
+        return false
+    }
+
+    panelSide := SelectedUpgradePanelSide
+
+    if !panelSide {
+        panelSide := GetExpectedUpgradePanelSide(tower)
+    }
+
+    return true
+}
+
+
 global UpgradePoints := Map(
     "Left", Map(
         "Top", [260, 486],
@@ -118,50 +189,39 @@ UpgradeTower(
         )
 
 
-    ; Select the tower immediately.
-    ;
-    ; Do not wait for round OCR or a full-screen FindText scan before
-    ; beginning the upgrade wait. The BTD6 upgrade panel opens on the
-    ; opposite side of the screen from the selected monkey, so infer the
-    ; expected side from the saved placement coordinate. Recovery logic
-    ; will verify/reopen the panel only if the normal path fails.
-    Click(
-        tower.x,
-        tower.y
-    )
+    ; Reuse an already-selected monkey whenever its upgrade panel was
+    ; intentionally left open by the previous strategy action.
+    panelSide := false
 
 
-    Sleep(
-        IsFastDeflationPregameUpgrade() ? 35 : 55
-    )
+    if !TryReuseSelectedUpgradeTower(
+        tower,
+        &panelSide
+    ) {
+
+        Click(
+            tower.x,
+            tower.y
+        )
 
 
-    panelSide :=
-        GetExpectedUpgradePanelSide(tower)
+        Sleep(
+            IsFastDeflationPregameUpgrade() ? 25 : 35
+        )
 
 
-    if !panelSide {
-
-        panelResult :=
-            EnsureUpgradePanelOpen(
-                tower,
-                &panelSide
-            )
-
-
-        if panelResult = "Victory" {
-            return "Victory"
-        }
+        ; Start affordability polling immediately after selection.
+        ; The saved tower X position reliably predicts the normal panel side,
+        ; and WaitForUpgrade() can still correct it later if needed. Avoiding
+        ; a full-screen FindText here makes the first upgrade start faster.
+        panelSide :=
+            GetExpectedUpgradePanelSide(tower)
 
 
-        if panelResult = "Defeat" {
-            return "Defeat"
-        }
-
-
-        if panelResult = false {
-            return SetRunFailureReason("UPGRADE FAILED", "Could not open upgrade panel")
-        }
+        CacheSelectedUpgradeTower(
+            tower,
+            panelSide
+        )
     }
 
 
@@ -190,6 +250,7 @@ UpgradeTower(
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
             Send("{Esc}")
+            ClearSelectedUpgradeTower()
             Sleep(45)
             return true
         }
@@ -258,6 +319,7 @@ UpgradeTower(
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
             Send("{Esc}")
+            ClearSelectedUpgradeTower()
             Sleep(45)
             return true
         }
@@ -326,6 +388,7 @@ UpgradeTower(
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
             Send("{Esc}")
+            ClearSelectedUpgradeTower()
             Sleep(45)
             return true
         }
@@ -369,13 +432,11 @@ UpgradeTower(
     }
 
 
-    Send(
-        "{Esc}"
-    )
-
-
-    Sleep(
-        IsFastDeflationPregameUpgrade() ? 60 : 200
+    ; Leave this tower selected so a later UpgradeTower() call for the
+    ; same monkey can immediately reuse the open upgrade panel.
+    CacheSelectedUpgradeTower(
+        tower,
+        panelSide
     )
 
 
@@ -503,54 +564,25 @@ WaitForUpgrade(
             ]
 
 
-        ; Keep normal upgrade handling first.
+        ; Keep the normal purchase path as fast as possible.
         ;
-        ; A temporary OCR miss must never delay an
-        ; affordable upgrade while this panel exists.
+        ; Once the upgrade is green, return immediately so BuyUpgrade()
+        ; can send the comma/period/slash hotkey without first running
+        ; any FindText-based unlock detection. Locked-upgrade recovery
+        ; now happens only if the post-hotkey button signature does not
+        ; change.
         if IsUpgradeGreen(
             point[1],
             point[2]
         ) {
-
-            lockResult :=
-                HandleLockedUpgrade(
-                    tower,
-                    path,
-                    &panelSide
-                )
-
-
-            if lockResult = "Victory" {
-                return "Victory"
-            }
-
-
-            if lockResult = "Defeat" {
-                return "Defeat"
-            }
-
-
-            if lockResult = "Unlocked" {
-
-                Sleep(
-                    150
-                )
-
-
-                continue
-            }
-
-
-            if lockResult = "Failed" {
-                return false
-            }
-
-
             return true
         }
 
 
-        if !IsPregame {
+        if (
+            !IsPregame
+            && A_TickCount - waitStartTick >= 300
+        ) {
 
             if (
                 A_TickCount
@@ -619,7 +651,8 @@ WaitForUpgrade(
 
 
         if (
-            A_TickCount
+            A_TickCount - waitStartTick >= 300
+            && A_TickCount
             - lastPanelCheck
             >= (IsFastDeflationPregameUpgrade() ? 75 : 100)
         ) {
@@ -628,6 +661,9 @@ WaitForUpgrade(
                 A_TickCount
 
 
+            ; Sell-button detection is advisory only. FindText can miss
+            ; while the upgrade panel is actually open, so never reselect
+            ; the monkey solely because this scan returned false.
             currentPanelSide :=
                 GetUpgradePanelSide()
 
@@ -635,58 +671,15 @@ WaitForUpgrade(
             if currentPanelSide {
 
                 if currentPanelSide != panelSide {
-
                     panelSide :=
                         currentPanelSide
                 }
-            }
-            else {
-
-                ; If the round is also missing, an unknown
-                ; popup may be covering the screen.
-                ;
-                ; In that specific case, wait for the
-                ; missing-round fallback instead of clicking
-                ; random locations behind the popup.
-                if (
-                    !IsPregame
-                    && lastRoundHealth = "Waiting"
-                ) {
-
-                    Sleep(
-                        10
-                    )
 
 
-                    continue
-                }
-
-
-                ; The game is otherwise normal, so restore
-                ; the panel immediately.
-                panelResult :=
-                    EnsureUpgradePanelOpen(
-                        tower,
-                        &panelSide
-                    )
-
-
-                if panelResult = "Victory" {
-                    return "Victory"
-                }
-
-
-                if panelResult = "Defeat" {
-                    return "Defeat"
-                }
-
-
-                if panelResult = false {
-                    return false
-                }
-
-
-                continue
+                CacheSelectedUpgradeTower(
+                    tower,
+                    panelSide
+                )
             }
         }
 
@@ -735,8 +728,19 @@ EnsureUpgradePanelOpen(
             currentPanelSide
 
 
+        CacheSelectedUpgradeTower(
+            tower,
+            panelSide
+        )
+
+
         return true
     }
+
+
+    ; Selection is no longer confirmed. Recovery will cache it again
+    ; immediately after the correct panel is found.
+    ClearSelectedUpgradeTower()
 
 
     ; A level-up screen can appear just after the
@@ -769,7 +773,7 @@ EnsureUpgradePanelOpen(
 
 
         Sleep(
-            IsFastDeflationPregameUpgrade() ? 35 : 55
+            IsFastDeflationPregameUpgrade() ? 25 : 35
         )
 
 
@@ -781,6 +785,12 @@ EnsureUpgradePanelOpen(
 
             panelSide :=
                 currentPanelSide
+
+
+            CacheSelectedUpgradeTower(
+                tower,
+                panelSide
+            )
 
 
             return true
@@ -884,6 +894,12 @@ EnsureUpgradePanelOpen(
                     currentPanelSide
 
 
+                CacheSelectedUpgradeTower(
+                    tower,
+                    panelSide
+                )
+
+
                 return true
             }
 
@@ -925,6 +941,12 @@ EnsureUpgradePanelOpen(
 
                     panelSide :=
                         currentPanelSide
+
+
+                    CacheSelectedUpgradeTower(
+                        tower,
+                        panelSide
+                    )
 
 
                     return true
@@ -1096,6 +1118,9 @@ HandleLockedUpgrade(
             )
 
 
+            ClearSelectedUpgradeTower()
+
+
             Sleep(
                 350
             )
@@ -1136,6 +1161,9 @@ HandleLockedUpgrade(
     Send(
         "{Esc}"
     )
+
+
+    ClearSelectedUpgradeTower()
 
 
     Sleep(
@@ -1212,6 +1240,7 @@ BuyUpgrade(
     &panelSide
 ) {
     global UpgradeHotkeys
+    global UpgradePoints
 
 
     if !UpgradeHotkeys.Has(
@@ -1225,29 +1254,26 @@ BuyUpgrade(
     }
 
 
-    ; Usually this returns immediately because the panel
-    ; is already open. It only performs recovery if the
-    ; panel disappeared between waiting and buying.
-    panelResult :=
-        EnsureUpgradePanelOpen(
-            tower,
-            &panelSide
-        )
-
-
-    if panelResult = "Victory" {
-        return "Victory"
-    }
-
-
-    if panelResult = "Defeat" {
-        return "Defeat"
-    }
-
-
-    if panelResult = false {
+    if (
+        !UpgradePoints.Has(panelSide)
+        || !UpgradePoints[panelSide].Has(path)
+    ) {
         return false
     }
+
+
+    point :=
+        UpgradePoints[panelSide][path]
+
+
+    ; Capture a tiny visual signature before the purchase. This is cheap
+    ; compared with FindText and lets the common path send the hotkey
+    ; immediately.
+    beforeSignature :=
+        CaptureUpgradeButtonSignature(
+            point[1],
+            point[2]
+        )
 
 
     Send(
@@ -1257,12 +1283,128 @@ BuyUpgrade(
     )
 
 
+    ; Intentionally 35 ms slower than the previous 100 ms hotkey settle.
+    ; The first hotkey now starts sooner, while consecutive upgrade presses
+    ; are spaced out a little more for reliability.
     Sleep(
-        50
+        135
     )
 
 
+    afterSignature :=
+        CaptureUpgradeButtonSignature(
+            point[1],
+            point[2]
+        )
+
+
+    if afterSignature != beforeSignature {
+        return true
+    }
+
+
+    ; The button did not visibly change. Only now pay the cost of the
+    ; locked-upgrade FindText recovery path. Normal successful purchases
+    ; never reach this scan.
+    lockResult :=
+        HandleLockedUpgrade(
+            tower,
+            path,
+            &panelSide
+        )
+
+
+    if lockResult = "Victory" {
+        return "Victory"
+    }
+
+
+    if lockResult = "Defeat" {
+        return "Defeat"
+    }
+
+
+    if lockResult = "Failed" {
+        return false
+    }
+
+
+    if lockResult = "Unlocked" {
+        ; The unlock flow re-opened this tower's panel. Purchase the
+        ; originally requested upgrade once, then use the same 135 ms
+        ; hotkey settle.
+        Send(
+            UpgradeHotkeys[
+                path
+            ]
+        )
+
+
+        Sleep(
+            135
+        )
+
+
+        return true
+    }
+
+
+    ; If no lock was found, trust the original hotkey. A successful buy can
+    ; occasionally leave sampled pixels unchanged when the next tier uses a
+    ; very similar button state; sending the key a second time could purchase
+    ; an unintended extra tier.
     return true
+}
+
+
+CaptureUpgradeButtonSignature(
+    x,
+    y
+) {
+    offsets := [
+        [-48, -18], [-24, -18], [0, -18], [24, -18], [48, -18],
+        [-48, 0],   [-24, 0],   [0, 0],   [24, 0],   [48, 0],
+        [-48, 18],  [-24, 18],  [0, 18],  [24, 18],  [48, 18]
+    ]
+
+
+    signature :=
+        ""
+
+
+    for offset in offsets {
+        sampleX :=
+            Max(
+                0,
+                Min(
+                    A_ScreenWidth - 1,
+                    x + offset[1]
+                )
+            )
+
+
+        sampleY :=
+            Max(
+                0,
+                Min(
+                    A_ScreenHeight - 1,
+                    y + offset[2]
+                )
+            )
+
+
+        signature .=
+            Format(
+                "{:06X}",
+                PixelGetColor(
+                    sampleX,
+                    sampleY
+                ) & 0xFFFFFF
+            )
+    }
+
+
+    return signature
 }
 
 

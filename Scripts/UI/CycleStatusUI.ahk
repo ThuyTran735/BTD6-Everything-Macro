@@ -956,7 +956,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
             44,
             isEditQueuePrompt
             ? "SAVE CHANGES"
-            : (isQueuePrompt ? "ADD TO QUEUE" : "RUN MACRO"),
+            : (isQueuePrompt ? "ADD TO QUEUE" : "START RUN"),
             8
         )
 
@@ -978,7 +978,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
         runButton,
         isEditQueuePrompt
         ? "SAVE CHANGES"
-        : (isQueuePrompt ? "ADD TO QUEUE" : "RUN COUNT"),
+        : (isQueuePrompt ? "ADD TO QUEUE" : "START RUN"),
         isEditQueuePrompt
         ? "Saves the edited job with this run count.`n`nEnter a whole number from 1 to 1,000,000."
         : (isQueuePrompt

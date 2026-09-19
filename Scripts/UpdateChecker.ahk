@@ -110,7 +110,7 @@ FetchVersionText(url, useGitHubApi := false) {
     request := ComObject("WinHttp.WinHttpRequest.5.1")
     request.SetTimeouts(2500, 2500, 2500, 5000)
     request.Open("GET", requestUrl, false)
-    request.SetRequestHeader("User-Agent", "BTD6-Everything-Macro-V" . GetAppVersion())
+    request.SetRequestHeader("User-Agent", "BTD6-Everything-Macro-v" . GetAppVersion())
     request.SetRequestHeader("Cache-Control", "no-cache, no-store, max-age=0")
     request.SetRequestHeader("Pragma", "no-cache")
 
@@ -177,7 +177,7 @@ FetchLatestGitHubVersion() {
     }
 
     ; Transition fallback for repositories that have not committed Version.ahk yet.
-    ; Older V1.6/V1.6.1 builds stored the version in UpdateChecker.ahk.
+    ; Older v1.6/v1.6.1 builds stored the version in UpdateChecker.ahk.
     try {
         body := FetchVersionText(UpdateLegacyVersionApiUrl, true)
         version := ParseVersionFromLegacyUpdateChecker(body)
@@ -253,25 +253,85 @@ GetGitHubUpdateStatus() {
 
 
 ShowLauncherUpdateNotice(version) {
-    global StatusText
+    global UpdateCheckText
     global UpdateLinkText
     global UIColorSuccess
 
     try {
-        if !StatusText
+        if !UpdateCheckText
             return
 
-        StatusText.Move(38, 356, 200, 20)
-        StatusText.Opt("+Left")
-        StatusText.SetFont("c" . UIColorSuccess)
-        StatusText.Text := "UPDATE AVAILABLE: V" . version
+        UpdateCheckText.Move(38, 348, 200, 18)
+        UpdateCheckText.Opt("+Left")
+        UpdateCheckText.SetFont("c" . UIColorSuccess)
+        UpdateCheckText.Text := "UPDATE AVAILABLE: v" . version
+        UpdateCheckText.Visible := true
 
         if UpdateLinkText {
-            UpdateLinkText.Move(238, 356, 112, 20)
+            UpdateLinkText.Move(238, 348, 112, 18)
             UpdateLinkText.Opt("+Left")
             UpdateLinkText.Text := "Click to Update"
             UpdateLinkText.Visible := true
         }
+    }
+}
+
+
+SetLauncherUpdateCheckStatus(text, color := "") {
+    global UpdateCheckText
+    global UpdateLinkText
+    global UIColorMutedText
+
+    if !UpdateCheckText
+        return
+
+    if color = ""
+        color := UIColorMutedText
+
+    try {
+        if UpdateLinkText
+            UpdateLinkText.Visible := false
+
+        UpdateCheckText.Move(20, 348, 350, 18)
+        UpdateCheckText.Opt("+Center")
+        UpdateCheckText.SetFont("c" . color)
+
+        ; Erase the previous frame before drawing the next one so update
+        ; animation text cannot ghost over an older update-result message.
+        UpdateCheckText.Text := ""
+        DllCall(
+            "RedrawWindow",
+            "Ptr", UpdateCheckText.Hwnd,
+            "Ptr", 0,
+            "Ptr", 0,
+            "UInt", 0x85
+        )
+
+        UpdateCheckText.Text := text
+        UpdateCheckText.Visible := true
+        DllCall(
+            "RedrawWindow",
+            "Ptr", UpdateCheckText.Hwnd,
+            "Ptr", 0,
+            "Ptr", 0,
+            "UInt", 0x85
+        )
+    }
+}
+
+
+HideLauncherUpdateCheckStatus() {
+    global UpdateCheckText
+    global UpdateLinkText
+
+    try {
+        if UpdateCheckText {
+            UpdateCheckText.Text := ""
+            UpdateCheckText.Visible := false
+        }
+
+        if UpdateLinkText
+            UpdateLinkText.Visible := false
     }
 }
 
@@ -306,7 +366,7 @@ ShowStartupUpdateAnimationFrame() {
     if UpdateCheckAnimationIndex > UpdateCheckAnimationFrames.Length
         return
 
-    UpdateStatus(UpdateCheckAnimationFrames[UpdateCheckAnimationIndex])
+    SetLauncherUpdateCheckStatus(UpdateCheckAnimationFrames[UpdateCheckAnimationIndex])
 }
 
 
@@ -340,6 +400,7 @@ RunStartupUpdateCheck(*) {
     result := GetGitHubUpdateStatus()
 
     if !result.ok {
+        HideLauncherUpdateCheckStatus()
         UpdateStatus("READY")
         return
     }
@@ -349,5 +410,6 @@ RunStartupUpdateCheck(*) {
         return
     }
 
+    HideLauncherUpdateCheckStatus()
     UpdateStatus("READY")
 }

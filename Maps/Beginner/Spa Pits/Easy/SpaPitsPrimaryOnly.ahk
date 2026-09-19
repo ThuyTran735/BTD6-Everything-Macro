@@ -3,13 +3,15 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 
-SpaPitsEasy() {
+SpaPitsPrimaryOnly() {
     global RunConfig := {
         category: "Beginner",
         map: "Spa Pits",
         difficulty: "Easy",
-        gameMode: "Standard",
+        gameMode: "Primary Only",
+
         hero: "Quincy",
+
         wingmonkeyMK: false
     }
 
@@ -61,7 +63,7 @@ SpaPitsEasy() {
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
-        }
+        },
     )
 
     strategy := [
@@ -155,4 +157,4 @@ SpaPitsEasy() {
     return RunMapStrategy(strategy)
 }
 
-SpaPitsEasy()
+SpaPitsPrimaryOnly()

@@ -593,7 +593,7 @@ UpdateQueueLauncherButton() {
     if MacroJobQueue.Length > 0 {
 
         RunButton.Text :=
-            "RUN QUEUE"
+            "START QUEUE"
 
 
         RunButton.Enabled :=
@@ -604,8 +604,21 @@ UpdateQueueLauncherButton() {
     }
 
 
-    RunButton.Text :=
-        "RUN MACRO"
+    if CurrentMode = "Default" {
+
+        RunButton.Text :=
+            "SELECT SCRIPT"
+    }
+    else if CurrentMode = "Monkey EXP Grind" {
+
+        RunButton.Text :=
+            "START EXP GRIND"
+    }
+    else {
+
+        RunButton.Text :=
+            "MODE UNAVAILABLE"
+    }
 
 
     if CurrentMode = "Monkey Money Grind" {

@@ -631,7 +631,6 @@ UpdateStatus(
     color := ""
 ) {
     global StatusText
-    global UpdateLinkText
     global UIColorSuccess
 
 
@@ -649,10 +648,7 @@ UpdateStatus(
 
 
     try {
-        if UpdateLinkText
-            UpdateLinkText.Visible := false
-
-        StatusText.Move(20, 356, 350, 20)
+        StatusText.Move(20, 370, 350, 18)
     }
 
 

@@ -182,7 +182,7 @@ ShowScriptPicker(
     actionButtonText :=
         action = "queue"
         ? "ADD TO QUEUE"
-        : "RUN SELECTED"
+        : "USE STRATEGY"
 
 
     runSelectedButton :=
@@ -224,10 +224,10 @@ ShowScriptPicker(
     CreateHelpBadgeForButton(
         ScriptPickerGui,
         runSelectedButton,
-        action = "queue" ? "ADD TO QUEUE" : "RUN SELECTED",
+        action = "queue" ? "ADD TO QUEUE" : "USE STRATEGY",
         action = "queue"
         ? "Adds the selected strategy to the queue.`n`nNext, choose how many times that job should run."
-        : "Runs the selected strategy.`n`nNext, choose how many times it should repeat."
+        : "Uses the selected strategy for this run.`n`nNext, choose how many times it should repeat."
     )
 
 

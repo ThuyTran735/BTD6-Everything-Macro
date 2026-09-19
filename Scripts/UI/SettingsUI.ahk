@@ -73,7 +73,7 @@ ShowSettingsUI(*) {
     retryButton := CreateDarkButton(SettingsGui, 256, 174, 202, 44, "RETRY / RECOVERY", 8)
 
     SetUIBodyFont(SettingsGui, 8, UIColorMutedText)
-    SettingsGui.Add("Text", "x42 y238 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "AUTOMATION & DATA")
+    SettingsGui.Add("Text", "x42 y238 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "MACRO TOOLS")
 
     dailyChestEnabled := IsPreRunDailyChestEnabled()
     dailyChestButton := CreateDarkButton(
@@ -100,7 +100,7 @@ ShowSettingsUI(*) {
     SetUIBodyFont(SettingsGui, 8, UIColorSecondaryText)
     SettingsStatusText := SettingsGui.Add(
         "Text",
-        "x42 y402 w416 h38 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x42 y402 w416 h38 Center c" . UIColorSecondaryText,
         "Update checks compare this copy with the version file on GitHub."
     )
 
@@ -166,8 +166,28 @@ SetSettingsStatus(message) {
     global SettingsStatusText
 
     try {
-        if SettingsStatusText
-            SettingsStatusText.Text := message
+        if !SettingsStatusText
+            return
+
+        ; Clear and repaint first so a shorter status message cannot leave
+        ; transparent remnants of the previous text behind.
+        SettingsStatusText.Text := ""
+        DllCall(
+            "RedrawWindow",
+            "Ptr", SettingsStatusText.Hwnd,
+            "Ptr", 0,
+            "Ptr", 0,
+            "UInt", 0x85
+        )
+
+        SettingsStatusText.Text := message
+        DllCall(
+            "RedrawWindow",
+            "Ptr", SettingsStatusText.Hwnd,
+            "Ptr", 0,
+            "Ptr", 0,
+            "UInt", 0x85
+        )
     }
 }
 
@@ -255,20 +275,20 @@ CheckForUpdatesFromSettings(*) {
     if result.updateAvailable {
         ShowLauncherUpdateNotice(result.latestVersion)
         SetSettingsStatus(
-            "Update available: V" . result.latestVersion
-            . "   |   Installed: V" . result.currentVersion
+            "Update available: v" . result.latestVersion
+            . "   |   Installed: v" . result.currentVersion
         )
         return
     }
 
     if CompareMacroVersions(result.latestVersion, result.currentVersion) = 0 {
-        SetSettingsStatus("You're up to date. Installed version: V" . result.currentVersion)
+        SetSettingsStatus("You're up to date. Installed version: v" . result.currentVersion)
         return
     }
 
     SetSettingsStatus(
-        "This copy is newer than GitHub. Installed: V" . result.currentVersion
-        . "   |   GitHub: V" . result.latestVersion
+        "This copy is newer than GitHub. Installed: v" . result.currentVersion
+        . "   |   GitHub: v" . result.latestVersion
     )
 }
 

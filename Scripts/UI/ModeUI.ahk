@@ -317,7 +317,7 @@ ApplyLauncherMode() {
         }
 
         RunButton.Text :=
-            "RUN MACRO"
+            "SELECT SCRIPT"
 
 
         UpdateStatus(
@@ -385,7 +385,7 @@ ApplyLauncherMode() {
         }
 
         RunButton.Text :=
-            "RUN MACRO"
+            "START EXP GRIND"
 
 
         if scriptCount > 0 {
@@ -475,7 +475,7 @@ ApplyLauncherMode() {
         }
 
         RunButton.Text :=
-            "RUN MACRO"
+            "MODE UNAVAILABLE"
 
 
         UpdateStatus(

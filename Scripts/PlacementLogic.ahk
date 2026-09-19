@@ -20,13 +20,25 @@ PlaceTower(tower) {
     hotkey := TowerHotkeys[tower.type]
 
 
+    ; A previous UpgradeTower() may have intentionally left its panel open.
+    ; Close that real UI panel before entering placement mode so a later
+    ; UpgradeTower() cannot mistake the old panel for the newly placed tower.
+    CloseCachedUpgradePanel()
+
+
     ; Hero requires SendEvent in BTD6.
+    ; Give the game a little more time to accept the hero
+    ; hotkey before the placement click. This is especially
+    ; important for the first round-0 action on maps/modes
+    ; that finish loading a little later than others.
     if tower.type = "Hero" {
+        Sleep(60)
+
         SendEvent("{u down}")
-        Sleep(35)
+        Sleep(40)
 
         SendEvent("{u up}")
-        Sleep(70)
+        Sleep(140)
 
 
     ; Shift-modified tower hotkeys.

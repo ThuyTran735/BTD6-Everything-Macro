@@ -159,7 +159,7 @@ NavigateToMap(
         return SetRunFailureReason("FAILED TO ENTER MODE", gameMode)
     }
 
-    HandleSavePrompt(4000)
+    HandleSavePrompt(500)
 
     if !HandleModePrompt(
         gameMode
@@ -590,7 +590,7 @@ HandleSavePrompt(
             Click(X, Y)
 
             Loop 20 {
-                Sleep(100)
+                Sleep(50)
 
                 if !FindText(
                     &CheckX,
@@ -603,7 +603,7 @@ HandleSavePrompt(
                     0,
                     pattern
                 ) {
-                    Sleep(300)
+                    Sleep(120)
 
                     return true
                 }
@@ -624,7 +624,7 @@ HandleSavePrompt(
             return true
         }
 
-        Sleep(100)
+        Sleep(50)
     }
 }
 

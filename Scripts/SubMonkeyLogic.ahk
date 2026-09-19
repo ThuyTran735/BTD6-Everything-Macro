@@ -35,9 +35,11 @@ SetSubmerge(tower, shouldSubmerge := true) {
         ; Remember the normal targeting mode.
         tower.targetingBeforeSubmerge := tower.targeting
 
-        Click(tower.x, tower.y)
-
-        Sleep(250)
+        if !IsUpgradeTowerSelected(tower) {
+            ClearSelectedUpgradeTower()
+            Click(tower.x, tower.y)
+            Sleep(250)
+        }
 
         ; Page Down toggles Submerge.
         Send("{PgDn}")
@@ -47,6 +49,7 @@ SetSubmerge(tower, shouldSubmerge := true) {
         tower.submerged := true
 
         Send("{Esc}")
+        ClearSelectedUpgradeTower()
         Sleep(20)
 
         return true
@@ -54,9 +57,11 @@ SetSubmerge(tower, shouldSubmerge := true) {
 
 
     ; Going from submerged -> surfaced.
-    Click(tower.x, tower.y)
-
-    Sleep(250)
+    if !IsUpgradeTowerSelected(tower) {
+        ClearSelectedUpgradeTower()
+        Click(tower.x, tower.y)
+        Sleep(250)
+    }
 
     ; Page Down toggles back to surfaced.
     Send("{PgDn}")
@@ -70,6 +75,7 @@ SetSubmerge(tower, shouldSubmerge := true) {
     tower.targeting := tower.targetingBeforeSubmerge
 
     Send("{Esc}")
+    ClearSelectedUpgradeTower()
     Sleep(20)
 
     return true

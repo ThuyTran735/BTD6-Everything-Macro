@@ -21,6 +21,8 @@ global MonkeyExpScriptDropdown := ""
 global MonkeyExpScripts := []
 
 global StatusText := ""
+global UpdateCheckText := ""
+global UpdateLinkText := ""
 
 global RunButton := ""
 global AddQueueButton := ""

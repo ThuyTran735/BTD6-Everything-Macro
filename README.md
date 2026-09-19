@@ -1,16 +1,17 @@
 # BTD6 Everything Macro
 
-**Current version: V1.7**
+**Current version: v1.8.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Centralized version control in `Scripts/Version.ahk`
-- Faster monkey selection and upgrade response across game modes
-- 50 ms post-upgrade hotkey delay
-- Strategy Builder fixes, black input text, and instant F2 coordinate capture
-- More reliable GitHub update checking with compatibility fallback behavior
+- Faster startup with shorter redundant menu waits
+- More reliable first-action Hero placement
+- Daily Chest uses five 325 ms clicks with no redundant Close-button scan
+- Upgrade retry logic avoids unnecessary monkey re-selection
+- Version labels use lowercase `v` (for example, `v1.8.0`)
+- Centralized version control remains in `Scripts/Version.ahk`
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

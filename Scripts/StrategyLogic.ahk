@@ -58,6 +58,11 @@ RunPregameStrategy(actions) {
     }
     finally {
 
+        ; Pregame is finished; no cached upgrade panel should remain open
+        ; while StartGame() transitions into normal rounds.
+        CloseCachedUpgradePanel()
+
+
         IsPregame :=
             false
     }
@@ -65,6 +70,8 @@ RunPregameStrategy(actions) {
 
 
 RunStrategy(actions) {
+
+    lastScheduledRound := false
 
     for action in actions {
 
@@ -87,9 +94,23 @@ RunStrategy(actions) {
         }
 
 
-        ; Only one round read here.
+        ; Keep a selected monkey only across immediate actions scheduled for
+        ; the same round. If the queue advances to another round or adds an
+        ; in-round delay, there is no immediate reuse, so close the menu.
+        if (
+            lastScheduledRound = false
+            || targetRound != lastScheduledRound
+            || delayMs > 0
+        ) {
+            CloseCachedUpgradePanel()
+        }
+
+
+        ; Fast non-blocking round read before a scheduled action.
+        ; Popup recovery belongs inside WaitForRound(), where it only runs
+        ; when the round display is genuinely missing.
         currentRound :=
-            GetValidatedRound()
+            GetValidatedRoundForStrategy()
 
 
         ; If we have not reached the target yet,
@@ -181,11 +202,18 @@ RunStrategy(actions) {
         if actionResult = false {
             return EnsureRunFailureReason("STRATEGY ACTION FAILED")
         }
+
+
+        lastScheduledRound :=
+            targetRound
     }
 
 
-    ; All scripted actions are finished.
-    ;
+    ; All scripted actions are finished. Nothing else can reuse a
+    ; cached monkey selection, so close the upgrade panel now.
+    CloseCachedUpgradePanel()
+
+
     ; Keep round scanning active while waiting for
     ; Victory/Defeat. This is important because an
     ; undetectable hero-unlock screen can appear near

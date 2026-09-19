@@ -956,6 +956,9 @@ ResetTowerSetup() {
         false
 
 
+    ClearSelectedUpgradeTower()
+
+
     for name, tower in TowerSetup {
 
         tower.placed :=

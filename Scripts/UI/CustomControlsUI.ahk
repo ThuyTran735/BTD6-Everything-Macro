@@ -660,7 +660,7 @@ class DarkButton {
 
 
         this.TextControl.SetFont(
-            "c"
+            "Norm c"
             . UIColorControlText
         )
 
@@ -750,7 +750,7 @@ class DarkButton {
 
 
             this.TextControl.SetFont(
-                "c"
+                "Norm c"
                 . UIColorControlText
             )
         }
@@ -775,7 +775,7 @@ class DarkButton {
 
 
             this.TextControl.SetFont(
-                "c"
+                "Norm c"
                 . UIColorControlDisabledText
             )
         }
@@ -836,7 +836,7 @@ GetDarkButtonStyleForText(text) {
     }
 
 
-    if RegExMatch(normalized, "^(RUN|START)(\s|$)") {
+    if RegExMatch(normalized, "^(RUN|START|SELECT|USE)(\s|$)") {
         return "Success"
     }
 

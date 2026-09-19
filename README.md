@@ -1,17 +1,23 @@
 # BTD6 Everything Macro
 
-**Current version: v1.8.1**
+**Current version: v1.9.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Faster startup with shorter redundant menu waits
-- More reliable first-action Hero placement
-- Daily Chest uses five 325 ms clicks with no redundant Close-button scan
-- Upgrade retry logic avoids unnecessary monkey re-selection
-- Version labels use lowercase `v` (for example, `v1.8.1`)
+- Added millisecond upgrade timing diagnostics for round detection, monkey selection, green-upgrade detection, hotkey sends, and purchase confirmation
+- Logs now record when the user manually closes an active run
+- Added dedicated Dartling Gunner aim and retarget helpers
+- Added dedicated Heli Pilot Lock in Place and retarget helpers
+- Added Mermonkey Allure Totem placement and retarget helpers for xx4/xx5
+- Added dedicated Mortar target and retarget helpers
+- Standardized special-target actions to Page Down -> 300 ms -> click -> 250 ms -> close panel -> 100 ms
+- Special-target helpers now close the upgrade panel after setting a location so later placement and upgrade actions start cleanly
+- Updated the map template and map-script guide with Dartling, Heli, Mermonkey, and Mortar examples
+- Daily Chest uses ten 325 ms clicks with no redundant Close-button scan
 - Centralized version control remains in `Scripts/Version.ahk`
+
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -28,7 +34,8 @@ You can see which maps and modes are finished here:
 - Finds strategy files inside the `Maps` folder
 - Lets you choose a category, map, and mode from the launcher
 - Places towers and buys upgrades
-- Handles tower targeting and abilities
+- Handles normal targeting plus coordinate-based Dartling, Heli, Mermonkey, and Mortar special targeting
+- Handles tower abilities
 - Reads the current round
 - Detects victory, defeat, and several menu popups
 - Retries failed runs when the strategy allows it
@@ -86,13 +93,55 @@ After resetting the hotkeys, set these three special monkey hotkeys:
 
 Leave every other hotkey at its default. Different bindings can make the macro place the wrong tower, buy the wrong upgrade, or stop the strategy completely.
 
+## Special targeting towers
+
+Some towers use a map coordinate instead of normal First / Last / Close / Strong targeting. The macro has dedicated helpers for these towers.
+
+### Dartling Gunner
+
+```ahk
+AimDartling(TowerSetup["Dartling A"], 1000, 350)
+RetargetDartling(TowerSetup["Dartling A"], 750, 600)
+```
+
+Dartling starts with `Normal` targeting. The helpers lock or move its aim point using the special-target control. Bottom-path xx4/xx5 Dartlings can also use `Target Independent`.
+
+### Heli Pilot
+
+```ahk
+LockHeliInPlace(TowerSetup["Heli A"], 1000, 350)
+RetargetHeli(TowerSetup["Heli A"], 750, 600)
+```
+
+Heli starts with `Follow Mouse`. The helper switches it to `Lock in Place` and sets the requested coordinate. Pursuit is tracked when the required upgrade is purchased.
+
+### Mermonkey
+
+```ahk
+PlaceMermonkeyTotem(TowerSetup["Mermonkey A"], 950, 320)
+RetargetMermonkeyTotem(TowerSetup["Mermonkey A"], 760, 570)
+```
+
+The Allure Totem helper is intended for bottom-path xx4/xx5 Mermonkeys.
+
+### Mortar Monkey
+
+```ahk
+SetMortarTarget(TowerSetup["Mortar A"], 1000, 350)
+RetargetMortar(TowerSetup["Mortar A"], 750, 600)
+```
+
+Mortar uses a fixed map target instead of the normal targeting modes.
+
+All four special-target systems use the same input timing: **Page Down -> 300 ms -> click -> 250 ms -> close the upgrade panel -> 100 ms**. This keeps the targeting reliable and prevents an old upgrade panel from interfering with the next tower placement or upgrade action.
+
 ## Running the macro
 
 1. Start BTD6 and wait until you are on the main menu.
 2. Double-click `Main.ahk`.
-3. Pick a category and map in the launcher.
-4. Pick the mode you want to run.
-5. Click the run button or press:
+3. Click **SELECT SCRIPT** and choose the strategy you want to use.
+4. Confirm it with **USE STRATEGY**.
+5. Choose the run count and click **START RUN**, or press:
 
 ```text
 Ctrl + Shift + P

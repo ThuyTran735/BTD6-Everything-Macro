@@ -980,10 +980,33 @@ ResetTowerSetup() {
             tower.targeting :=
                 "Circle"
         }
+        else if tower.type = "Heli" {
+
+            tower.targeting :=
+                "Follow Mouse"
+        }
+        else if tower.type = "Dartling" {
+
+            tower.targeting :=
+                "Normal"
+        }
+        else if tower.type = "Mortar" {
+
+            tower.targeting :=
+                "Target"
+        }
         else {
 
             tower.targeting :=
                 "First"
+        }
+
+
+        if tower.type = "Mortar" {
+
+            tower.targetSet := false
+            tower.targetX := 0
+            tower.targetY := 0
         }
 
 

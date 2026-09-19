@@ -52,6 +52,12 @@ global MapData := Map(
         pattern: "|<>YOUR_ADVANCED_MAP_PATTERN"
     },
 
+    "Inferno", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*78$29.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzxzzzzXzzzz7zzzyDzzzwTzzzsTzzzkzzzzVzzzzDUzzyT0bzzy07zzs03zy007zi007z6007yzU07zzU0Dzz00Tzy00zzy03zzw0Dzzs0TzzU3zzz07zzy0DwTy0zUzzzz1zzzy3zzzw7zzzzzzzzzzzzzzzzzzzzzzUzzzz1zzzy3zzzU3k"
+    },
+
     "Dark Castle", {
         category: "Expert",
         page: 16,

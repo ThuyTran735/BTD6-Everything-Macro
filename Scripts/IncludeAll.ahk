@@ -27,6 +27,11 @@ global TowerSetup := Map()
 #Include UpgradeLogic.ahk
 #Include TargetingLogic.ahk
 #Include SubMonkeyLogic.ahk
+#Include SpecialTargetingLogic.ahk
+#Include DartlingLogic.ahk
+#Include HeliLogic.ahk
+#Include MermonkeyLogic.ahk
+#Include MortarLogic.ahk
 
 
 #Include HeroSelection.ahk

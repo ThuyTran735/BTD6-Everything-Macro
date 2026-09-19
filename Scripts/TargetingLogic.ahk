@@ -100,6 +100,18 @@ GetDefaultTargeting(tower) {
     global TargetingProfiles
 
 
+    if tower.type = "Dartling"
+        return "Normal"
+
+
+    if tower.type = "Heli"
+        return "Follow Mouse"
+
+
+    if tower.type = "Mortar"
+        return "Target"
+
+
     profileName := GetTargetingProfile(tower)
 
 
@@ -116,6 +128,24 @@ SetTargeting(tower, targetMode) {
 
     if !HasProp(tower, "placed") || !tower.placed
         return false
+
+    if tower.type = "Dartling" {
+        throw Error(
+            "Use SetDartlingTargeting() or AimDartling() for Dartling Gunners."
+        )
+    }
+
+    if tower.type = "Heli" {
+        throw Error(
+            "Use LockHeliInPlace() or RetargetHeli() for Heli Pilots."
+        )
+    }
+
+    if tower.type = "Mortar" {
+        throw Error(
+            "Use SetMortarTarget() or RetargetMortar() for Mortar Monkeys."
+        )
+    }
 
     ; A submerged Monkey Sub should be surfaced
     ; before changing its normal targeting.

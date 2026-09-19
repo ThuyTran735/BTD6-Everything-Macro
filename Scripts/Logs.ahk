@@ -3,6 +3,7 @@
 
 global CurrentRunLogFile := ""
 global CurrentRunLogStarted := false
+global CurrentRunLogFinished := false
 global LastRunFailureReason := ""
 
 
@@ -80,6 +81,13 @@ GetLogTimestamp() {
 }
 
 
+GetLogTimestampMs() {
+    return FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
+        . "."
+        . Format("{:03}", A_MSec)
+}
+
+
 GetLogFileTimestamp() {
     return FormatTime(A_Now, "yyyy-MM-dd_HH-mm-ss")
 }
@@ -96,10 +104,12 @@ SanitizeLogText(text) {
 InitializeRunLog(context := "") {
     global CurrentRunLogFile
     global CurrentRunLogStarted
+    global CurrentRunLogFinished
     global LastRunFailureReason
 
     CurrentRunLogFile := ""
     CurrentRunLogStarted := false
+    CurrentRunLogFinished := false
     LastRunFailureReason := ""
 
     if !IsLoggingEnabled()
@@ -232,6 +242,8 @@ LogException(err) {
 
 
 FinishRunLog(status, reason := "") {
+    global CurrentRunLogFinished
+
     status := SanitizeLogText(status)
     reason := SanitizeLogText(reason)
 
@@ -241,7 +253,97 @@ FinishRunLog(status, reason := "") {
         LogMessage(status = "Success" ? "INFO" : "ERROR", "Final result: " . status)
 
     LogMessage("INFO", "Run finished")
+    CurrentRunLogFinished := true
 }
+
+
+FindLatestRunLogByPid(pid) {
+    if !pid || pid < 1 {
+        return ""
+    }
+
+    EnsureLoggingStorage()
+
+    pattern := GetLogsDirectory() . "\Run_*_PID" . pid . "_*.log"
+    latestPath := ""
+    latestModified := ""
+
+    Loop Files, pattern, "F" {
+        if (
+            latestPath = ""
+            || A_LoopFileTimeModified > latestModified
+        ) {
+            latestPath := A_LoopFileFullPath
+            latestModified := A_LoopFileTimeModified
+        }
+    }
+
+    return latestPath
+}
+
+
+LogManualRunStopByPid(pid, reason := "USER CLOSED RUN MANUALLY") {
+    if !IsLoggingEnabled() {
+        return false
+    }
+
+    path := FindLatestRunLogByPid(pid)
+    if path = "" {
+        return false
+    }
+
+    reason := SanitizeLogText(reason)
+
+    try {
+        FileAppend(
+            "[" . GetLogTimestampMs() . "] [WARN] " . reason . "`r`n"
+            . "[" . GetLogTimestampMs() . "] [WARN] Final result: Stopped - " . reason . "`r`n"
+            . "[" . GetLogTimestampMs() . "] [INFO] Run finished`r`n",
+            path,
+            "UTF-8"
+        )
+        return true
+    }
+    catch {
+        return false
+    }
+}
+
+
+HandleRunLogProcessExit(exitReason, exitCode) {
+    global CurrentRunLogStarted
+    global CurrentRunLogFinished
+
+    if !CurrentRunLogStarted || CurrentRunLogFinished {
+        return
+    }
+
+    manualExit := (
+        exitReason = "Exit"
+        || exitReason = "Menu"
+        || exitReason = "Close"
+    )
+
+    if manualExit {
+        LogMessage(
+            "WARN",
+            "RUN STOPPED MANUALLY BY USER (exit reason: " . exitReason . ")"
+        )
+    }
+    else {
+        LogMessage(
+            "WARN",
+            "RUN ENDED BEFORE COMPLETION (exit reason: "
+            . exitReason
+            . ", code: "
+            . exitCode
+            . ")"
+        )
+    }
+}
+
+
+OnExit(HandleRunLogProcessExit)
 
 
 OpenLogsFolder(*) {

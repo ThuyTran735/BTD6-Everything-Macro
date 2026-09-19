@@ -567,3 +567,198 @@ MID-ROUND
 10. Test the map.
 11. If it loses, check placement timing, targeting, upgrade timing, and coordinates.
 12. Save the completed strategy once stable.
+
+14. DARTLING GUNNER AIMING
+
+Dartling Gunners can be aimed and locked with dedicated Dartling helpers.
+
+Recommended tower definition:
+
+"Dartling A", {
+    type: "Dartling",
+    x: 620,
+    y: 430,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "Normal"
+}
+
+Lock / aim the Dartling at a screen position:
+
+[8, 0, () => AimDartling(
+    TowerSetup["Dartling A"],
+    1025,
+    330
+)]
+
+AimDartling() behavior:
+     - If the Dartling is still Normal, the macro moves the cursor to the
+       requested point and switches it to Locked targeting.
+     - If it is already Locked, the macro uses PgDn, waits 300 ms, clicks the
+       requested screen position, waits 250 ms, closes the upgrade panel,
+       then waits 100 ms before continuing.
+
+Retarget an already-locked Dartling explicitly:
+
+[20, 0, () => RetargetDartling(
+    TowerSetup["Dartling A"],
+    780,
+    610
+)]
+
+Change targeting mode directly:
+
+[25, 0, () => SetDartlingTargeting(
+    TowerSetup["Dartling A"],
+    "Normal"
+)]
+
+Normal Dartling targeting modes:
+     - Normal
+     - Locked
+
+Bottom-path xx4 / xx5 Dartlings also support:
+     - Target Independent
+
+Example:
+
+[40, 0, () => SetDartlingTargeting(
+    TowerSetup["Dartling A"],
+    "Target Independent"
+)]
+
+Target Independent is rejected before the Dartling reaches bottom-path tier 4.
+
+15. HELI PILOT LOCK IN PLACE
+
+Heli Pilots can be locked to a screen position and retargeted with dedicated Heli helpers.
+
+Recommended tower definition:
+
+"Heli A", {
+    type: "Heli",
+    x: 620,
+    y: 430,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "Follow Mouse"
+}
+
+Lock the Heli at a screen position:
+
+[8, 0, () => LockHeliInPlace(
+    TowerSetup["Heli A"],
+    1025,
+    330
+)]
+
+LockHeliInPlace() behavior:
+     - Selects the Heli base if needed.
+     - Switches Follow Mouse / Pursuit to Lock in Place.
+     - Uses PgDn, waits 300 ms, clicks the requested screen position,
+       waits 250 ms, closes the upgrade panel, then waits 100 ms.
+     - Stores the lock point in tower.lockX / tower.lockY.
+
+Retarget an already-locked Heli:
+
+[20, 0, () => RetargetHeli(
+    TowerSetup["Heli A"],
+    780,
+    610
+)]
+
+When a Heli buys the 2xx Pursuit upgrade, BTD6 automatically changes it to
+Pursuit. The macro tracks that change, so a later LockHeliInPlace() action can
+return it to Lock in Place before setting the new PgDn + click position.
+
+
+MERMONKEY ALLURE TOTEM
+----------------------
+
+Bottom-path xx4 / xx5 Mermonkeys can manually place the Allure Totem.
+Use the dedicated Mermonkey helper instead of normal SetTargeting().
+
+Example tower setup:
+
+"Mermonkey A", {
+    type: "Mermonkey",
+    x: 600,
+    y: 400,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "First"
+}
+
+After upgrading the Mermonkey to xx4 or xx5, place its Allure Totem:
+
+[40, 0, () => PlaceMermonkeyTotem(
+    TowerSetup["Mermonkey A"],
+    950,
+    320
+)],
+
+PlaceMermonkeyTotem() behavior:
+     - Requires a placed Mermonkey with bottom-path tier 4 or 5.
+     - Selects the Mermonkey if needed.
+     - Presses PgDn to activate BTD6 Manual Targeting.
+     - Waits 300 ms, clicks the requested screen coordinate, then waits 250 ms.
+     - Closes the upgrade panel and waits another 100 ms before continuing.
+     - Stores the last totem position on the tower object.
+
+Move the totem later with:
+
+[50, 0, () => RetargetMermonkeyTotem(
+    TowerSetup["Mermonkey A"],
+    760,
+    570
+)],
+
+Symphonic Resonance (xx4) can place the totem within the Mermonkey's allowed
+manual-targeting range. The Final Harmonic (xx5) can place it anywhere on screen.
+The in-game Manual Targeting control has its own cooldown, so do not schedule
+repositions faster than the game allows.
+
+MORTAR MONKEY TARGETING
+-----------------------
+
+Mortar Monkeys use a manual map target point instead of First/Last targeting.
+Use the dedicated Mortar helper after placing the tower.
+
+Recommended tower definition:
+
+"Mortar A", {
+    type: "Mortar",
+    x: 620,
+    y: 430,
+    placed: false,
+    upgrades: [0, 0, 0],
+    targeting: "Target",
+    targetSet: false,
+    targetX: 0,
+    targetY: 0
+}
+
+Set the Mortar firing point:
+
+[8, 0, () => SetMortarTarget(
+    TowerSetup["Mortar A"],
+    1025,
+    330
+)]
+
+Move the target later:
+
+[20, 0, () => RetargetMortar(
+    TowerSetup["Mortar A"],
+    780,
+    610
+)]
+
+Mortar target-point behavior:
+     - Selects the Mortar if needed.
+     - Presses PgDn to enter the Mortar target-point action.
+     - Waits 300 ms after PgDn.
+     - Clicks the requested screen coordinate.
+     - Waits 250 ms after the click.
+     - Closes the upgrade panel and waits another 100 ms.
+     - Stores the latest point in tower.targetX / tower.targetY.

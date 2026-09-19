@@ -2,6 +2,20 @@
 
 
 global IsPregame := false
+global CurrentStrategyTargetRound := 0
+global CurrentStrategyRoundDetectedTick := 0
+global CurrentStrategyRoundDetectedTimestamp := ""
+
+
+MarkStrategyRoundDetected(targetRound) {
+    global CurrentStrategyTargetRound
+    global CurrentStrategyRoundDetectedTick
+    global CurrentStrategyRoundDetectedTimestamp
+
+    CurrentStrategyTargetRound := targetRound
+    CurrentStrategyRoundDetectedTick := A_TickCount
+    CurrentStrategyRoundDetectedTimestamp := GetLogTimestampMs()
+}
 
 
 RunPregameStrategy(actions) {
@@ -36,6 +50,9 @@ RunPregameStrategy(actions) {
             ; no OCR
             ; no CheckGameState
             ; no extra checks
+            MarkStrategyRoundDetected(0)
+
+
             if delayMs > 0 {
 
                 Sleep(
@@ -149,6 +166,11 @@ RunStrategy(actions) {
             currentRound :=
                 targetRound
         }
+
+
+        ; Capture the exact moment this scheduled round became eligible.
+        ; Upgrade timing logs use this as their first timestamp.
+        MarkStrategyRoundDetected(targetRound)
 
 
         ; If this action has an in-round delay,

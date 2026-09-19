@@ -92,6 +92,56 @@ MapNameDifficultyMode() {
             targeting: "First",
             targetingBeforeSubmerge: "First",
             submerged: false
+        },
+
+
+        ; Dartling uses its own aim helpers instead of normal SetTargeting().
+        "Dartling A", {
+            type: "Dartling",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "Normal"
+        },
+
+
+        ; Heli uses Follow Mouse / Lock in Place / Pursuit style targeting.
+        "Heli A", {
+            type: "Heli",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "Follow Mouse"
+        },
+
+
+        ; Mortar uses a manual map target point instead of First/Last targeting.
+        "Mortar A", {
+            type: "Mortar",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "Target",
+            targetSet: false,
+            targetX: 0,
+            targetY: 0
+        },
+
+
+        ; Mermonkey uses normal targeting, but xx4/xx5 can place an Allure Totem.
+        "Mermonkey A", {
+            type: "Mermonkey",
+            x: 0,
+            y: 0,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "First",
+            totemPlaced: false,
+            totemX: 0,
+            totemY: 0
         }
     )
 
@@ -278,6 +328,103 @@ MapNameDifficultyMode() {
         ; )],
 
 
+        ; Dartling Gunner special targeting
+        ;
+        ; Place the Dartling normally, then aim/lock its barrel at a screen point.
+        ; The X/Y below are AIM coordinates, not the Dartling's placement coordinates.
+        ;
+        ; [8, 0, () => PlaceTower(
+        ;     TowerSetup["Dartling A"]
+        ; )],
+        ;
+        ; [8, 0, () => AimDartling(
+        ;     TowerSetup["Dartling A"],
+        ;     1000,
+        ;     350
+        ; )],
+        ;
+        ; Retarget an already-locked Dartling later:
+        ;
+        ; [20, 0, () => RetargetDartling(
+        ;     TowerSetup["Dartling A"],
+        ;     750,
+        ;     600
+        ; )],
+
+
+        ; Heli Pilot Lock in Place
+        ;
+        ; Place the Heli normally, then lock it to a screen point.
+        ; The X/Y below are HELI DESTINATION coordinates, not placement coordinates.
+        ;
+        ; [8, 0, () => PlaceTower(
+        ;     TowerSetup["Heli A"]
+        ; )],
+        ;
+        ; [8, 0, () => LockHeliInPlace(
+        ;     TowerSetup["Heli A"],
+        ;     1000,
+        ;     350
+        ; )],
+        ;
+        ; Move an already-locked Heli later:
+        ;
+        ; [20, 0, () => RetargetHeli(
+        ;     TowerSetup["Heli A"],
+        ;     750,
+        ;     600
+        ; )],
+
+
+        ; Mortar Monkey target point
+        ;
+        ; Place the Mortar normally, then set the point it should fire at.
+        ; The X/Y below are TARGET coordinates, not placement coordinates.
+        ;
+        ; [8, 0, () => PlaceTower(
+        ;     TowerSetup["Mortar A"]
+        ; )],
+        ;
+        ; [8, 0, () => SetMortarTarget(
+        ;     TowerSetup["Mortar A"],
+        ;     1000,
+        ;     350
+        ; )],
+        ;
+        ; Move the Mortar target later:
+        ;
+        ; [20, 0, () => RetargetMortar(
+        ;     TowerSetup["Mortar A"],
+        ;     750,
+        ;     600
+        ; )],
+
+
+        ; Mermonkey Allure Totem
+        ;
+        ; Bottom-path xx4 / xx5 only. Upgrade first, then place the totem.
+        ; The X/Y below are TOTEM coordinates.
+        ;
+        ; [35, 0, () => UpgradeTower(
+        ;     TowerSetup["Mermonkey A"],
+        ;     "004"
+        ; )],
+        ;
+        ; [35, 0, () => PlaceMermonkeyTotem(
+        ;     TowerSetup["Mermonkey A"],
+        ;     950,
+        ;     320
+        ; )],
+        ;
+        ; Move the totem later:
+        ;
+        ; [50, 0, () => RetargetMermonkeyTotem(
+        ;     TowerSetup["Mermonkey A"],
+        ;     760,
+        ;     570
+        ; )],
+
+
         ; Mid-round action
         ;
         ; 5000 ms into Round 20:
@@ -304,6 +451,6 @@ MapNameDifficultyMode() {
 ;
 ; - RunConfig
 ; - TowerSetup
-; - strategy}
+; - strategy
 
 MapNameDifficultyMode()

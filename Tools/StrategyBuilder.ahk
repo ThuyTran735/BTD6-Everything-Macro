@@ -95,7 +95,7 @@ BuildGui() {
     HeroDDL.Enabled := false
 
     MainGui.AddText("x275 y256 w45 h20", "Target")
-    TargetingDDL := MainGui.AddDropDownList("x320 y252 w175", ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite"])
+    TargetingDDL := MainGui.AddDropDownList("x320 y252 w175", ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite", "Normal", "Locked", "Target Independent", "Follow Mouse", "Lock in Place", "Patrol Points", "Pursuit", "Target"])
     TargetingDDL.Choose(1)
 
     MainGui.AddText("x40 y292 w65 h20", "X")
@@ -202,6 +202,12 @@ OnEntityTypeChanged(*) {
 
         if EntityTypeDDL.Text = "Ace"
             ChooseDropdownText(TargetingDDL, "Circle")
+        else if EntityTypeDDL.Text = "Dartling"
+            ChooseDropdownText(TargetingDDL, "Normal")
+        else if EntityTypeDDL.Text = "Heli"
+            ChooseDropdownText(TargetingDDL, "Follow Mouse")
+        else if EntityTypeDDL.Text = "Mortar"
+            ChooseDropdownText(TargetingDDL, "Target")
         else
             ChooseDropdownText(TargetingDDL, "First")
     }

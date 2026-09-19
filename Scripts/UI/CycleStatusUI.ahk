@@ -692,6 +692,14 @@ CancelMacroCycles(*) {
 
     if RunningPid {
 
+        ; Record the user's explicit stop request in the child run log
+        ; before terminating the strategy process.
+        LogManualRunStopByPid(
+            RunningPid,
+            "USER CLOSED RUN MANUALLY"
+        )
+
+
         try {
             if ProcessExist(
                 RunningPid

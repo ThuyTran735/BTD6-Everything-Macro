@@ -22,6 +22,232 @@ global SelectedUpgradeTower := false
 global SelectedUpgradePanelSide := false
 
 
+GetUpgradeTowerLogName(tower) {
+    global TowerSetup
+
+    try {
+        for towerName, configuredTower in TowerSetup {
+            if (
+                IsObject(configuredTower)
+                && ObjPtr(configuredTower) = ObjPtr(tower)
+            ) {
+                return towerName
+            }
+        }
+    }
+
+    try {
+        if HasProp(tower, "type") {
+            return tower.type
+        }
+    }
+
+    return "Unknown Tower"
+}
+
+
+CreateUpgradeActionTiming(tower, target) {
+    global CurrentStrategyTargetRound
+    global CurrentStrategyRoundDetectedTick
+    global CurrentStrategyRoundDetectedTimestamp
+
+    roundTick := CurrentStrategyRoundDetectedTick
+    roundTimestamp := CurrentStrategyRoundDetectedTimestamp
+
+    if !roundTick {
+        roundTick := A_TickCount
+        roundTimestamp := GetLogTimestampMs()
+    }
+
+    return {
+        towerName: GetUpgradeTowerLogName(tower),
+        target: target,
+        targetRound: CurrentStrategyTargetRound,
+        roundTick: roundTick,
+        roundTimestamp: roundTimestamp,
+        selectedTick: 0,
+        selectedTimestamp: "",
+        selectionReused: false,
+        firstGreenTick: 0,
+        firstGreenTimestamp: "",
+        firstHotkeyTick: 0,
+        firstHotkeyTimestamp: "",
+        finalConfirmedTick: 0,
+        finalConfirmedTimestamp: "",
+        stepCount: 0
+    }
+}
+
+
+MarkUpgradeMonkeySelected(timing, reused := false) {
+    if !IsObject(timing) {
+        return
+    }
+
+    timing.selectedTick := A_TickCount
+    timing.selectedTimestamp := GetLogTimestampMs()
+    timing.selectionReused := reused
+}
+
+
+BeginUpgradeStepTiming(actionTiming, path, level) {
+    if !IsObject(actionTiming) {
+        return false
+    }
+
+    actionTiming.stepCount++
+
+    return {
+        action: actionTiming,
+        path: path,
+        level: level,
+        greenTick: 0,
+        greenTimestamp: "",
+        hotkeyTick: 0,
+        hotkeyTimestamp: "",
+        confirmedTick: 0,
+        confirmedTimestamp: ""
+    }
+}
+
+
+MarkUpgradeGreen(timingStep) {
+    if !IsObject(timingStep) || timingStep.greenTick {
+        return
+    }
+
+    timingStep.greenTick := A_TickCount
+    timingStep.greenTimestamp := GetLogTimestampMs()
+
+    actionTiming := timingStep.action
+    if IsObject(actionTiming) && !actionTiming.firstGreenTick {
+        actionTiming.firstGreenTick := timingStep.greenTick
+        actionTiming.firstGreenTimestamp := timingStep.greenTimestamp
+    }
+}
+
+
+MarkUpgradeHotkey(timingStep) {
+    if !IsObject(timingStep) {
+        return
+    }
+
+    timingStep.hotkeyTick := A_TickCount
+    timingStep.hotkeyTimestamp := GetLogTimestampMs()
+
+    actionTiming := timingStep.action
+    if IsObject(actionTiming) && !actionTiming.firstHotkeyTick {
+        actionTiming.firstHotkeyTick := timingStep.hotkeyTick
+        actionTiming.firstHotkeyTimestamp := timingStep.hotkeyTimestamp
+    }
+}
+
+
+MarkUpgradeConfirmed(timingStep) {
+    if !IsObject(timingStep) {
+        return
+    }
+
+    timingStep.confirmedTick := A_TickCount
+    timingStep.confirmedTimestamp := GetLogTimestampMs()
+
+    actionTiming := timingStep.action
+    if IsObject(actionTiming) {
+        actionTiming.finalConfirmedTick := timingStep.confirmedTick
+        actionTiming.finalConfirmedTimestamp := timingStep.confirmedTimestamp
+    }
+}
+
+
+UpgradeTimingDelta(fromTick, toTick) {
+    if !fromTick || !toTick {
+        return "n/a"
+    }
+
+    return (toTick - fromTick) . "ms"
+}
+
+
+LogUpgradeStepTiming(timingStep, outcome := "Confirmed") {
+    if !IsObject(timingStep) {
+        return
+    }
+
+    actionTiming := timingStep.action
+    if !IsObject(actionTiming) {
+        return
+    }
+
+    LogMessage(
+        "TIMING",
+        "Upgrade step | "
+        . actionTiming.towerName
+        . " target "
+        . actionTiming.target
+        . " | "
+        . timingStep.path
+        . " "
+        . timingStep.level
+        . " | green="
+        . (timingStep.greenTimestamp != "" ? timingStep.greenTimestamp : "n/a")
+        . " | hotkey="
+        . (timingStep.hotkeyTimestamp != "" ? timingStep.hotkeyTimestamp : "n/a")
+        . " | confirmed="
+        . (timingStep.confirmedTimestamp != "" ? timingStep.confirmedTimestamp : "n/a")
+        . " | green->hotkey="
+        . UpgradeTimingDelta(timingStep.greenTick, timingStep.hotkeyTick)
+        . " | hotkey->confirm="
+        . UpgradeTimingDelta(timingStep.hotkeyTick, timingStep.confirmedTick)
+        . " | outcome="
+        . outcome
+    )
+}
+
+
+LogUpgradeActionTiming(timing, outcome := "Success") {
+    if !IsObject(timing) {
+        return
+    }
+
+    selectionLabel := timing.selectionReused
+        ? timing.selectedTimestamp . " (cached)"
+        : timing.selectedTimestamp
+
+    LogMessage(
+        "TIMING",
+        timing.towerName
+        . " "
+        . timing.target
+        . " | round "
+        . timing.targetRound
+        . " detected="
+        . timing.roundTimestamp
+        . " | monkey selected="
+        . (selectionLabel != "" ? selectionLabel : "n/a")
+        . " | first green="
+        . (timing.firstGreenTimestamp != "" ? timing.firstGreenTimestamp : "n/a")
+        . " | first hotkey="
+        . (timing.firstHotkeyTimestamp != "" ? timing.firstHotkeyTimestamp : "n/a")
+        . " | final confirmed="
+        . (timing.finalConfirmedTimestamp != "" ? timing.finalConfirmedTimestamp : "n/a")
+        . " | round->select="
+        . UpgradeTimingDelta(timing.roundTick, timing.selectedTick)
+        . " | select->green="
+        . UpgradeTimingDelta(timing.selectedTick, timing.firstGreenTick)
+        . " | green->hotkey="
+        . UpgradeTimingDelta(timing.firstGreenTick, timing.firstHotkeyTick)
+        . " | hotkey->confirm="
+        . UpgradeTimingDelta(timing.firstHotkeyTick, timing.finalConfirmedTick)
+        . " | total="
+        . UpgradeTimingDelta(timing.roundTick, timing.finalConfirmedTick)
+        . " | steps="
+        . timing.stepCount
+        . " | outcome="
+        . outcome
+    )
+}
+
+
 ClearSelectedUpgradeTower() {
     global SelectedUpgradeTower
     global SelectedUpgradePanelSide
@@ -33,7 +259,7 @@ ClearSelectedUpgradeTower() {
 }
 
 
-CloseCachedUpgradePanel() {
+CloseCachedUpgradePanel(settleMs := 25) {
     global SelectedUpgradeTower
 
     ; We intentionally leave the panel open after an upgrade so the same
@@ -41,7 +267,7 @@ CloseCachedUpgradePanel() {
     ; first so its Sell button/panel cannot be mistaken for the new tower.
     if IsObject(SelectedUpgradeTower) {
         Send("{Esc}")
-        Sleep(25)
+        Sleep(settleMs)
     }
 
     return ClearSelectedUpgradeTower()
@@ -159,6 +385,13 @@ UpgradeTower(
     }
 
 
+    upgradeTiming :=
+        CreateUpgradeActionTiming(
+            tower,
+            target
+        )
+
+
     targetTop :=
         Integer(
             SubStr(
@@ -194,10 +427,17 @@ UpgradeTower(
     panelSide := false
 
 
-    if !TryReuseSelectedUpgradeTower(
+    if TryReuseSelectedUpgradeTower(
         tower,
         &panelSide
     ) {
+
+        MarkUpgradeMonkeySelected(
+            upgradeTiming,
+            true
+        )
+    }
+    else {
 
         Click(
             tower.x,
@@ -207,6 +447,11 @@ UpgradeTower(
 
         Sleep(
             IsFastDeflationPregameUpgrade() ? 25 : 35
+        )
+
+
+        MarkUpgradeMonkeySelected(
+            upgradeTiming
         )
 
 
@@ -227,11 +472,20 @@ UpgradeTower(
 
     while tower.upgrades[1] < targetTop {
 
+        stepTiming :=
+            BeginUpgradeStepTiming(
+                upgradeTiming,
+                "Top",
+                tower.upgrades[1] + 1
+            )
+
+
         result :=
             WaitForUpgrade(
                 tower,
                 "Top",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -265,7 +519,8 @@ UpgradeTower(
             BuyUpgrade(
                 tower,
                 "Top",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -296,11 +551,20 @@ UpgradeTower(
 
     while tower.upgrades[2] < targetMiddle {
 
+        stepTiming :=
+            BeginUpgradeStepTiming(
+                upgradeTiming,
+                "Middle",
+                tower.upgrades[2] + 1
+            )
+
+
         result :=
             WaitForUpgrade(
                 tower,
                 "Middle",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -334,7 +598,8 @@ UpgradeTower(
             BuyUpgrade(
                 tower,
                 "Middle",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -365,11 +630,20 @@ UpgradeTower(
 
     while tower.upgrades[3] < targetBottom {
 
+        stepTiming :=
+            BeginUpgradeStepTiming(
+                upgradeTiming,
+                "Bottom",
+                tower.upgrades[3] + 1
+            )
+
+
         result :=
             WaitForUpgrade(
                 tower,
                 "Bottom",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -403,7 +677,8 @@ UpgradeTower(
             BuyUpgrade(
                 tower,
                 "Bottom",
-                &panelSide
+                &panelSide,
+                stepTiming
             )
 
 
@@ -437,6 +712,11 @@ UpgradeTower(
     CacheSelectedUpgradeTower(
         tower,
         panelSide
+    )
+
+
+    LogUpgradeActionTiming(
+        upgradeTiming
     )
 
 
@@ -489,7 +769,8 @@ GetUpgradePanelSide() {
 WaitForUpgrade(
     tower,
     path,
-    &panelSide
+    &panelSide,
+    timingStep := false
 ) {
     global UpgradePoints
     global IsPregame
@@ -575,6 +856,7 @@ WaitForUpgrade(
             point[1],
             point[2]
         ) {
+            MarkUpgradeGreen(timingStep)
             return true
         }
 
@@ -1237,7 +1519,8 @@ IsUpgradeGreen(
 BuyUpgrade(
     tower,
     path,
-    &panelSide
+    &panelSide,
+    timingStep := false
 ) {
     global UpgradeHotkeys
     global UpgradePoints
@@ -1276,6 +1559,9 @@ BuyUpgrade(
         )
 
 
+    MarkUpgradeHotkey(timingStep)
+
+
     Send(
         UpgradeHotkeys[
             path
@@ -1299,6 +1585,8 @@ BuyUpgrade(
 
 
     if afterSignature != beforeSignature {
+        MarkUpgradeConfirmed(timingStep)
+        LogUpgradeStepTiming(timingStep)
         return true
     }
 
@@ -1315,16 +1603,19 @@ BuyUpgrade(
 
 
     if lockResult = "Victory" {
+        LogUpgradeStepTiming(timingStep, "Victory")
         return "Victory"
     }
 
 
     if lockResult = "Defeat" {
+        LogUpgradeStepTiming(timingStep, "Defeat")
         return "Defeat"
     }
 
 
     if lockResult = "Failed" {
+        LogUpgradeStepTiming(timingStep, "Failed")
         return false
     }
 
@@ -1333,6 +1624,9 @@ BuyUpgrade(
         ; The unlock flow re-opened this tower's panel. Purchase the
         ; originally requested upgrade once, then use the same 135 ms
         ; hotkey settle.
+        MarkUpgradeHotkey(timingStep)
+
+
         Send(
             UpgradeHotkeys[
                 path
@@ -1345,6 +1639,10 @@ BuyUpgrade(
         )
 
 
+        MarkUpgradeConfirmed(timingStep)
+        LogUpgradeStepTiming(timingStep, "ConfirmedAfterUnlock")
+
+
         return true
     }
 
@@ -1353,6 +1651,8 @@ BuyUpgrade(
     ; occasionally leave sampled pixels unchanged when the next tier uses a
     ; very similar button state; sending the key a second time could purchase
     ; an unintended extra tier.
+    MarkUpgradeConfirmed(timingStep)
+    LogUpgradeStepTiming(timingStep, "AssumedConfirmed")
     return true
 }
 
@@ -1441,6 +1741,22 @@ UpdateTargetingAfterUpgrade(
 
             tower.targeting :=
                 "Centered Path"
+        }
+    }
+
+
+    ; Buying Pursuit (2xx) automatically switches a Heli Pilot to Pursuit.
+    ; Keep our stored targeting state synchronized so a later
+    ; LockHeliInPlace() knows how many targeting steps are needed.
+    if tower.type = "Heli" {
+
+        if (
+            upgradedPath = "Top"
+            && tower.upgrades[1] = 2
+        ) {
+
+            tower.targeting :=
+                "Pursuit"
         }
     }
 

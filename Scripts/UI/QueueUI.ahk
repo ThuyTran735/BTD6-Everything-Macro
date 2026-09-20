@@ -153,15 +153,8 @@ ShowQueueManager(*) {
         UIColorBackground
 
 
-    QueueGui.Add(
-        "Progress",
-        "x0 y0 w620 h4 c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
-        100
-    )
+    EnableCustomWindowChrome(QueueGui)
+    AddCustomWindowBorder(QueueGui, 620, 500)
 
 
     AddUIOutlinedText(
@@ -320,7 +313,7 @@ ShowQueueManager(*) {
             436,
             160,
             44,
-            "CLOSE",
+            "BACK",
             9
         )
 
@@ -384,8 +377,8 @@ ShowQueueManager(*) {
     CreateHelpBadgeForButton(
         QueueGui,
         closeButton,
-        "CLOSE",
-        "Closes the Queue Manager.`n`nYour current queue stays in the launcher until you clear it or close the macro."
+        "BACK",
+        "Returns to the launcher.`n`nYour current queue stays loaded until you clear it or close the macro."
     )
 
 

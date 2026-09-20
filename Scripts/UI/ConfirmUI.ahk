@@ -93,12 +93,8 @@ ShowThemedConfirmation(
     UIConfirmGui.BackColor := UIColorBackground
 
 
-    UIConfirmGui.Add(
-        "Progress",
-        "x0 y0 w" . dialogWidth . " h4 c" . UIColorError
-        . " Background" . UIColorError . " Disabled",
-        100
-    )
+    EnableCustomWindowChrome(UIConfirmGui)
+    AddCustomWindowBorder(UIConfirmGui, dialogWidth, dialogHeight)
 
 
     AddUIOutlinedText(

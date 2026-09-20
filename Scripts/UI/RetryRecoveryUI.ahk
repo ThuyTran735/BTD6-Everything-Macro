@@ -122,11 +122,9 @@ ShowRetryRecoveryUI(*) {
     )
     RetryRecoveryGui.BackColor := UIColorBackground
 
-    RetryRecoveryGui.Add(
-        "Progress",
-        "x0 y0 w440 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(RetryRecoveryGui)
+    AddCustomWindowBorder(RetryRecoveryGui, 440, 386)
 
     AddUIOutlinedText(RetryRecoveryGui, "RETRY / RECOVERY", 20, 18, 400, 34, 13, "Center")
     CreateHelpBadgeForHeader(
@@ -163,7 +161,7 @@ ShowRetryRecoveryUI(*) {
         "x274 y218 w54 h40 Center 0x200 c" . UIColorPrimaryText . " BackgroundTrans",
         GetQueueRetryLimit()
     )
-    RetryLimitValueText.SetFont("s11 Bold")
+    RetryLimitValueText.SetFont("s11 Norm")
     plusButton := CreateDarkButton(RetryRecoveryGui, 336, 218, 54, 40, "+", 11)
 
     minusButton.OnEvent("Click", AdjustQueueRetryLimit.Bind(-1))
@@ -176,7 +174,7 @@ ShowRetryRecoveryUI(*) {
         "VALID RANGE: 0-10 | 0 DISABLES RETRIES"
     )
 
-    closeButton := CreateDarkButton(RetryRecoveryGui, 60, 318, 320, 42, "CLOSE", 8)
+    closeButton := CreateDarkButton(RetryRecoveryGui, 60, 318, 320, 42, "BACK TO SETTINGS", 8, "Default")
     closeButton.OnEvent("Click", CloseRetryRecoveryAndReturnToSettings)
 
     CreateHelpBadgeForButton(
@@ -194,8 +192,8 @@ ShowRetryRecoveryUI(*) {
     CreateHelpBadgeForButton(
         RetryRecoveryGui,
         closeButton,
-        "CLOSE",
-        "Closes Retry / Recovery and returns to Settings."
+        "BACK TO SETTINGS",
+        "Returns to Settings."
     )
 
     RetryRecoveryGui.OnEvent("Close", CloseRetryRecoveryAndReturnToSettings)

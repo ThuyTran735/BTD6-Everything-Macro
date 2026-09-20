@@ -9,6 +9,7 @@ global UIColorPanel := "171A1F"
 global UIColorPopupBackground := "14171C"
 
 global UIColorAccent := "4C8DFF"
+global UIColorWindowBorder := "252A33"
 
 global UIColorControlBorder := "343A46"
 
@@ -175,7 +176,7 @@ SetUIBodyBoldFont(
     guiObject.SetFont(
         "s"
         . size
-        . " Bold c"
+        . " Norm c"
         . color,
         UIFontBody
     )
@@ -191,12 +192,9 @@ SetUINativeControlFont(
     global UIColorNativeText
 
 
-    if bold {
-        weight := "Bold"
-    }
-    else {
-        weight := "Norm"
-    }
+    ; Parameter retained so existing callers do not need to change.
+    ; The v2.1 UI uses normal-weight text everywhere.
+    weight := "Norm"
 
 
     guiObject.SetFont(

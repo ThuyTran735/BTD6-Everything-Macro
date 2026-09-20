@@ -47,16 +47,8 @@ CreateStartupLoadingUI(
         UIColorBackground
 
 
-    StartupLoadingGui.Add(
-        "Progress",
-        "x0 y0 w"
-        . GuiWidth
-        . " h5 Background"
-        . UIColorAccent
-        . " c"
-        . UIColorAccent,
-        100
-    )
+    EnableCustomWindowChrome(StartupLoadingGui)
+    AddCustomWindowBorder(StartupLoadingGui, GuiWidth, GuiHeight)
 
 
     AddUIOutlinedText(

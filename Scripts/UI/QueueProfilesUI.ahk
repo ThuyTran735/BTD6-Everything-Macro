@@ -65,11 +65,9 @@ ShowQueueProfilesManager(*) {
     )
     QueueProfilesGui.BackColor := UIColorBackground
 
-    QueueProfilesGui.Add(
-        "Progress",
-        "x0 y0 w680 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(QueueProfilesGui)
+    AddCustomWindowBorder(QueueProfilesGui, 680, 490)
 
     AddUIOutlinedText(QueueProfilesGui, "QUEUE PROFILES", 20, 18, 640, 34, 13, "Center")
 
@@ -242,7 +240,7 @@ ShowQueueProfilesManager(*) {
     saveButton := CreateDarkButton(QueueProfilesGui, 162, 386, 112, 44, "SAVE CURRENT", 7)
     updateButton := CreateDarkButton(QueueProfilesGui, 284, 386, 112, 44, "UPDATE", 8)
     moreButton := CreateDarkButton(QueueProfilesGui, 406, 386, 112, 44, "MORE", 8)
-    closeButton := CreateDarkButton(QueueProfilesGui, 528, 386, 112, 44, "CLOSE", 8)
+    closeButton := CreateDarkButton(QueueProfilesGui, 528, 386, 112, 44, "BACK", 8, "Default")
 
     CreateHelpBadgeForButton(QueueProfilesGui, loadButton, "LOAD PROFILE", "Loads this profile into the queue.`n`nYour current queue is replaced, and the saved repeat amount is applied.")
     CreateHelpBadgeForButton(QueueProfilesGui, saveButton, "SAVE CURRENT", "Saves your current queue as a new Queue Profile.")
@@ -251,8 +249,8 @@ ShowQueueProfilesManager(*) {
     CreateHelpBadgeForButton(
         QueueProfilesGui,
         closeButton,
-        "CLOSE",
-        "Closes Queue Profiles.`n`nYour current queue and saved profiles are not changed."
+        "BACK",
+        "Returns to the Queue Manager.`n`nYour current queue and saved profiles are not changed."
     )
 
     loadButton.OnEvent("Click", LoadSelectedQueueProfile)
@@ -890,11 +888,9 @@ ShowQueueProfileMoreActions(*) {
     )
     QueueProfileMoreGui.BackColor := UIColorBackground
 
-    QueueProfileMoreGui.Add(
-        "Progress",
-        "x0 y0 w320 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(QueueProfileMoreGui)
+    AddCustomWindowBorder(QueueProfileMoreGui, 320, 380)
 
     AddUIOutlinedText(QueueProfileMoreGui, "MORE PROFILE ACTIONS", 20, 18, 280, 30, 11, "Center")
 
@@ -910,7 +906,7 @@ ShowQueueProfileMoreActions(*) {
     exportButton := CreateDarkButton(QueueProfileMoreGui, 40, 180, 240, 40, "EXPORT", 8)
     importButton := CreateDarkButton(QueueProfileMoreGui, 40, 228, 240, 40, "IMPORT", 8)
     deleteButton := CreateDarkButton(QueueProfileMoreGui, 40, 276, 240, 40, "DELETE", 8)
-    closeButton := CreateDarkButton(QueueProfileMoreGui, 40, 324, 240, 40, "CLOSE", 8)
+    closeButton := CreateDarkButton(QueueProfileMoreGui, 40, 324, 240, 40, "BACK", 8, "Default")
 
     duplicateButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(DuplicateSelectedQueueProfile))
     renameButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(RenameSelectedQueueProfile))
@@ -952,8 +948,8 @@ ShowQueueProfileMoreActions(*) {
     CreateHelpBadgeForButton(
         QueueProfileMoreGui,
         closeButton,
-        "CLOSE",
-        "Closes this window and returns to Queue Profiles.`n`nNothing is changed."
+        "BACK",
+        "Returns to Queue Profiles.`n`nNothing is changed."
     )
 
     QueueProfileMoreGui.OnEvent("Close", CloseQueueProfileMoreActionsAndReturn)
@@ -1255,12 +1251,9 @@ PromptQueueProfileName(promptText, defaultName := "") {
     )
     QueueProfileNameGui.BackColor := UIColorBackground
 
-    QueueProfileNameGui.Add(
-        "Progress",
-        "x0 y0 w" . dialogWidth . " h4 c" . UIColorAccent
-        . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(QueueProfileNameGui)
+    AddCustomWindowBorder(QueueProfileNameGui, dialogWidth, dialogHeight)
 
     SetUIHeadingFont(QueueProfileNameGui, 13, UIColorPrimaryText)
     QueueProfileNameGui.Add(
@@ -1301,7 +1294,7 @@ PromptQueueProfileName(promptText, defaultName := "") {
     )
 
     saveButton := CreateDarkButton(QueueProfileNameGui, 30, 211, 184, 44, "SAVE NAME", 8)
-    cancelButton := CreateDarkButton(QueueProfileNameGui, 226, 211, 184, 44, "CLOSE", 8)
+    cancelButton := CreateDarkButton(QueueProfileNameGui, 226, 211, 184, 44, "CANCEL", 8, "Default")
 
     CreateHelpBadgeForButton(
         QueueProfileNameGui,
@@ -1313,8 +1306,8 @@ PromptQueueProfileName(promptText, defaultName := "") {
     CreateHelpBadgeForButton(
         QueueProfileNameGui,
         cancelButton,
-        "CLOSE",
-        "Closes this prompt without saving the new name."
+        "CANCEL",
+        "Returns without saving the new name."
     )
 
     saveButton.OnEvent("Click", ConfirmQueueProfileName)

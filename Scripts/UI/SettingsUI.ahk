@@ -31,11 +31,9 @@ ShowSettingsUI(*) {
     )
     SettingsGui.BackColor := UIColorBackground
 
-    SettingsGui.Add(
-        "Progress",
-        "x0 y0 w500 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(SettingsGui)
+    AddCustomWindowBorder(SettingsGui, 500, 524)
 
     AddUIOutlinedText(SettingsGui, "SETTINGS", 20, 18, 460, 34, 13, "Center")
 
@@ -104,7 +102,7 @@ ShowSettingsUI(*) {
         "Update checks compare this copy with the version file on GitHub."
     )
 
-    closeButton := CreateDarkButton(SettingsGui, 90, 458, 320, 42, "CLOSE", 8)
+    closeButton := CreateDarkButton(SettingsGui, 90, 458, 320, 42, "BACK TO LAUNCHER", 8, "Default")
 
     confirmationsButton.OnEvent("Click", ToggleConfirmationSetting.Bind(confirmationsButton))
     queueButtonsButton.OnEvent("Click", ToggleQueueLauncherButtonsSetting.Bind(queueButtonsButton))
@@ -149,8 +147,8 @@ ShowSettingsUI(*) {
         "Checks GitHub now and compares Scripts/Version.ahk with this installed copy."
     )
     CreateHelpBadgeForButton(
-        SettingsGui, closeButton, "CLOSE",
-        "Closes Settings and returns to the main launcher."
+        SettingsGui, closeButton, "BACK TO LAUNCHER",
+        "Returns to the main launcher."
     )
 
     SettingsGui.OnEvent("Close", CloseSettingsAndReturnToLauncher)
@@ -385,11 +383,9 @@ ShowLogsUI(*) {
     LogsGui.Opt("+OwnDialogs")
     LogsGui.BackColor := UIColorBackground
 
-    LogsGui.Add(
-        "Progress",
-        "x0 y0 w500 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(LogsGui)
+    AddCustomWindowBorder(LogsGui, 500, 442)
 
     AddUIOutlinedText(LogsGui, "LOGS", 20, 18, 460, 34, 13, "Center")
 

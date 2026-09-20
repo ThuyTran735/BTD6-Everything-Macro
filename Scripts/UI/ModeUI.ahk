@@ -29,6 +29,10 @@ ShowModePicker(*) {
         UIColorBackground
 
 
+    EnableCustomWindowChrome(ModePickerGui)
+    AddCustomWindowBorder(ModePickerGui, 360, 295)
+
+
     AddUIOutlinedText(
         ModePickerGui,
         "SELECT MODE",
@@ -131,7 +135,7 @@ ShowModePicker(*) {
             225,
             155,
             46,
-            "CLOSE",
+            "BACK",
             9
         )
 
@@ -147,8 +151,8 @@ ShowModePicker(*) {
     CreateHelpBadgeForButton(
         ModePickerGui,
         cancelButton,
-        "CLOSE",
-        "Closes this window without changing the current mode."
+        "BACK",
+        "Returns to the launcher without changing the current mode."
     )
 
 

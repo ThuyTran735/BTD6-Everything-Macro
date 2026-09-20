@@ -12,14 +12,17 @@ CoordMode("Mouse", "Screen")
 
 global Entities := []
 global UpgradeActions := []
-global NextMonkeyIndex := 1
 global MainGui := false
+global BuilderMinimizeControl := false
+global BuilderCloseControl := false
+global BuilderChromeMessageReady := false
+global BuilderWindowBorder := false
 
 global TowerTypes := [
     "Dart", "Boomerang", "Bomb", "Tack", "Ice", "Glue", "Desperado",
     "Sniper", "Sub", "Buccaneer", "Ace", "Heli", "Mortar", "Dartling",
     "Wizard", "Super", "Ninja", "Alchemist", "Druid", "Mermonkey", "Skywarden",
-    "Farm", "SpikeFactory", "Village", "Engineer", "Hero"
+    "Farm", "SpikeFactory", "Village", "Engineer", "Beast Handler", "Hero"
 ]
 
 global HeroNames := [
@@ -40,23 +43,41 @@ BuildGui()
 
 BuildGui() {
     global MainGui
+    global BuilderMinimizeControl, BuilderCloseControl, BuilderChromeMessageReady, BuilderWindowBorder
     global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, TargetingDDL
     global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionLV
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, OutputEdit, StatusText
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoices
 
-    MainGui := Gui("+Resize +MinSize1040x720", "BTD6 Strategy Builder " . GetAppVersionLabel())
+    MainGui := Gui("+Resize +MinSize1040x720 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "1E1E1E"
     MainGui.SetFont("s10 cF2F2F2", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())
 
-    MainGui.SetFont("s16 w700 cFFFFFF")
-    MainGui.AddText("x20 y14 w1000 h28", "BTD6 STRATEGY BUILDER + COORDINATE TOOL")
+    if !BuilderChromeMessageReady {
+        OnMessage(0x84, StrategyBuilderChromeHitTest)
+        BuilderChromeMessageReady := true
+    }
+
+    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 720)
+
+    MainGui.SetFont("s16 w400 cFFFFFF")
+    MainGui.AddText("x20 y14 w920 h28", "BTD6 STRATEGY BUILDER + COORDINATE TOOL")
+
+    MainGui.SetFont("s12 w400 cB7B7B7")
+    BuilderMinimizeControl := MainGui.AddText("x954 y12 w30 h28 Center +0x200", "-")
+    BuilderMinimizeControl.OnEvent("Click", MinimizeStrategyBuilder)
+
+    MainGui.SetFont("s11 w400 cFB7185")
+    BuilderCloseControl := MainGui.AddText("x994 y12 w30 h28 Center +0x200", "X")
+    BuilderCloseControl.OnEvent("Click", (*) => ExitApp())
+
+    MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
     MainGui.SetFont("s9 w400 cB7B7B7")
     MainGui.AddText("x20 y45 w1000 h20", "Add multiple monkeys or one hero, capture placement coordinates, schedule upgrades, then generate a ready-to-use map strategy template.")
 
     ; Map / strategy metadata
-    MainGui.SetFont("s10 w700 cFFFFFF")
+    MainGui.SetFont("s10 w400 cFFFFFF")
     MainGui.AddGroupBox("x20 y76 w1000 h100", " STRATEGY INFO ")
     MainGui.SetFont("s9 w400 cE8E8E8")
 
@@ -76,14 +97,15 @@ BuildGui() {
 
     MainGui.AddText("x290 y141 w55 h20", "Mode")
     ModeDDL := MainGui.AddDropDownList("x345 y137 w220 Choose1", ModeChoices)
+    ModeDDL.OnEvent("Change", OnModeChanged)
 
     ; Entity builder
-    MainGui.SetFont("s10 w700 cFFFFFF")
+    MainGui.SetFont("s10 w400 cFFFFFF")
     MainGui.AddGroupBox("x20 y190 w500 h310", " MONKEY / HERO ")
     MainGui.SetFont("s9 w400 cE8E8E8")
 
     MainGui.AddText("x40 y220 w65 h20", "Name")
-    EntityNameEdit := MainGui.AddEdit("x105 y216 w155 h26", "Monkey A")
+    EntityNameEdit := MainGui.AddEdit("x105 y216 w155 h26", "Dart A")
     SetEditTextBlack(EntityNameEdit)
 
     MainGui.AddText("x275 y220 w45 h20", "Type")
@@ -127,7 +149,7 @@ BuildGui() {
     EntityLV.ModifyCol(6, 50)
 
     ; Upgrade builder
-    MainGui.SetFont("s10 w700 cFFFFFF")
+    MainGui.SetFont("s10 w400 cFFFFFF")
     MainGui.AddGroupBox("x540 y190 w480 h310", " UPGRADE SCHEDULE ")
     MainGui.SetFont("s9 w400 cE8E8E8")
 
@@ -159,7 +181,7 @@ BuildGui() {
     ActionLV.ModifyCol(4, 75)
 
     ; Output
-    MainGui.SetFont("s10 w700 cFFFFFF")
+    MainGui.SetFont("s10 w400 cFFFFFF")
     MainGui.AddGroupBox("x20 y515 w1000 h160", " GENERATED TEMPLATE ")
     MainGui.SetFont("s9 w400 cE8E8E8")
 
@@ -187,30 +209,43 @@ SetEditTextBlack(control) {
     control.SetFont("c000000", "Segoe UI")
 }
 
+OnModeChanged(*) {
+    global ModeDDL, DifficultyDDL, StatusText
+
+    if ModeDDL.Text = "Deflation" {
+        ChooseDropdownText(DifficultyDDL, "Easy")
+        DifficultyDDL.Enabled := false
+        StatusText.Text := "Deflation: Easy | Rounds 31-60 | Round 0 = pregame"
+    } else {
+        DifficultyDDL.Enabled := true
+        StatusText.Text := "Ready"
+    }
+}
+
 OnEntityTypeChanged(*) {
     global EntityTypeDDL, HeroDDL, TargetingDDL, EntityNameEdit
 
-    isHero := EntityTypeDDL.Text = "Hero"
+    type := EntityTypeDDL.Text
+    isHero := type = "Hero"
     HeroDDL.Enabled := isHero
+    EntityNameEdit.Value := GetNextEntityName(type)
 
-    if isHero {
-        EntityNameEdit.Value := "Hero"
-        TargetingDDL.Choose(1)
-    } else {
-        if EntityNameEdit.Value = "Hero"
-            EntityNameEdit.Value := GetNextMonkeyName()
+    ApplyDefaultTargetingForType(type)
+}
 
-        if EntityTypeDDL.Text = "Ace"
-            ChooseDropdownText(TargetingDDL, "Circle")
-        else if EntityTypeDDL.Text = "Dartling"
-            ChooseDropdownText(TargetingDDL, "Normal")
-        else if EntityTypeDDL.Text = "Heli"
-            ChooseDropdownText(TargetingDDL, "Follow Mouse")
-        else if EntityTypeDDL.Text = "Mortar"
-            ChooseDropdownText(TargetingDDL, "Target")
-        else
-            ChooseDropdownText(TargetingDDL, "First")
-    }
+ApplyDefaultTargetingForType(type) {
+    global TargetingDDL
+
+    if type = "Ace"
+        ChooseDropdownText(TargetingDDL, "Circle")
+    else if type = "Dartling"
+        ChooseDropdownText(TargetingDDL, "Normal")
+    else if type = "Heli"
+        ChooseDropdownText(TargetingDDL, "Follow Mouse")
+    else if type = "Mortar"
+        ChooseDropdownText(TargetingDDL, "Target")
+    else
+        ChooseDropdownText(TargetingDDL, "First")
 }
 
 CaptureCoordinatesInstant(*) {
@@ -261,7 +296,7 @@ CaptureCoordinates(*) {
 
 AddEntity(*) {
     global Entities, EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, TargetingDDL
-    global NextMonkeyIndex, StatusText
+    global StatusText
 
     name := Trim(EntityNameEdit.Value)
     type := EntityTypeDDL.Text
@@ -306,24 +341,21 @@ AddEntity(*) {
 
     Entities.Push(entity)
 
-    if type != "Hero"
-        NextMonkeyIndex += 1
-
     RefreshEntityList()
     RefreshActionEntityDropdown()
 
-    EntityNameEdit.Value := GetNextMonkeyName()
-    EntityTypeDDL.Choose(1)
-    HeroDDL.Enabled := false
+    EntityNameEdit.Value := GetNextEntityName(type)
+    HeroDDL.Enabled := (type = "Hero")
     XEdit.Value := "0"
     YEdit.Value := "0"
     PlaceRoundEdit.Value := "0"
-    ChooseDropdownText(TargetingDDL, "First")
+    ApplyDefaultTargetingForType(type)
     StatusText.Text := "Added " name
 }
 
 DeleteSelectedEntity(*) {
     global EntityLV, Entities, UpgradeActions, StatusText
+    global EntityTypeDDL, EntityNameEdit
 
     row := EntityLV.GetNext(0)
     if row = 0 {
@@ -345,6 +377,7 @@ DeleteSelectedEntity(*) {
     RefreshEntityList()
     RefreshActionEntityDropdown()
     RefreshActionList()
+    EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
     StatusText.Text := "Deleted " removedName
 }
 
@@ -501,7 +534,7 @@ SaveTemplate(*) {
 }
 
 ClearAll(*) {
-    global Entities, UpgradeActions, NextMonkeyIndex, OutputEdit, StatusText, EntityNameEdit
+    global Entities, UpgradeActions, OutputEdit, StatusText, EntityNameEdit, EntityTypeDDL, HeroDDL, TargetingDDL
 
     result := MsgBox("Clear all monkeys, hero, upgrades, and generated output?", "Strategy Builder", "YesNo Icon?")
     if result != "Yes"
@@ -509,9 +542,11 @@ ClearAll(*) {
 
     Entities := []
     UpgradeActions := []
-    NextMonkeyIndex := 1
     OutputEdit.Value := ""
-    EntityNameEdit.Value := "Monkey A"
+    EntityTypeDDL.Choose(1)
+    HeroDDL.Enabled := false
+    EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
+    ApplyDefaultTargetingForType(EntityTypeDDL.Text)
     RefreshEntityList()
     RefreshActionEntityDropdown()
     RefreshActionList()
@@ -533,6 +568,13 @@ BuildTemplateText() {
     category := EscapeAhkString(CategoryDDL.Text)
     difficulty := EscapeAhkString(DifficultyDDL.Text)
     gameMode := EscapeAhkString(ModeDDL.Text)
+    isDeflation := gameMode = "Deflation"
+
+    if isDeflation {
+        difficulty := "Easy"
+        if !ValidateDeflationRounds()
+            return ""
+    }
 
     heroValue := "false"
     for entity in Entities {
@@ -551,7 +593,16 @@ BuildTemplateText() {
     out .= "        difficulty: " q difficulty q ",`r`n"
     out .= "        gameMode: " q gameMode q ",`r`n"
     out .= "        hero: " heroValue ",`r`n"
-    out .= "        wingmonkeyMK: false`r`n"
+    out .= "        wingmonkeyMK: false"
+
+    if isDeflation {
+        out .= ",`r`n"
+        out .= "        startRound: 31,`r`n"
+        out .= "        endRound: 60`r`n"
+    } else {
+        out .= "`r`n"
+    }
+
     out .= "    }`r`n`r`n"
 
     out .= "    global TowerSetup := Map(`r`n"
@@ -592,6 +643,40 @@ BuildTemplateText() {
     out .= functionName "()`r`n"
 
     return out
+}
+
+ValidateDeflationRounds() {
+    global Entities, UpgradeActions
+
+    for entity in Entities {
+        if !IsValidDeflationActionRound(entity.placeRound) {
+            MsgBox(
+                entity.name " has placement round " entity.placeRound ".`n`n"
+                . "Deflation actions must use round 0 for pregame setup or rounds 31-60.",
+                "Strategy Builder - Deflation",
+                "Icon!"
+            )
+            return false
+        }
+    }
+
+    for action in UpgradeActions {
+        if !IsValidDeflationActionRound(action.round) {
+            MsgBox(
+                action.entity " -> " action.upgrade " uses round " action.round ".`n`n"
+                . "Deflation actions must use round 0 for pregame setup or rounds 31-60.",
+                "Strategy Builder - Deflation",
+                "Icon!"
+            )
+            return false
+        }
+    }
+
+    return true
+}
+
+IsValidDeflationActionRound(round) {
+    return round = 0 || (round >= 31 && round <= 60)
 }
 
 BuildEntityBlock(entity) {
@@ -657,9 +742,29 @@ FindEntityByName(name) {
     return false
 }
 
-GetNextMonkeyName() {
-    global NextMonkeyIndex
-    return "Monkey " NumberToLetters(NextMonkeyIndex)
+GetNextEntityName(type) {
+    global Entities
+
+    if type = "Hero"
+        return "Hero"
+
+    index := 1
+    Loop {
+        candidate := type " " NumberToLetters(index)
+        exists := false
+
+        for entity in Entities {
+            if StrLower(entity.name) = StrLower(candidate) {
+                exists := true
+                break
+            }
+        }
+
+        if !exists
+            return candidate
+
+        index += 1
+    }
 }
 
 NumberToLetters(number) {
@@ -718,4 +823,132 @@ SanitizeFileName(text) {
         return "GeneratedMapStrategy"
     text := RegExReplace(text, "[\\/:*?\x22<>|]", "_")
     return text
+}
+
+StrategyBuilderChromeHitTest(wParam, lParam, msg, hwnd) {
+    global MainGui
+
+    if !MainGui {
+        return
+    }
+
+    rootHwnd := DllCall("GetAncestor", "Ptr", hwnd, "UInt", 2, "Ptr")
+
+    if !rootHwnd {
+        rootHwnd := hwnd
+    }
+
+    if rootHwnd != MainGui.Hwnd {
+        return
+    }
+
+    rect := Buffer(16, 0)
+
+    if !DllCall("GetWindowRect", "Ptr", rootHwnd, "Ptr", rect.Ptr, "Int") {
+        return
+    }
+
+    left := NumGet(rect, 0, "Int")
+    top := NumGet(rect, 4, "Int")
+    right := NumGet(rect, 8, "Int")
+
+    screenX := lParam & 0xFFFF
+    screenY := (lParam >> 16) & 0xFFFF
+
+    if screenX >= 0x8000 {
+        screenX -= 0x10000
+    }
+
+    if screenY >= 0x8000 {
+        screenY -= 0x10000
+    }
+
+    clientX := screenX - left
+    clientY := screenY - top
+    windowWidth := right - left
+
+    if (
+        clientY >= 0
+        && clientY < 68
+        && clientX >= 0
+        && clientX < windowWidth - 96
+    ) {
+        return 2
+    }
+}
+
+
+CreateStrategyBuilderBorder(guiObject, width, height) {
+    borderColor := "252A33"
+    thickness := 4
+
+    top := guiObject.Add(
+        "Progress",
+        "x0 y0 w" . width . " h" . thickness
+        . " c" . borderColor . " Background" . borderColor . " Disabled",
+        100
+    )
+    bottom := guiObject.Add(
+        "Progress",
+        "x0 y" . (height - thickness) . " w" . width . " h" . thickness
+        . " c" . borderColor . " Background" . borderColor . " Disabled",
+        100
+    )
+    left := guiObject.Add(
+        "Progress",
+        "x0 y0 w" . thickness . " h" . height
+        . " c" . borderColor . " Background" . borderColor . " Disabled",
+        100
+    )
+    right := guiObject.Add(
+        "Progress",
+        "x" . (width - thickness) . " y0 w" . thickness . " h" . height
+        . " c" . borderColor . " Background" . borderColor . " Disabled",
+        100
+    )
+
+    return {
+        Top: top,
+        Bottom: bottom,
+        Left: left,
+        Right: right,
+        Thickness: thickness
+    }
+}
+
+
+ResizeStrategyBuilderBorder(border, width, height) {
+    if !IsObject(border) {
+        return
+    }
+
+    thickness := border.Thickness
+    try border.Top.Move(0, 0, width, thickness)
+    try border.Bottom.Move(0, height - thickness, width, thickness)
+    try border.Left.Move(0, 0, thickness, height)
+    try border.Right.Move(width - thickness, 0, thickness, height)
+}
+
+
+MinimizeStrategyBuilder(*) {
+    global MainGui
+
+    if MainGui {
+        WinMinimize("ahk_id " . MainGui.Hwnd)
+    }
+}
+
+
+ResizeStrategyBuilderChrome(guiObject, minMax, width, height) {
+    global BuilderMinimizeControl
+    global BuilderCloseControl
+    global BuilderWindowBorder
+
+    if minMax = -1 {
+        return
+    }
+
+    try BuilderMinimizeControl.Move(width - 86, 12, 30, 28)
+    try BuilderCloseControl.Move(width - 46, 12, 30, 28)
+    ResizeStrategyBuilderBorder(BuilderWindowBorder, width, height)
 }

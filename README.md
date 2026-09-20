@@ -1,26 +1,14 @@
 # BTD6 Everything Macro
 
-**Current version: v2.0.0**
+**Current version: v2.1.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Completed all remaining Monkey EXP grind scripts except Banana Farm
-- Military Monkey EXP scripts use all available abilities on Round 60
-- Auto Retry now supports defeated manual and Monkey EXP runs in addition to queued runs
-- Defeat retries restart the failed map and relaunch the strategy in a fresh script process
-- Added millisecond upgrade timing diagnostics for round detection, monkey selection, green-upgrade detection, hotkey sends, and purchase confirmation
-- Logs now record when the user manually closes an active run
-- Added dedicated Dartling Gunner aim and retarget helpers
-- Added dedicated Heli Pilot Lock in Place and retarget helpers
-- Added Mermonkey Allure Totem placement and retarget helpers for xx4/xx5
-- Added dedicated Mortar target and retarget helpers
-- Standardized special-target actions to Page Down -> 300 ms -> click -> 250 ms -> close panel -> 100 ms
-- Special-target helpers now close the upgrade panel after setting a location so later placement and upgrade actions start cleanly
-- Updated the map template and map-script guide with Dartling, Heli, Mermonkey, and Mortar examples
-- Daily Chest uses ten 325 ms clicks with no redundant Close-button scan
-- Centralized version control remains in `Scripts/Version.ahk`
+- Redesigned the macro windows with custom borderless title bars: native Windows caption/X controls are removed, branded headers are draggable, and secondary windows use BACK / CANCEL / GOT IT actions
+- Restored the launcher CLOSE button and removed the small custom header X
+- Replaced the bright top-only window stripe with a clean dark border around all four sides of the launcher, secondary UIs, dialogs, run-status windows, dropdown popups, and Strategy Builder
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -153,7 +141,7 @@ Ctrl + Shift + P
 
 Once a run starts, avoid moving the mouse or pressing game hotkeys unless you are stopping the macro.
 
-To close it completely, right-click the AutoHotkey tray icon and click **Exit**.
+The launcher uses its full **CLOSE** button to exit the macro. Secondary windows intentionally do not have an extra X; use their **BACK**, **CANCEL**, or **GOT IT** action instead. **CLOSE RUN** remains available only while a run is active because it stops automation rather than simply closing a window. All custom windows use the same dark four-sided frame instead of a bright top-only stripe.
 
 ## Folder layout
 

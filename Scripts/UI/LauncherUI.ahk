@@ -90,16 +90,8 @@ CreateLauncherUI() {
         UIColorBackground
 
 
-    LauncherGui.Add(
-        "Progress",
-        "x0 y0 w"
-        . GuiWidth
-        . " h5 Background"
-        . UIColorAccent
-        . " c"
-        . UIColorAccent,
-        100
-    )
+    EnableCustomWindowChrome(LauncherGui, 72, 0)
+    AddCustomWindowBorder(LauncherGui, GuiWidth, GuiHeight)
 
 
     AddUIOutlinedText(
@@ -107,7 +99,7 @@ CreateLauncherUI() {
         "BTD6 Everything Macro",
         20,
         18,
-        350,
+        320,
         35,
         14
     )
@@ -115,7 +107,7 @@ CreateLauncherUI() {
 
     SetUIBodyFont(
         LauncherGui,
-        7,
+        8,
         UIColorMutedText
     )
 
@@ -189,7 +181,7 @@ CreateLauncherUI() {
 
     SetUIBodyFont(
         LauncherGui,
-        9,
+        8,
         UIColorSecondaryText
     )
 
@@ -220,7 +212,7 @@ CreateLauncherUI() {
 
     SetUIBodyFont(
         LauncherGui,
-        9,
+        8,
         UIColorSecondaryText
     )
 
@@ -274,7 +266,7 @@ CreateLauncherUI() {
             queueButtonsEnabled ? 160 : 240,
             44,
             "SELECT SCRIPT",
-            9
+            8
         )
 
 
@@ -302,7 +294,7 @@ CreateLauncherUI() {
             queueButtonsEnabled ? 70 : 100,
             44,
             "CLOSE",
-            7
+            8
         )
 
 
@@ -377,6 +369,7 @@ CreateLauncherUI() {
     )
 
 
+
     CreateHelpBadgeForButton(
         LauncherGui,
         RunButton,
@@ -426,15 +419,16 @@ CreateLauncherUI() {
     )
 
 
+
     ModeButton.OnEvent(
         "Click",
         ShowModePicker
     )
 
 
-    SetUIBodyBoldFont(
+    SetUIBodyFont(
         LauncherGui,
-        9,
+        8,
         UIColorSuccess
     )
 
@@ -443,7 +437,7 @@ CreateLauncherUI() {
     ; collide with normal launcher status messages. These controls are
     ; intentionally opaque so changing animated text cleanly erases the
     ; previous frame instead of leaving transparent-text remnants.
-    SetUIBodyBoldFont(
+    SetUIBodyFont(
         LauncherGui,
         8,
         UIColorMutedText
@@ -460,9 +454,9 @@ CreateLauncherUI() {
         )
 
 
-    SetUIBodyBoldFont(
+    SetUIBodyFont(
         LauncherGui,
-        9,
+        8,
         UIColorSuccess
     )
 
@@ -476,7 +470,7 @@ CreateLauncherUI() {
         )
 
 
-    SetUIBodyBoldFont(
+    SetUIBodyFont(
         LauncherGui,
         8,
         UIColorAccent

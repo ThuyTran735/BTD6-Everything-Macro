@@ -51,6 +51,7 @@ class DarkDropdown {
 
         global UIColorPopupBackground
         global UIColorAccent
+        global UIColorWindowBorder
 
         global UIFontBody
 
@@ -212,13 +213,13 @@ class DarkDropdown {
 
 
         this.PopupGui := Gui(
-            "+AlwaysOnTop -Caption +ToolWindow",
+            "+AlwaysOnTop -Caption -Border +ToolWindow",
             ""
         )
 
 
         this.PopupGui.BackColor :=
-            UIColorControlBorder
+            UIColorWindowBorder
 
 
         this.PopupGui.MarginX := 0

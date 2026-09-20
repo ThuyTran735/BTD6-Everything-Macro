@@ -182,11 +182,9 @@ ShowRunHistoryUI(*) {
     )
     RunHistoryGui.BackColor := UIColorBackground
 
-    RunHistoryGui.Add(
-        "Progress",
-        "x0 y0 w620 h4 c" . UIColorAccent . " Background" . UIColorAccent . " Disabled",
-        100
-    )
+
+    EnableCustomWindowChrome(RunHistoryGui)
+    AddCustomWindowBorder(RunHistoryGui, 620, 458)
 
     AddUIOutlinedText(RunHistoryGui, "RUN HISTORY", 20, 18, 580, 34, 13, "Center")
 
@@ -269,8 +267,9 @@ ShowRunHistoryUI(*) {
         388,
         268,
         42,
-        "CLOSE",
-        8
+        "BACK TO SETTINGS",
+        8,
+        "Default"
     )
 
     clearButton.OnEvent("Click", RequestClearRunHistory)
@@ -286,8 +285,8 @@ ShowRunHistoryUI(*) {
     CreateHelpBadgeForButton(
         RunHistoryGui,
         closeButton,
-        "CLOSE",
-        "Closes Run History and returns to Settings."
+        "BACK TO SETTINGS",
+        "Returns to Settings."
     )
 
     RunHistoryGui.OnEvent("Close", CloseRunHistoryAndReturnToSettings)

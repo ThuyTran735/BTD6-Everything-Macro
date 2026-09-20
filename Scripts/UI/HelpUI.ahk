@@ -11,7 +11,7 @@ CreateHelpBadge(
     y,
     title,
     body,
-    size := 15
+    size := 16
 ) {
     global UIHelpBadges
 
@@ -197,7 +197,7 @@ CreateHelpBadgeForField(
     labelObject,
     title,
     body,
-    size := 15,
+    size := 16,
     gap := 6
 ) {
     ; Field help belongs to the label, not the far edge of the dropdown.
@@ -255,7 +255,7 @@ CreateHelpBadgeForHeader(
     body,
     top := 18,
     rightMargin := 20,
-    size := 15
+    size := 16
 ) {
     return CreateHelpBadge(
         guiObject,
@@ -303,15 +303,8 @@ ShowContextHelp(
         UIColorBackground
 
 
-    UIHelpGui.Add(
-        "Progress",
-        "x0 y0 w520 h4 c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
-        100
-    )
+    EnableCustomWindowChrome(UIHelpGui)
+    AddCustomWindowBorder(UIHelpGui, 520, 330)
 
 
     AddUIOutlinedText(

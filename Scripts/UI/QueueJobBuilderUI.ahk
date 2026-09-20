@@ -136,15 +136,8 @@ OpenQueueJobBuilder(editIndex := 0) {
         UIColorBackground
 
 
-    QueueBuilderGui.Add(
-        "Progress",
-        "x0 y0 w520 h4 c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
-        100
-    )
+    EnableCustomWindowChrome(QueueBuilderGui)
+    AddCustomWindowBorder(QueueBuilderGui, 520, 475)
 
 
     AddUIOutlinedText(
@@ -477,7 +470,7 @@ OpenQueueJobBuilder(editIndex := 0) {
             404,
             155,
             46,
-            "CLOSE",
+            "CANCEL",
             9
         )
 
@@ -495,8 +488,8 @@ OpenQueueJobBuilder(editIndex := 0) {
     CreateHelpBadgeForButton(
         QueueBuilderGui,
         cancelButton,
-        "CLOSE",
-        "Closes this window without changing the queue."
+        "CANCEL",
+        "Returns without changing the queue."
     )
 
 

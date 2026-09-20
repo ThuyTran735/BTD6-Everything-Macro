@@ -53,7 +53,7 @@ CreateCycleStatusUI() {
 
     CycleStatusGui :=
         Gui(
-            "+AlwaysOnTop -Caption +ToolWindow +Border",
+            "+AlwaysOnTop -Caption +ToolWindow -Border",
             ""
         )
 
@@ -70,18 +70,7 @@ CreateCycleStatusUI() {
         0
 
 
-    ; Left accent.
-    CycleStatusGui.Add(
-        "Progress",
-        "x0 y0 w4 h"
-        . hudHeight
-        . " c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
-        100
-    )
+    AddCustomWindowBorder(CycleStatusGui, hudWidth, hudHeight, 3)
 
 
     ; Cycle number.
@@ -831,25 +820,16 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
         UIColorBackground
 
 
+    EnableCustomWindowChrome(CycleInputGui)
+    AddCustomWindowBorder(CycleInputGui, dialogWidth, dialogHeight)
+
+
     CycleInputGui.MarginX :=
         0
 
 
     CycleInputGui.MarginY :=
         0
-
-
-    CycleInputGui.Add(
-        "Progress",
-        "x0 y0 w"
-        . dialogWidth
-        . " h4 c"
-        . UIColorAccent
-        . " Background"
-        . UIColorAccent
-        . " Disabled",
-        100
-    )
 
 
     SetUIHeadingFont(
@@ -985,7 +965,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
             211,
             184,
             44,
-            "CLOSE",
+            "CANCEL",
             8
         )
 
@@ -1007,8 +987,8 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     CreateHelpBadgeForButton(
         CycleInputGui,
         cancelButton,
-        "CLOSE",
-        "Closes this prompt without starting, adding, or saving the pending run."
+        "CANCEL",
+        "Returns without starting, adding, or saving the pending run."
     )
 
 

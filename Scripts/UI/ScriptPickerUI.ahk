@@ -59,6 +59,10 @@ ShowScriptPicker(
         UIColorBackground
 
 
+    EnableCustomWindowChrome(ScriptPickerGui)
+    AddCustomWindowBorder(ScriptPickerGui, 500, 438)
+
+
     AddUIOutlinedText(
         ScriptPickerGui,
         mapName,
@@ -216,7 +220,7 @@ ShowScriptPicker(
             382,
             460,
             38,
-            "CLOSE",
+            "CANCEL",
             8
         )
 
@@ -242,8 +246,8 @@ ShowScriptPicker(
     CreateHelpBadgeForButton(
         ScriptPickerGui,
         cancelButton,
-        "CLOSE",
-        "Closes this window without running or adding a strategy."
+        "CANCEL",
+        "Returns to the launcher without running or adding a strategy."
     )
 
 

@@ -1,6 +1,6 @@
 # BTD6 Everything Macro
 
-**Current version: v1.9.1**
+**Current version: v1.9.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 

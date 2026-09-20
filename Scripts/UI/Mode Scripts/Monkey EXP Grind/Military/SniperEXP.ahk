@@ -9,7 +9,9 @@ SniperEXP() {
         difficulty: "Easy",
         gameMode: "Deflation",
         hero: false,
-        wingmonkeyMK: false
+        wingmonkeyMK: false,
+        startRound: 31,
+        endRound: 60,
     }
 
     global TowerSetup := Map(

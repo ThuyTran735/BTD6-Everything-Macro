@@ -9,7 +9,9 @@ AceEXP() {
         difficulty: "Easy",
         gameMode: "Deflation",
         hero: "Captain Churchill",
-        wingmonkeyMK: false
+        wingmonkeyMK: false,
+        startRound: 31,
+        endRound: 60,
     }
 
     global TowerSetup := Map(

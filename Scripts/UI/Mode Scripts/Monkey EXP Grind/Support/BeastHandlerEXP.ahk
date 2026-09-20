@@ -2,7 +2,7 @@
 
 #Include ..\..\..\..\IncludeAll.ahk
 
-BuccaneerEXP() {
+BeastHandlerEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -17,32 +17,32 @@ BuccaneerEXP() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 993,
-            y: 435,
+            x: 998,
+            y: 439,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer A", {
-            type: "Buccaneer",
-            x: 1103,
-            y: 427,
+        "BeastHandler A", {
+            type: "Beast Handler",
+            x: 770,
+            y: 441,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer B", {
-            type: "Buccaneer",
-            x: 1090,
-            y: 707,
+        "Engineer A", {
+            type: "Engineer",
+            x: 918,
+            y: 673,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer C", {
-            type: "Buccaneer",
-            x: 1192,
-            y: 717,
+        "Engineer B", {
+            type: "Engineer",
+            x: 806,
+            y: 667,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -51,13 +51,13 @@ BuccaneerEXP() {
 
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer A"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer B"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer C"])],
+        [0, 0, () => PlaceTower(TowerSetup["BeastHandler A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Engineer A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Engineer B"])],
 
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer A"], "402")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer B"], "320")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")],
+        [0, 0, () => UpgradeTower(TowerSetup["Engineer A"], "410")],
+        [0, 0, () => UpgradeTower(TowerSetup["Engineer B"], "400")],
+        [0, 0, () => UpgradeTower(TowerSetup["BeastHandler A"], "014")],
 
         [60, 6000, () => UseAbility("1")],
         [60, 6250, () => UseAbility("2")],
@@ -67,4 +67,4 @@ BuccaneerEXP() {
     return RunMapStrategy(strategy)
 }
 
-BuccaneerEXP()
+BeastHandlerEXP()

@@ -2,7 +2,7 @@
 
 #Include ..\..\..\..\IncludeAll.ahk
 
-BuccaneerEXP() {
+NinjaEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -17,32 +17,40 @@ BuccaneerEXP() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 993,
-            y: 435,
+            x: 988,
+            y: 438,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer A", {
-            type: "Buccaneer",
-            x: 1103,
-            y: 427,
+        "Sniper A", {
+            type: "Sniper",
+            x: 1458,
+            y: 560,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer B", {
-            type: "Buccaneer",
-            x: 1090,
-            y: 707,
+        "Ninja A", {
+            type: "Ninja",
+            x: 882,
+            y: 446,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer C", {
-            type: "Buccaneer",
-            x: 1192,
-            y: 717,
+        "Ninja B", {
+            type: "Ninja",
+            x: 878,
+            y: 662,
+            placed: false,
+            upgrades: [0, 0, 0],
+            targeting: "First"
+        },
+        "Ninja C", {
+            type: "Ninja",
+            x: 769,
+            y: 447,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -51,13 +59,15 @@ BuccaneerEXP() {
 
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer A"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer B"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer C"])],
+        [0, 0, () => PlaceTower(TowerSetup["Sniper A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Ninja A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Ninja B"])],
+        [0, 0, () => PlaceTower(TowerSetup["Ninja C"])],
 
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer A"], "402")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer B"], "320")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")],
+        [0, 0, () => UpgradeTower(TowerSetup["Sniper A"], "024")],
+        [0, 0, () => UpgradeTower(TowerSetup["Ninja A"], "402")],
+        [0, 0, () => UpgradeTower(TowerSetup["Ninja B"], "402")],
+        [0, 0, () => UpgradeTower(TowerSetup["Ninja C"], "301")],
 
         [60, 6000, () => UseAbility("1")],
         [60, 6250, () => UseAbility("2")],
@@ -67,4 +77,4 @@ BuccaneerEXP() {
     return RunMapStrategy(strategy)
 }
 
-BuccaneerEXP()
+NinjaEXP()

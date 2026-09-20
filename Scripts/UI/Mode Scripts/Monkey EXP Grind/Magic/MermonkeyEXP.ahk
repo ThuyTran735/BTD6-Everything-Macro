@@ -2,7 +2,7 @@
 
 #Include ..\..\..\..\IncludeAll.ahk
 
-BuccaneerEXP() {
+MermonkeyEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -17,32 +17,32 @@ BuccaneerEXP() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 993,
-            y: 435,
+            x: 996,
+            y: 437,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer A", {
-            type: "Buccaneer",
-            x: 1103,
-            y: 427,
+        "Mermonkey A", {
+            type: "Mermonkey",
+            x: 904,
+            y: 443,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer B", {
-            type: "Buccaneer",
-            x: 1090,
-            y: 707,
+        "Mermonkey B", {
+            type: "Mermonkey",
+            x: 816,
+            y: 437,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer C", {
-            type: "Buccaneer",
-            x: 1192,
-            y: 717,
+        "Mermonkey C", {
+            type: "Mermonkey",
+            x: 730,
+            y: 422,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -51,13 +51,13 @@ BuccaneerEXP() {
 
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer A"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer B"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer C"])],
+        [0, 0, () => PlaceTower(TowerSetup["Mermonkey A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Mermonkey B"])],
+        [0, 0, () => PlaceTower(TowerSetup["Mermonkey C"])],
 
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer A"], "402")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer B"], "320")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")],
+        [0, 0, () => UpgradeTower(TowerSetup["Mermonkey A"], "042")],
+        [0, 0, () => UpgradeTower(TowerSetup["Mermonkey B"], "402")],
+        [0, 0, () => UpgradeTower(TowerSetup["Mermonkey C"], "013")],
 
         [60, 6000, () => UseAbility("1")],
         [60, 6250, () => UseAbility("2")],
@@ -67,4 +67,4 @@ BuccaneerEXP() {
     return RunMapStrategy(strategy)
 }
 
-BuccaneerEXP()
+MermonkeyEXP()

@@ -2,7 +2,7 @@
 
 #Include ..\..\..\..\IncludeAll.ahk
 
-BuccaneerEXP() {
+SuperEXP() {
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -17,32 +17,24 @@ BuccaneerEXP() {
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
-            x: 993,
-            y: 435,
+            x: 990,
+            y: 424,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer A", {
-            type: "Buccaneer",
-            x: 1103,
-            y: 427,
+        "Super A", {
+            type: "Super",
+            x: 853,
+            y: 429,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-        "Buccaneer B", {
-            type: "Buccaneer",
-            x: 1090,
-            y: 707,
-            placed: false,
-            upgrades: [0, 0, 0],
-            targeting: "First"
-        },
-        "Buccaneer C", {
-            type: "Buccaneer",
-            x: 1192,
-            y: 717,
+        "Super B", {
+            type: "Super",
+            x: 855,
+            y: 681,
             placed: false,
             upgrades: [0, 0, 0],
             targeting: "First"
@@ -51,13 +43,11 @@ BuccaneerEXP() {
 
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer A"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer B"])],
-        [0, 0, () => PlaceTower(TowerSetup["Buccaneer C"])],
+        [0, 0, () => PlaceTower(TowerSetup["Super A"])],
+        [0, 0, () => PlaceTower(TowerSetup["Super B"])],
 
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer A"], "402")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer B"], "320")],
-        [0, 0, () => UpgradeTower(TowerSetup["Buccaneer C"], "220")],
+        [0, 0, () => UpgradeTower(TowerSetup["Super A"], "203")],
+        [0, 0, () => UpgradeTower(TowerSetup["Super B"], "100")],
 
         [60, 6000, () => UseAbility("1")],
         [60, 6250, () => UseAbility("2")],
@@ -67,4 +57,4 @@ BuccaneerEXP() {
     return RunMapStrategy(strategy)
 }
 
-BuccaneerEXP()
+SuperEXP()

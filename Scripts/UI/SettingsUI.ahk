@@ -130,7 +130,7 @@ ShowSettingsUI(*) {
     )
     CreateHelpBadgeForButton(
         SettingsGui, retryButton, "RETRY / RECOVERY",
-        "Controls automatic retries for failed queue cycles."
+        "Controls queue retries plus defeat retries for manual and EXP runs."
     )
     CreateHelpBadgeForButton(
         SettingsGui, dailyChestButton, "OPEN DAILY CHEST BEFORE EACH CYCLE",

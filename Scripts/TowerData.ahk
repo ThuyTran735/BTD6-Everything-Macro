@@ -33,5 +33,6 @@
     "Farm", "h",
     "SpikeFactory", "j",
     "Village", "k",
-    "Engineer", "l"
+    "Engineer", "l",
+    "Beast Handler", "i",
 )

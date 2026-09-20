@@ -910,11 +910,19 @@ MonitorLauncherState() {
                     : "CHILD SCRIPT FAILED"
 
 
-                if (
-                    QueueRunning
-                    && IsQueueAutoRetryEnabled()
+                canRetry :=
+                    IsQueueAutoRetryEnabled()
                     && GetQueueRetryLimit() > 0
                     && QueueCurrentRetryCount < GetQueueRetryLimit()
+
+                defeatFailure :=
+                    InStr(reason, "DEFEAT") = 1
+
+                ; Queue retries keep their existing behavior for any
+                ; failure. Manual/EXP runs now also retry real defeats.
+                if (
+                    canRetry
+                    && (QueueRunning || defeatFailure)
                 ) {
                     QueueCurrentRetryCount++
 
@@ -927,8 +935,23 @@ MonitorLauncherState() {
                     )
 
                     UpdateCycleStatusUI()
-                    ScheduleMacroContinuation("retry-run")
-                    return
+
+                    ; A defeat leaves BTD6 on the defeat screen, so a
+                    ; normal fresh-process retry cannot navigate from Home.
+                    ; Restart the map first, then launch the same strategy
+                    ; in a fresh process that resumes from the restarted map.
+                    if defeatFailure {
+                        if HandleDefeat() {
+                            StartNextQueuedRun(true, true)
+                            return
+                        }
+
+                        reason := "DEFEAT - RESTART RECOVERY FAILED"
+                    }
+                    else {
+                        ScheduleMacroContinuation("retry-run")
+                        return
+                    }
                 }
 
 

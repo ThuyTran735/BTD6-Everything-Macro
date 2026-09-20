@@ -133,14 +133,14 @@ ShowRetryRecoveryUI(*) {
         RetryRecoveryGui,
         440,
         "RETRY / RECOVERY",
-        "Controls retries for failed queue cycles.`n`nEach retry starts the same job again in a fresh script process."
+        "Controls retries for failed queue cycles and defeated manual/EXP runs.`n`nEach retry starts the same strategy again in a fresh script process."
     )
 
     SetUIBodyFont(RetryRecoveryGui, 9, UIColorSecondaryText)
     RetryRecoveryGui.Add(
         "Text",
         "x34 y61 w372 h36 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "Retry a failed queue cycle from a fresh process before stopping the queue."
+        "Retry failed queue cycles and defeated manual/EXP runs from a fresh process."
     )
 
     enabled := IsQueueAutoRetryEnabled()
@@ -155,7 +155,7 @@ ShowRetryRecoveryUI(*) {
     )
     autoRetryButton.OnEvent("Click", ToggleQueueAutoRetrySetting.Bind(autoRetryButton))
 
-    AddUIOutlinedText(RetryRecoveryGui, "QUEUE RETRY LIMIT", 65, 184, 190, 24, 9)
+    AddUIOutlinedText(RetryRecoveryGui, "RETRY LIMIT", 65, 184, 190, 24, 9)
 
     minusButton := CreateDarkButton(RetryRecoveryGui, 212, 218, 54, 40, "-", 11)
     RetryLimitValueText := RetryRecoveryGui.Add(
@@ -183,13 +183,13 @@ ShowRetryRecoveryUI(*) {
         RetryRecoveryGui,
         autoRetryButton,
         "AUTO RETRY",
-        "When ON, a failed queue cycle starts again automatically.`n`nManual runs are not retried."
+        "When ON, queue failures and defeated manual/EXP runs start again automatically."
     )
     CreateHelpBadgeForButton(
         RetryRecoveryGui,
         plusButton,
-        "QUEUE RETRY LIMIT",
-        "Sets how many times one failed queue cycle may retry.`n`nThe counter resets after that cycle succeeds or the queue moves on."
+        "RETRY LIMIT",
+        "Sets how many times the current run may retry.`n`nThe counter resets after that run succeeds or the queue moves on."
     )
     CreateHelpBadgeForButton(
         RetryRecoveryGui,

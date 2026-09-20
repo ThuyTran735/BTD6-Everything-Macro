@@ -1,12 +1,15 @@
 # BTD6 Everything Macro
 
-**Current version: v1.9.2**
+**Current version: v2.0.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Updated all completed Military Monkey EXP scripts to use all available abilities on Round 60
+- Completed all remaining Monkey EXP grind scripts except Banana Farm
+- Military Monkey EXP scripts use all available abilities on Round 60
+- Auto Retry now supports defeated manual and Monkey EXP runs in addition to queued runs
+- Defeat retries restart the failed map and relaunch the strategy in a fresh script process
 - Added millisecond upgrade timing diagnostics for round detection, monkey selection, green-upgrade detection, hotkey sends, and purchase confirmation
 - Logs now record when the user manually closes an active run
 - Added dedicated Dartling Gunner aim and retarget helpers
@@ -39,7 +42,7 @@ You can see which maps and modes are finished here:
 - Handles tower abilities
 - Reads the current round
 - Detects victory, defeat, and several menu popups
-- Retries failed runs when the strategy allows it
+- Retries failed queued runs and defeated manual / Monkey EXP runs when Auto Retry is enabled
 - Supports normal runs and grind modes from the launcher
 - Supports favorites for maps, Monkey EXP scripts, and queue profiles
 - Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted

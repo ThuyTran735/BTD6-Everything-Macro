@@ -1371,7 +1371,7 @@ LaunchMapScript(
 }
 
 
-StartNextQueuedRun(isRetry := false) {
+StartNextQueuedRun(isRetry := false, defeatRestart := false) {
     global MacroRunning
     global RunningPid
     global ActiveRunToken
@@ -1490,9 +1490,11 @@ StartNextQueuedRun(isRetry := false) {
     LauncherGui.Hide()
 
 
-    ; Optional Daily Chest check runs immediately before every individual
-    ; map cycle, including repeated runs and queued jobs.
-    RunPreMapDailyChestIfEnabled()
+    ; Optional Daily Chest check runs before normal map launches.
+    ; A defeat-restart retry is already inside the restarted map, so
+    ; do not click Home-screen Daily Chest coordinates during recovery.
+    if !defeatRestart
+        RunPreMapDailyChestIfEnabled()
 
 
     ActiveRunToken := CreateChildRunToken()
@@ -1517,6 +1519,15 @@ StartNextQueuedRun(isRetry := false) {
         . "--btd6-run-token="
         . ActiveRunToken
         . Chr(34)
+
+
+    if defeatRestart {
+        command .=
+            " "
+            . Chr(34)
+            . "--btd6-defeat-restart=1"
+            . Chr(34)
+    }
 
 
     try {

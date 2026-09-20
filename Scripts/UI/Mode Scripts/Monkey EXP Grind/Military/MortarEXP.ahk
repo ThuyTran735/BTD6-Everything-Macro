@@ -71,9 +71,9 @@ MortarEXP() {
             546
         )],
 
-        [60, 8000, () => UseAbility("1")],
-        [60, 8250, () => UseAbility("2")],
-        [60, 8500, () => UseAbility("3")],
+        [60, 6000, () => UseAbility("1")],
+        [60, 6250, () => UseAbility("2")],
+        [60, 6500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

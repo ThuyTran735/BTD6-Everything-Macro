@@ -477,6 +477,15 @@ UpdateCycleStatusUI() {
             . RepeatRunTotal
 
 
+        if QueueCurrentRetryCount > 0 {
+            CycleStatusText.Text .=
+                "  -  RETRY "
+                . QueueCurrentRetryCount
+                . " / "
+                . GetQueueRetryLimit()
+        }
+
+
         if cyclesLeft = 1 {
 
             CycleProgressText.Text :=

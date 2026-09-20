@@ -49,6 +49,16 @@ ShouldSelectHeroForCurrentCycle() {
 }
 
 
+IsDefeatRestartRetry() {
+    for argument in A_Args {
+        if argument = "--btd6-defeat-restart=1"
+            return true
+    }
+
+    return false
+}
+
+
 GetLauncherRunToken() {
     tokenPrefix := "--btd6-run-token="
 
@@ -134,62 +144,22 @@ RunMapStrategyCore(strategy) {
         return SetRunFailureReason("FAILED TO ENTER FULLSCREEN")
 
 
-    LogMessage("INFO", "Navigating to configured map and mode")
+    defeatRestartRetry := IsDefeatRestartRetry()
 
-    navigationHero :=
-        ShouldSelectHeroForCurrentCycle()
-            ? RunConfig.hero
-            : false
+    if defeatRestartRetry {
+        ; The launcher already clicked Restart on the defeat screen.
+        ; Resume from the freshly restarted map instead of trying to
+        ; navigate from Home again. This keeps retries in a fresh
+        ; AutoHotkey process without losing the restarted Deflation game.
+        LogMessage("INFO", "Resuming map after defeat restart")
+    }
+    else {
+        LogMessage("INFO", "Navigating to configured map and mode")
 
-
-    navigationResult := NavigateToMap(
-        RunConfig.category,
-        RunConfig.map,
-        RunConfig.difficulty,
-        RunConfig.gameMode,
-        navigationHero
-    )
-
-
-    if navigationResult = "Locked" {
-        prerequisite := GetGameModePrerequisite(
-            RunConfig.gameMode
-        )
-
-
-        if !prerequisite {
-            ToolTip(
-                "Game mode is locked."
-                "`nMode: "
-                RunConfig.gameMode
-                "`nNo automatic prerequisite exists."
-            )
-
-            Sleep(3000)
-            ToolTip()
-
-            return SetRunFailureReason("GAME MODE LOCKED - NO PREREQUISITE", RunConfig.gameMode)
-        }
-
-
-        ; Back out of the locked game mode screen.
-        Send("{Esc}")
-
-        Sleep(500)
-
-
-        ; Back out of the Easy / Medium / Hard screen
-        ; so the prerequisite starts from map selection.
-        Send("{Esc}")
-
-        Sleep(700)
-
-
-        if !TryRunPrerequisiteMode(
-            RunConfig.gameMode
-        ) {
-            return EnsureRunFailureReason("FAILED TO COMPLETE PREREQUISITE MODE")
-        }
+        navigationHero :=
+            ShouldSelectHeroForCurrentCycle()
+                ? RunConfig.hero
+                : false
 
 
         navigationResult := NavigateToMap(
@@ -202,31 +172,83 @@ RunMapStrategyCore(strategy) {
 
 
         if navigationResult = "Locked" {
-            ToolTip(
-                "Game mode is still locked."
-                "`nRequested: "
+            prerequisite := GetGameModePrerequisite(
                 RunConfig.gameMode
-                "`nCompleted prerequisite: "
-                prerequisite
             )
 
-            Sleep(3000)
-            ToolTip()
 
-            return SetRunFailureReason("GAME MODE STILL LOCKED", RunConfig.gameMode)
+            if !prerequisite {
+                ToolTip(
+                    "Game mode is locked."
+                    "`nMode: "
+                    RunConfig.gameMode
+                    "`nNo automatic prerequisite exists."
+                )
+
+                Sleep(3000)
+                ToolTip()
+
+                return SetRunFailureReason("GAME MODE LOCKED - NO PREREQUISITE", RunConfig.gameMode)
+            }
+
+
+            ; Back out of the locked game mode screen.
+            Send("{Esc}")
+
+            Sleep(500)
+
+
+            ; Back out of the Easy / Medium / Hard screen
+            ; so the prerequisite starts from map selection.
+            Send("{Esc}")
+
+            Sleep(700)
+
+
+            if !TryRunPrerequisiteMode(
+                RunConfig.gameMode
+            ) {
+                return EnsureRunFailureReason("FAILED TO COMPLETE PREREQUISITE MODE")
+            }
+
+
+            navigationResult := NavigateToMap(
+                RunConfig.category,
+                RunConfig.map,
+                RunConfig.difficulty,
+                RunConfig.gameMode,
+                navigationHero
+            )
+
+
+            if navigationResult = "Locked" {
+                ToolTip(
+                    "Game mode is still locked."
+                    "`nRequested: "
+                    RunConfig.gameMode
+                    "`nCompleted prerequisite: "
+                    prerequisite
+                )
+
+                Sleep(3000)
+                ToolTip()
+
+                return SetRunFailureReason("GAME MODE STILL LOCKED", RunConfig.gameMode)
+            }
+
+
+            if navigationResult = false
+                return EnsureRunFailureReason("FAILED TO ENTER MODE")
         }
 
 
         if navigationResult = false
-            return EnsureRunFailureReason("FAILED TO ENTER MODE")
+            return EnsureRunFailureReason("MAP NAVIGATION FAILED")
     }
 
 
-    if navigationResult = false
-        return EnsureRunFailureReason("MAP NAVIGATION FAILED")
-
-
-    ; First load into the selected game.
+    ; First load into the selected game, or wait for a defeat restart
+    ; to finish loading before replaying the strategy.
     LogMessage("INFO", "Waiting for game load")
 
     if !WaitForGameLoad()

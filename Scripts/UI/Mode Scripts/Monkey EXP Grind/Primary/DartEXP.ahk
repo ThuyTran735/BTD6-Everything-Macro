@@ -85,15 +85,6 @@ DartEXP() {
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-
-        "Dart G", {
-            type: "Dart",
-            x: 359,
-            y: 562,
-            placed: false,
-            upgrades: [0, 0, 0],
-            targeting: "First"
-        },
     )
 
 
@@ -156,20 +147,14 @@ DartEXP() {
             TowerSetup["Dart F"]
         )],
 
-
         [0, 0, () => UpgradeTower(
             TowerSetup["Dart F"],
-            "024"
+            "402"
         )],
 
-        [0, 0, () => PlaceTower(
-            TowerSetup["Dart G"]
-        )],
-
-
-        [0, 0, () => UpgradeTower(
-            TowerSetup["Dart G"],
-            "003"
+        [0, 0, () => SetTargeting(
+            TowerSetup["Dart F"],
+            "Strong"
         )],
 
         [60, 6000, () => UseAbility("1")],

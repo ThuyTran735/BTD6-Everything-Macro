@@ -1,21 +1,12 @@
 # BTD6 Everything Macro
 
-**Current version: v2.2.0**
+**Current version: v2.2.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Completed a broad UI overhaul across the launcher, Settings, Select Mode, Select Script, Run Cycles, Add Queue, Cycle Status, Queue Profiles, and More Profile Actions screens with cleaner card layouts, consistent spacing, themed section headers, and unified borderless-window styling
-- Improved shared custom controls with DPI-aware hover hitboxes, hover support for lists / help / favorite controls, single-open-dropdown behavior, popup-aware hover blocking, and reduced list-hover redraw flicker
-- Expanded **REMEMBER LAST STATE** so the launcher restores the last mode-specific selections and the Select Script screen restores the last successfully run Default-mode `.ahk` strategy and its difficulty; disabling the option clears the saved state
-- Improved the Cycle Status HUD with a cleaner compact layout, safer initialization, a responsive **CLOSE RUN** action, and automatic left-side movement when the right-side BTD6 upgrade panel is visible so it does not cover round detection
-- Removed the old full-screen Cycle HUD panel scan and narrowed upgrade-panel detection to reduce UI lag while keeping the HUD responsive during active runs
-- Reworked Queue Profiles and More Profile Actions with clearer profile selection, notes, repeat controls, import / export, duplicate / rename, delete, and navigation sections
-- Added per-run diagnostic logging with one log file per run plus Settings controls to enable / disable logging, export logs, open the log folder, and delete all logs
-- Expanded Run History and failure reporting with specific failure reasons such as map selection, mode entry, placement, and upgrade failures
-- Improved launcher suppression and return handling to prevent the main UI from flashing over BTD6 during run and menu transitions
-- Expanded Strategy Builder with Beast Handler support, automatic tower-based names, dedicated Hero naming, and Deflation strategy generation / validation
+- Adjusted Dart EXP and Dark Castle Deflation scripts.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.

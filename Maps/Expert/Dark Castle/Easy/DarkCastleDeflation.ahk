@@ -85,15 +85,6 @@ DarkCastleDeflation() {
             upgrades: [0, 0, 0],
             targeting: "First"
         },
-
-        "Dart G", {
-            type: "Dart",
-            x: 359,
-            y: 562,
-            placed: false,
-            upgrades: [0, 0, 0],
-            targeting: "First"
-        },
     )
 
 
@@ -142,35 +133,33 @@ DarkCastleDeflation() {
             "024"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Dart E"]
         )],
 
 
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Dart E"],
             "024"
         )],
 
-        [32, 0, () => PlaceTower(
+        [0, 0, () => PlaceTower(
             TowerSetup["Dart F"]
         )],
 
-
-        [32, 0, () => UpgradeTower(
+        [0, 0, () => UpgradeTower(
             TowerSetup["Dart F"],
-            "024"
+            "402"
         )],
 
-        [32, 0, () => PlaceTower(
-            TowerSetup["Dart G"]
+        [0, 0, () => SetTargeting(
+            TowerSetup["Dart F"],
+            "Strong"
         )],
 
-
-        [32, 0, () => UpgradeTower(
-            TowerSetup["Dart G"],
-            "003"
-        )],
+        [60, 6000, () => UseAbility("1")],
+        [60, 6250, () => UseAbility("2")],
+        [60, 6500, () => UseAbility("3")],
     ]
 
     return RunMapStrategy(strategy)

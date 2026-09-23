@@ -32,14 +32,8 @@ ShowScriptPicker(
         "Medium",
         "Hard"
     ] {
-
-        if scripts[
-            difficulty
-        ].Length > 0 {
-
-            availableDifficulties.Push(
-                difficulty
-            )
+        if scripts[difficulty].Length > 0 {
+            availableDifficulties.Push(difficulty)
         }
     }
 
@@ -49,90 +43,84 @@ ShowScriptPicker(
     }
 
 
+    windowWidth := 520
+    windowHeight := 552
+
+
     ScriptPickerGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
         "Select Strategy"
     )
 
 
-    ScriptPickerGui.BackColor :=
-        UIColorBackground
+    ScriptPickerGui.BackColor := UIColorBackground
+    ScriptPickerGui.MarginX := 0
+    ScriptPickerGui.MarginY := 0
 
 
     EnableCustomWindowChrome(ScriptPickerGui)
-    AddCustomWindowBorder(ScriptPickerGui, 500, 438)
+    AddCustomWindowBorder(ScriptPickerGui, windowWidth, windowHeight)
 
 
     AddUIOutlinedText(
         ScriptPickerGui,
         mapName,
         20,
-        16,
-        460,
-        36,
-        12
+        18,
+        480,
+        30,
+        12,
+        "Center"
     )
 
 
-    SetUIBodyFont(
-        ScriptPickerGui,
-        9,
-        UIColorSecondaryText
-    )
-
-
+    SetUIBodyFont(ScriptPickerGui, 9, UIColorSecondaryText)
     ScriptPickerGui.Add(
         "Text",
-        "x20 y50 w460 h20 c"
+        "x20 y52 w480 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        "Choose the strategy you want to run"
+        "Choose a difficulty, then select the strategy file to use"
     )
 
 
-    difficultyButtons :=
-        Map()
+    ; Difficulty card.
+    AddUICard(ScriptPickerGui, 16, 82, 488, 86)
+    AddUIOutlinedText(
+        ScriptPickerGui,
+        "DIFFICULTY",
+        30,
+        92,
+        460,
+        20,
+        9,
+        "Center"
+    )
 
 
-    buttonGap := 14
-
-
-    buttonCount :=
-        availableDifficulties.Length
-
-
-    difficultyWidth :=
-        Floor(
-            (
-                460
-                - (
-                    buttonGap
-                    * (
-                        buttonCount - 1
-                    )
-                )
-            )
-            / buttonCount
+    difficultyButtons := Map()
+    buttonGap := 10
+    buttonCount := availableDifficulties.Length
+    difficultyWidth := Floor(
+        (
+            460
+            - (buttonGap * (buttonCount - 1))
         )
-
-
-    buttonX := 20
+        / buttonCount
+    )
+    buttonX := 30
 
 
     for difficulty in availableDifficulties {
-
-        difficultyButton :=
-            CreateDarkButton(
-                ScriptPickerGui,
-                buttonX,
-                82,
-                difficultyWidth,
-                34,
-                StrUpper(
-                    difficulty
-                ),
-                9
-            )
+        difficultyButton := CreateDarkButton(
+            ScriptPickerGui,
+            buttonX,
+            120,
+            difficultyWidth,
+            36,
+            StrUpper(difficulty),
+            9
+        )
 
 
         CreateHelpBadgeForButton(
@@ -147,82 +135,83 @@ ShowScriptPicker(
 
         difficultyButton.OnEvent(
             "Click",
-            SetStrategyDifficulty.Bind(
-                difficulty
-            )
+            SetStrategyDifficulty.Bind(difficulty)
         )
 
 
-        difficultyButtons[
-            difficulty
-        ] :=
-            difficultyButton
-
-
-        buttonX +=
-            difficultyWidth
-            + buttonGap
+        difficultyButtons[difficulty] := difficultyButton
+        buttonX += difficultyWidth + buttonGap
     }
 
 
-    strategyList :=
-        CreateDarkList(
-            ScriptPickerGui,
-            20,
-            130,
-            460,
-            180,
-            [],
-            36
-        )
-
-
-    strategyList.OnEvent(
-        "DoubleClick",
-        RunPickedScript
+    ; Strategy card.
+    AddUICard(ScriptPickerGui, 16, 178, 488, 230)
+    AddUIOutlinedText(
+        ScriptPickerGui,
+        "STRATEGY FILES",
+        30,
+        188,
+        460,
+        20,
+        9,
+        "Center"
     )
 
 
-    actionButtonText :=
-        action = "queue"
+    strategyList := CreateDarkList(
+        ScriptPickerGui,
+        30,
+        216,
+        460,
+        180,
+        [],
+        36
+    )
+
+
+    strategyList.OnEvent("DoubleClick", RunPickedScript)
+
+
+    ; Actions card.
+    AddUICard(ScriptPickerGui, 16, 418, 488, 118)
+
+
+    actionButtonText := action = "queue"
         ? "ADD TO QUEUE"
         : "USE STRATEGY"
 
 
-    runSelectedButton :=
-        CreateDarkButton(
-            ScriptPickerGui,
-            20,
-            328,
-            220,
-            42,
-            actionButtonText,
-            8
-        )
+    runSelectedButton := CreateDarkButton(
+        ScriptPickerGui,
+        30,
+        432,
+        220,
+        42,
+        actionButtonText,
+        8
+    )
 
 
-    openFolderButton :=
-        CreateDarkButton(
-            ScriptPickerGui,
-            260,
-            328,
-            220,
-            42,
-            "OPEN MAP FOLDER",
-            8
-        )
+    openFolderButton := CreateDarkButton(
+        ScriptPickerGui,
+        270,
+        432,
+        220,
+        42,
+        "OPEN MAP FOLDER",
+        8
+    )
 
 
-    cancelButton :=
-        CreateDarkButton(
-            ScriptPickerGui,
-            20,
-            382,
-            460,
-            38,
-            "CANCEL",
-            8
-        )
+    cancelButton := CreateDarkButton(
+        ScriptPickerGui,
+        30,
+        486,
+        460,
+        36,
+        "CANCEL",
+        8
+    )
 
 
     CreateHelpBadgeForButton(
@@ -264,50 +253,36 @@ ShowScriptPicker(
     }
 
 
-    runSelectedButton.OnEvent(
-        "Click",
-        RunPickedScript
-    )
+    runSelectedButton.OnEvent("Click", RunPickedScript)
+    openFolderButton.OnEvent("Click", OpenSelectedMapFolder)
+    cancelButton.OnEvent("Click", CloseScriptPickerAndReturnToLauncher)
+    ScriptPickerGui.OnEvent("Close", CloseScriptPickerAndReturnToLauncher)
 
 
-    openFolderButton.OnEvent(
-        "Click",
-        OpenSelectedMapFolder
-    )
-
-
-    cancelButton.OnEvent(
-        "Click",
-        CloseScriptPickerAndReturnToLauncher
-    )
-
-
-    ScriptPickerGui.OnEvent(
-        "Close",
-        CloseScriptPickerAndReturnToLauncher
-    )
-
-
-    SetStrategyDifficulty(
-        availableDifficulties[1]
-    )
+    if !RestoreLastRunStrategySelection() {
+        SetStrategyDifficulty(availableDifficulties[1])
+    }
 
 
     ScriptPickerGui.Show(
-        "Hide w500 h438"
+        "Hide w"
+        . windowWidth
+        . " h"
+        . windowHeight
     )
 
 
-    ApplyDarkWindowStyle(
-        ScriptPickerGui
-    )
+    ApplyDarkWindowStyle(ScriptPickerGui)
 
 
     ScriptPickerGui.Show(
-        "w500 h438 Center"
+        "w"
+        . windowWidth
+        . " h"
+        . windowHeight
+        . " Center"
     )
 }
-
 
 SetStrategyDifficulty(
     difficulty,
@@ -365,6 +340,35 @@ SetStrategyDifficulty(
             1
         )
     }
+}
+
+
+RestoreLastRunStrategySelection() {
+    global ScriptPickerState
+
+    if !IsObject(ScriptPickerState) {
+        return false
+    }
+
+    if !IsRememberLauncherStateEnabled() {
+        return false
+    }
+
+    for difficulty in ScriptPickerState.difficulties {
+        scripts := ScriptPickerState.scripts[difficulty]
+
+        for index, script in scripts {
+            if !IsRememberedRunStrategy(script.path) {
+                continue
+            }
+
+            SetStrategyDifficulty(difficulty)
+            ScriptPickerState.list.Choose(index)
+            return true
+        }
+    }
+
+    return false
 }
 
 
@@ -453,9 +457,13 @@ RunPickedScript(*) {
     }
 
 
-    LaunchMapScript(
+    if LaunchMapScript(
         script.path
-    )
+    ) {
+        RememberLastRunStrategy(
+            script.path
+        )
+    }
 }
 
 

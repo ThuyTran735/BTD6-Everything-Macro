@@ -261,16 +261,16 @@ ShowLauncherUpdateNotice(version) {
         if !UpdateCheckText
             return
 
-        UpdateCheckText.Move(38, 348, 200, 18)
+        UpdateCheckText.Move(43, 438, 170, 15)
         UpdateCheckText.Opt("+Left")
         UpdateCheckText.SetFont("c" . UIColorSuccess)
         UpdateCheckText.Text := "UPDATE AVAILABLE: v" . version
         UpdateCheckText.Visible := true
 
         if UpdateLinkText {
-            UpdateLinkText.Move(238, 348, 112, 18)
+            UpdateLinkText.Move(217, 438, 64, 15)
             UpdateLinkText.Opt("+Left")
-            UpdateLinkText.Text := "Click to Update"
+            UpdateLinkText.Text := "Update"
             UpdateLinkText.Visible := true
         }
     }
@@ -292,8 +292,8 @@ SetLauncherUpdateCheckStatus(text, color := "") {
         if UpdateLinkText
             UpdateLinkText.Visible := false
 
-        UpdateCheckText.Move(20, 348, 350, 18)
-        UpdateCheckText.Opt("+Center")
+        UpdateCheckText.Move(43, 438, 238, 15)
+        UpdateCheckText.Opt("+Left")
         UpdateCheckText.SetFont("c" . color)
 
         ; Erase the previous frame before drawing the next one so update

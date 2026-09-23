@@ -8,8 +8,6 @@
 CreateLauncherUI()
 
 
-; Show a short update-search animation immediately after launch,
-; then perform the real GitHub check.
 SetTimer(StartStartupUpdateCheck, -100)
 
 

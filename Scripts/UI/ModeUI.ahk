@@ -7,6 +7,7 @@ ShowModePicker(*) {
 
     global UIColorBackground
     global UIColorSecondaryText
+    global UIColorPrimaryText
 
 
     CloseAllDarkDropdowns()
@@ -17,6 +18,10 @@ ShowModePicker(*) {
         if ModePickerGui
             ModePickerGui.Destroy()
     }
+
+
+    uiWidth := 440
+    uiHeight := 430
 
 
     ModePickerGui := Gui(
@@ -30,7 +35,12 @@ ShowModePicker(*) {
 
 
     EnableCustomWindowChrome(ModePickerGui)
-    AddCustomWindowBorder(ModePickerGui, 360, 295)
+    AddCustomWindowBorder(ModePickerGui, uiWidth, uiHeight)
+
+    ; Three clear layers: mode selection, mode details, and actions.
+    AddUICard(ModePickerGui, 16, 84, 408, 164)
+    AddUICard(ModePickerGui, 16, 258, 408, 86)
+    AddUICard(ModePickerGui, 16, 354, 408, 60)
 
 
     AddUIOutlinedText(
@@ -38,9 +48,9 @@ ShowModePicker(*) {
         "SELECT MODE",
         20,
         18,
-        320,
-        36,
-        12,
+        400,
+        34,
+        13,
         "Center"
     )
 
@@ -54,10 +64,10 @@ ShowModePicker(*) {
 
     ModePickerGui.Add(
         "Text",
-        "x20 y55 w320 h20 Center c"
+        "x20 y55 w400 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        "Choose how you want to run the macro"
+        "Choose how the macro should run"
     )
 
 
@@ -71,41 +81,74 @@ ShowModePicker(*) {
     modeList :=
         CreateDarkList(
             ModePickerGui,
-            20,
-            90,
-            320,
-            120,
+            26,
+            94,
+            388,
+            144,
             modes,
-            40
+            48
         )
 
 
     if CurrentMode = "Default" {
-
-        modeList.Choose(
-            1
-        )
+        modeList.Choose(1)
     }
-    else if CurrentMode
-        = "Monkey EXP Grind" {
-
-        modeList.Choose(
-            2
-        )
+    else if CurrentMode = "Monkey EXP Grind" {
+        modeList.Choose(2)
     }
-    else if CurrentMode
-        = "Monkey Money Grind" {
-
-        modeList.Choose(
-            3
-        )
+    else if CurrentMode = "Monkey Money Grind" {
+        modeList.Choose(3)
     }
     else {
-
-        modeList.Choose(
-            1
-        )
+        modeList.Choose(1)
     }
+
+
+    SetUIBodyFont(
+        ModePickerGui,
+        9,
+        UIColorPrimaryText
+    )
+
+
+    ; Use two independent single-line controls instead of a multiline
+    ; SS_CENTERIMAGE text control. Windows can clip multiline centered static
+    ; text horizontally, especially under DPI scaling.
+    modeDescriptionLine1 :=
+        ModePickerGui.Add(
+            "Text",
+            "x30 y278 w380 h20 Center c"
+            . UIColorPrimaryText
+            . " BackgroundTrans",
+            ""
+        )
+
+
+    modeDescriptionLine2 :=
+        ModePickerGui.Add(
+            "Text",
+            "x30 y303 w380 h20 Center c"
+            . UIColorPrimaryText
+            . " BackgroundTrans",
+            ""
+        )
+
+
+    UpdateModePickerDescription(
+        modeList,
+        modeDescriptionLine1,
+        modeDescriptionLine2
+    )
+
+
+    modeList.OnEvent(
+        "Change",
+        (*) => UpdateModePickerDescription(
+            modeList,
+            modeDescriptionLine1,
+            modeDescriptionLine2
+        )
+    )
 
 
     modeList.OnEvent(
@@ -119,10 +162,10 @@ ShowModePicker(*) {
     useButton :=
         CreateDarkButton(
             ModePickerGui,
-            20,
-            225,
-            155,
-            46,
+            26,
+            364,
+            245,
+            40,
             "USE SELECTED",
             9
         )
@@ -131,10 +174,10 @@ ShowModePicker(*) {
     cancelButton :=
         CreateDarkButton(
             ModePickerGui,
-            185,
-            225,
-            155,
-            46,
+            281,
+            364,
+            133,
+            40,
             "BACK",
             9
         )
@@ -177,7 +220,10 @@ ShowModePicker(*) {
 
 
     ModePickerGui.Show(
-        "Hide w360 h295"
+        "Hide w"
+        . uiWidth
+        . " h"
+        . uiHeight
     )
 
 
@@ -187,8 +233,41 @@ ShowModePicker(*) {
 
 
     ModePickerGui.Show(
-        "w360 h295 Center"
+        "w"
+        . uiWidth
+        . " h"
+        . uiHeight
+        . " Center"
     )
+}
+
+
+UpdateModePickerDescription(modeList, line1Control, line2Control) {
+    selectedMode := modeList.Text
+
+
+    if selectedMode = "Monkey EXP Grind" {
+        line1Control.Text :=
+            "Run tower-specific EXP scripts repeatedly"
+        line2Control.Text :=
+            "for the selected tower group."
+        return
+    }
+
+
+    if selectedMode = "Monkey Money Grind" {
+        line1Control.Text :=
+            "Monkey Money Grind is a placeholder mode."
+        line2Control.Text :=
+            "Its controls are not implemented yet."
+        return
+    }
+
+
+    line1Control.Text :=
+        "Run configured map strategies using the launcher"
+    line2Control.Text :=
+        "category, map, and strategy controls."
 }
 
 
@@ -240,6 +319,7 @@ SelectLauncherMode(
 
 
     ApplyLauncherMode()
+    SaveLauncherState()
     ShowLauncher(true)
 }
 

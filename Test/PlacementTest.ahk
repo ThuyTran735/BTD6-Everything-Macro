@@ -5,6 +5,7 @@
 
 ; Manual placement test.
 ; Start inside a loaded BTD6 game with enough cash for the selected tower.
+
 global RunConfig := {
     category: "Beginner",
     map: "Placement Test",

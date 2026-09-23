@@ -396,6 +396,9 @@ OnCategoryChanged(*) {
         "READY",
         "22C55E"
     )
+
+
+    SaveLauncherState()
 }
 
 
@@ -530,7 +533,8 @@ GetMonkeyExpScripts(
 
 
 RefreshMonkeyExpScripts(
-    towerType := ""
+    towerType := "",
+    keepSelectedScript := true
 ) {
     global MonkeyExpTypeDropdown
     global MonkeyExpScriptDropdown
@@ -541,6 +545,12 @@ RefreshMonkeyExpScripts(
         towerType :=
             MonkeyExpTypeDropdown.Text
     }
+
+
+    selectedName :=
+        keepSelectedScript
+        ? MonkeyExpScriptDropdown.Text
+        : ""
 
 
     MonkeyExpScripts :=
@@ -582,8 +592,15 @@ RefreshMonkeyExpScripts(
     }
 
 
+    selectedIndex :=
+        FindTextIndex(
+            names,
+            selectedName
+        )
+
+
     MonkeyExpScriptDropdown.Choose(
-        1
+        selectedIndex > 0 ? selectedIndex : 1
     )
 
 
@@ -648,4 +665,7 @@ OnMonkeyExpTypeChanged(*) {
 
 
     UpdateQueueLauncherButton()
+
+
+    SaveLauncherState()
 }

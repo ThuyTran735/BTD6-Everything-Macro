@@ -1,2 +1,3 @@
 # Local favorites and queue profiles are generated at runtime.
+# Ignores everything in the UserData folder for GitHub commits.
 UserData/

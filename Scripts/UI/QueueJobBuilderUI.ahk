@@ -125,6 +125,10 @@ OpenQueueJobBuilder(editIndex := 0) {
     }
 
 
+    uiWidth := 540
+    uiHeight := 500
+
+
     QueueBuilderGui :=
         Gui(
             "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
@@ -137,7 +141,13 @@ OpenQueueJobBuilder(editIndex := 0) {
 
 
     EnableCustomWindowChrome(QueueBuilderGui)
-    AddCustomWindowBorder(QueueBuilderGui, 520, 475)
+    AddCustomWindowBorder(QueueBuilderGui, uiWidth, uiHeight)
+
+    ; Match the launcher/settings visual hierarchy instead of leaving fields
+    ; floating directly on the window background.
+    AddUICard(QueueBuilderGui, 16, 82, 508, 80)
+    AddUICard(QueueBuilderGui, 16, 170, 508, 238)
+    AddUICard(QueueBuilderGui, 16, 418, 508, 66)
 
 
     AddUIOutlinedText(
@@ -145,7 +155,7 @@ OpenQueueJobBuilder(editIndex := 0) {
         QueueBuilderIsEditing ? "EDIT QUEUE JOB" : "ADD QUEUE JOB",
         20,
         18,
-        480,
+        500,
         34,
         13,
         "Center"
@@ -161,7 +171,7 @@ OpenQueueJobBuilder(editIndex := 0) {
 
     QueueBuilderGui.Add(
         "Text",
-        "x20 y55 w480 h20 Center c"
+        "x20 y55 w500 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         QueueBuilderIsEditing
@@ -172,22 +182,22 @@ OpenQueueJobBuilder(editIndex := 0) {
 
     QueueBuilderJobTypeLabel :=
         AddUIOutlinedText(
-        QueueBuilderGui,
-        "SELECT JOB TYPE",
-        30,
-        88,
-        460,
-        22,
-        9
-    )
+            QueueBuilderGui,
+            "SELECT JOB TYPE",
+            30,
+            92,
+            480,
+            22,
+            9
+        )
 
 
     QueueBuilderJobTypeDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            112,
-            460,
+            116,
+            480,
             [
                 "Map Script",
                 "Monkey EXP Grind"
@@ -214,8 +224,8 @@ OpenQueueJobBuilder(editIndex := 0) {
             QueueBuilderGui,
             "SELECT CATEGORY",
             30,
-            162,
-            460,
+            182,
+            480,
             22,
             9
         )
@@ -225,8 +235,8 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            186,
-            460,
+            206,
+            480,
             categories,
             1,
             5
@@ -248,8 +258,8 @@ OpenQueueJobBuilder(editIndex := 0) {
             QueueBuilderGui,
             "SELECT MAP",
             30,
-            236,
-            460,
+            254,
+            480,
             22,
             9
         )
@@ -259,8 +269,8 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            260,
-            460,
+            278,
+            480,
             firstMaps,
             1,
             5
@@ -282,8 +292,8 @@ OpenQueueJobBuilder(editIndex := 0) {
             QueueBuilderGui,
             "SELECT STRATEGY",
             30,
-            310,
-            460,
+            326,
+            480,
             22,
             9
         )
@@ -293,8 +303,8 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            334,
-            460,
+            350,
+            480,
             [
                 "No strategies found"
             ],
@@ -318,8 +328,8 @@ OpenQueueJobBuilder(editIndex := 0) {
             QueueBuilderGui,
             "SELECT TOWER TYPE",
             30,
-            162,
-            460,
+            218,
+            480,
             22,
             9,
             "Left",
@@ -331,16 +341,15 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            186,
-            460,
+            242,
+            480,
             GetMonkeyExpTowerTypes(),
             1,
             5
         )
 
 
-    QueueBuilderExpTypeDropdown.Visible :=
-        false
+    QueueBuilderExpTypeDropdown.Visible := false
 
 
     QueueBuilderExpTypeHelp :=
@@ -353,8 +362,7 @@ OpenQueueJobBuilder(editIndex := 0) {
         )
 
 
-    QueueBuilderExpTypeHelp.Visible :=
-        false
+    QueueBuilderExpTypeHelp.Visible := false
 
 
     QueueBuilderExpScriptLabel :=
@@ -362,8 +370,8 @@ OpenQueueJobBuilder(editIndex := 0) {
             QueueBuilderGui,
             "SELECT TOWER",
             30,
-            236,
-            460,
+            298,
+            480,
             22,
             9,
             "Left",
@@ -375,8 +383,8 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkDropdown(
             QueueBuilderGui,
             30,
-            260,
-            460,
+            322,
+            480,
             [
                 "No Monkey EXP scripts found"
             ],
@@ -385,8 +393,7 @@ OpenQueueJobBuilder(editIndex := 0) {
         )
 
 
-    QueueBuilderExpScriptDropdown.Visible :=
-        false
+    QueueBuilderExpScriptDropdown.Visible := false
 
 
     QueueBuilderExpScriptHelp :=
@@ -399,8 +406,7 @@ OpenQueueJobBuilder(editIndex := 0) {
         )
 
 
-    QueueBuilderExpScriptHelp.Visible :=
-        false
+    QueueBuilderExpScriptHelp.Visible := false
 
 
     QueueBuilderMapFavoriteButton :=
@@ -455,9 +461,9 @@ OpenQueueJobBuilder(editIndex := 0) {
         CreateDarkButton(
             QueueBuilderGui,
             30,
-            404,
-            290,
-            46,
+            430,
+            310,
+            44,
             QueueBuilderIsEditing ? "SAVE CHANGES" : "ADD TO QUEUE",
             9
         )
@@ -466,10 +472,10 @@ OpenQueueJobBuilder(editIndex := 0) {
     cancelButton :=
         CreateDarkButton(
             QueueBuilderGui,
-            335,
-            404,
-            155,
-            46,
+            350,
+            430,
+            160,
+            44,
             "CANCEL",
             9
         )
@@ -548,7 +554,7 @@ OpenQueueJobBuilder(editIndex := 0) {
 
 
     QueueBuilderGui.Show(
-        "Hide w520 h475"
+        "Hide w" . uiWidth . " h" . uiHeight
     )
 
 
@@ -567,7 +573,7 @@ OpenQueueJobBuilder(editIndex := 0) {
 
 
     QueueBuilderGui.Show(
-        "w520 h475 Center"
+        "w" . uiWidth . " h" . uiHeight . " Center"
     )
 }
 

@@ -4,54 +4,58 @@
 global UIFontHeading := LoadBundledUIHeadingFont()
 global UIFontBody := "Segoe UI"
 
-global UIColorBackground := "101216"
-global UIColorPanel := "171A1F"
-global UIColorPopupBackground := "14171C"
+global UIColorBackground := "0D1117"
+global UIColorPanel := "111820"
+global UIColorPopupBackground := "10161E"
 
-global UIColorAccent := "4C8DFF"
-global UIColorWindowBorder := "252A33"
+global UIColorAccent := "67B7FF"
+global UIColorWindowBorder := "2A3441"
+global UIColorPanelBorder := "26313D"
+global UIColorPanelRaised := "0D1117"
+global UIColorPanelSoft := "0D1117"
+global UIColorAccentSoft := "15283A"
 
-global UIColorControlBorder := "343A46"
+global UIColorControlBorder := "33404F"
 
-global UIColorInputBorder := "303844"
-global UIColorInputBackground := "0F1319"
+global UIColorInputBorder := "33404F"
+global UIColorInputBackground := "10161D"
 global UIColorInputText := "F5F7FA"
 
-global UIColorControlTop := "272C35"
-global UIColorControlBottom := "1B1F26"
+global UIColorControlTop := "19212B"
+global UIColorControlBottom := "171E27"
 
-global UIColorControlHoverTop := "3A4351"
-global UIColorControlHoverBottom := "272E39"
+global UIColorControlHoverTop := "222E3A"
+global UIColorControlHoverBottom := "1E2833"
 
-global UIColorControlActiveTop := "2F68BC"
-global UIColorControlActiveBottom := "214D8E"
+global UIColorControlActiveTop := "245C8D"
+global UIColorControlActiveBottom := "1A466D"
 
-global UIColorControlPressedTop := "25589F"
-global UIColorControlPressedBottom := "193E74"
+global UIColorControlPressedTop := "1E527F"
+global UIColorControlPressedBottom := "163D5F"
 
-global UIColorControlHighlight := "46505F"
-global UIColorControlHoverHighlight := "79A9FF"
-global UIColorControlPressedHighlight := "4C8DFF"
+global UIColorControlHighlight := "3B4856"
+global UIColorControlHoverHighlight := "67B7FF"
+global UIColorControlPressedHighlight := "67B7FF"
 
-global UIColorControlSelected := "315FAF"
-global UIColorControlSelectedHover := "3B73CE"
+global UIColorControlSelected := "245A84"
+global UIColorControlSelectedHover := "2E6F9F"
 
 global UIColorControlText := "F5F7FA"
 global UIColorControlDisabledText := "697382"
 
-global UIColorPrimaryText := "F5F7FA"
-global UIColorSecondaryText := "B8C0CC"
-global UIColorLabelText := "D7DCE3"
-global UIColorMutedText := "7F8998"
+global UIColorPrimaryText := "F4F7FB"
+global UIColorSecondaryText := "B3BFCC"
+global UIColorLabelText := "D8E0E8"
+global UIColorMutedText := "7D8B9C"
 
-global UIColorHeadingText := "FFD34E"
-global UIColorHeadingOutline := "17100A"
+global UIColorHeadingText := "F4F7FB"
+global UIColorHeadingOutline := "0D1117"
 
-global UIColorSuccess := "4ADE80"
-global UIColorWarning := "FBBF24"
-global UIColorError := "FB7185"
+global UIColorSuccess := "4AD295"
+global UIColorWarning := "F0BB5A"
+global UIColorError := "F06D78"
 
-global UIColorNativeText := "F5F7FA"
+global UIColorNativeText := "F4F7FB"
 
 
 LoadBundledUIHeadingFont() {
@@ -224,7 +228,6 @@ AddUIOutlinedText(
 ) {
     global UIFontHeading
     global UIColorHeadingText
-    global UIColorHeadingOutline
 
 
     if fillColor = "" {
@@ -232,103 +235,22 @@ AddUIOutlinedText(
     }
 
 
-    if outlineColor = "" {
-        outlineColor := UIColorHeadingOutline
-    }
-
-
-    alignOption := ""
-
-
-    if alignment != "" {
-        alignOption :=
-            " "
-            . alignment
-    }
-
-
-    visibilityOption := ""
-
-
-    if !visible {
-        visibilityOption := " Hidden"
-    }
-
-
-    controls := []
-
-
-    offsets := [
-        [-1, -1],
-        [0, -1],
-        [1, -1],
-        [-1, 0],
-        [1, 0],
-        [-1, 1],
-        [0, 1],
-        [1, 1]
-    ]
+    alignOption := alignment != "" ? " " . alignment : ""
+    visibilityOption := visible ? "" : " Hidden"
 
 
     guiObject.SetFont(
-        "s"
-        . size
-        . " Norm c"
-        . outlineColor,
-        UIFontHeading
-    )
-
-
-    for offset in offsets {
-
-        outlineControl := guiObject.Add(
-            "Text",
-            "x"
-            . (
-                x
-                + offset[1]
-            )
-            . " y"
-            . (
-                y
-                + offset[2]
-            )
-            . " w"
-            . width
-            . " h"
-            . height
-            . alignOption
-            . " BackgroundTrans"
-            . visibilityOption,
-            text
-        )
-
-
-        controls.Push(
-            outlineControl
-        )
-    }
-
-
-    guiObject.SetFont(
-        "s"
-        . size
-        . " Norm c"
-        . fillColor,
+        "s" . size . " Norm c" . fillColor,
         UIFontHeading
     )
 
 
     mainControl := guiObject.Add(
         "Text",
-        "x"
-        . x
-        . " y"
-        . y
-        . " w"
-        . width
-        . " h"
-        . height
+        "x" . x
+        . " y" . y
+        . " w" . width
+        . " h" . height
         . alignOption
         . " BackgroundTrans"
         . visibilityOption,
@@ -336,15 +258,7 @@ AddUIOutlinedText(
     )
 
 
-    controls.Push(
-        mainControl
-    )
-
-
-    return UIOutlinedTextGroup(
-        controls,
-        mainControl
-    )
+    return UIOutlinedTextGroup([mainControl], mainControl)
 }
 
 

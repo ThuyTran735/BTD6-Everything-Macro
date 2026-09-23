@@ -12,7 +12,7 @@ DarkCastleDeflation() {
         difficulty: "Easy",
         gameMode: "Deflation",
 
-        hero: "Churchill",
+        hero: "Captain Churchill",
 
         ; Set true if Wingmonkey Monkey Knowledge is enabled.
         wingmonkeyMK: false,

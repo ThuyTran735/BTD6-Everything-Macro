@@ -50,8 +50,8 @@ BuildGui() {
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoices
 
     MainGui := Gui("+Resize +MinSize1040x720 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
-    MainGui.BackColor := "1E1E1E"
-    MainGui.SetFont("s10 cF2F2F2", "Segoe UI")
+    MainGui.BackColor := "0B0F14"
+    MainGui.SetFont("s10 cF5F7FA", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())
 
     if !BuilderChromeMessageReady {
@@ -61,25 +61,25 @@ BuildGui() {
 
     BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 720)
 
-    MainGui.SetFont("s16 w400 cFFFFFF")
+    MainGui.SetFont("s16 w400 cFFD45C")
     MainGui.AddText("x20 y14 w920 h28", "BTD6 STRATEGY BUILDER + COORDINATE TOOL")
 
-    MainGui.SetFont("s12 w400 cB7B7B7")
+    MainGui.SetFont("s12 w400 c7F91A6")
     BuilderMinimizeControl := MainGui.AddText("x954 y12 w30 h28 Center +0x200", "-")
     BuilderMinimizeControl.OnEvent("Click", MinimizeStrategyBuilder)
 
-    MainGui.SetFont("s11 w400 cFB7185")
+    MainGui.SetFont("s11 w400 cFF6B7A")
     BuilderCloseControl := MainGui.AddText("x994 y12 w30 h28 Center +0x200", "X")
     BuilderCloseControl.OnEvent("Click", (*) => ExitApp())
 
     MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
-    MainGui.SetFont("s9 w400 cB7B7B7")
+    MainGui.SetFont("s9 w400 cB8C6D6")
     MainGui.AddText("x20 y45 w1000 h20", "Add multiple monkeys or one hero, capture placement coordinates, schedule upgrades, then generate a ready-to-use map strategy template.")
 
     ; Map / strategy metadata
-    MainGui.SetFont("s10 w400 cFFFFFF")
+    MainGui.SetFont("s10 w400 cD9E3EE")
     MainGui.AddGroupBox("x20 y76 w1000 h100", " STRATEGY INFO ")
-    MainGui.SetFont("s9 w400 cE8E8E8")
+    MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x40 y105 w80 h20", "Map Name")
     MapNameEdit := MainGui.AddEdit("x120 y101 w210 h26", "MAP NAME")
@@ -100,9 +100,9 @@ BuildGui() {
     ModeDDL.OnEvent("Change", OnModeChanged)
 
     ; Entity builder
-    MainGui.SetFont("s10 w400 cFFFFFF")
+    MainGui.SetFont("s10 w400 cD9E3EE")
     MainGui.AddGroupBox("x20 y190 w500 h310", " MONKEY / HERO ")
-    MainGui.SetFont("s9 w400 cE8E8E8")
+    MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x40 y220 w65 h20", "Name")
     EntityNameEdit := MainGui.AddEdit("x105 y216 w155 h26", "Dart A")
@@ -133,7 +133,7 @@ BuildGui() {
     MainGui.AddText("x40 y330 w90 h20", "Place Round")
     PlaceRoundEdit := MainGui.AddEdit("x130 y326 w70 h26 Number", "0")
     SetEditTextBlack(PlaceRoundEdit)
-    MainGui.AddText("x215 y330 w275 h20 cAFAFAF", "Round 0 = pregame")
+    MainGui.AddText("x215 y330 w275 h20 c7F91A6", "Round 0 = pregame")
 
     AddEntityBtn := MainGui.AddButton("x40 y363 w220 h32", "ADD MONKEY / HERO")
     AddEntityBtn.OnEvent("Click", AddEntity)
@@ -149,9 +149,9 @@ BuildGui() {
     EntityLV.ModifyCol(6, 50)
 
     ; Upgrade builder
-    MainGui.SetFont("s10 w400 cFFFFFF")
+    MainGui.SetFont("s10 w400 cD9E3EE")
     MainGui.AddGroupBox("x540 y190 w480 h310", " UPGRADE SCHEDULE ")
-    MainGui.SetFont("s9 w400 cE8E8E8")
+    MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x560 y220 w60 h20", "Monkey")
     ActionEntityDDL := MainGui.AddDropDownList("x620 y216 w180", ["Add a monkey first"])
@@ -167,7 +167,7 @@ BuildGui() {
     MainGui.AddText("x695 y258 w65 h20", "Delay ms")
     UpgradeDelayEdit := MainGui.AddEdit("x760 y254 w80 h26 Number", "0")
     SetEditTextBlack(UpgradeDelayEdit)
-    MainGui.AddText("x850 y258 w130 h20 cAFAFAF", "e.g. 002 / 024 / 520")
+    MainGui.AddText("x850 y258 w130 h20 c7F91A6", "e.g. 002 / 024 / 520")
 
     AddUpgradeBtn := MainGui.AddButton("x560 y291 w200 h32", "ADD UPGRADE")
     AddUpgradeBtn.OnEvent("Click", AddUpgradeAction)
@@ -181,9 +181,9 @@ BuildGui() {
     ActionLV.ModifyCol(4, 75)
 
     ; Output
-    MainGui.SetFont("s10 w400 cFFFFFF")
+    MainGui.SetFont("s10 w400 cD9E3EE")
     MainGui.AddGroupBox("x20 y515 w1000 h160", " GENERATED TEMPLATE ")
-    MainGui.SetFont("s9 w400 cE8E8E8")
+    MainGui.SetFont("s9 w400 cD9E3EE")
 
     GenerateBtn := MainGui.AddButton("x40 y544 w180 h32", "GENERATE TEMPLATE")
     GenerateBtn.OnEvent("Click", GenerateTemplate)
@@ -194,11 +194,11 @@ BuildGui() {
     ClearBtn := MainGui.AddButton("x585 y544 w140 h32", "CLEAR ALL")
     ClearBtn.OnEvent("Click", ClearAll)
 
-    StatusText := MainGui.AddText("x745 y550 w250 h22 cB7B7B7", "Ready")
+    StatusText := MainGui.AddText("x745 y550 w250 h22 cB8C6D6", "Ready")
     OutputEdit := MainGui.AddEdit("x40 y586 w955 h70 ReadOnly -Wrap VScroll", "")
     SetEditTextBlack(OutputEdit)
 
-    MainGui.SetFont("s8 c9E9E9E")
+    MainGui.SetFont("s8 c7F91A6")
     MainGui.AddText("x20 y687 w1000 h18", "Coordinate capture uses SCREEN coordinates. Press F2 anytime for an instant capture, or use CAPTURE COORDS for guided capture mode.")
 
     MainGui.Show("w1040 h720")
@@ -879,7 +879,7 @@ StrategyBuilderChromeHitTest(wParam, lParam, msg, hwnd) {
 
 
 CreateStrategyBuilderBorder(guiObject, width, height) {
-    borderColor := "252A33"
+    borderColor := "263241"
     thickness := 4
 
     top := guiObject.Add(

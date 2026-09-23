@@ -97,6 +97,18 @@ CreateHelpBadgeForButton(
         + inset
 
 
+    ; Keep the parent as one continuous button surface. Its label render area
+    ; is kept clear of the badge, and help-bearing buttons avoid repainting the
+    ; large fill beneath the badge during hover/click transitions.
+    buttonObject.ProtectTopRightOverlay(
+        badgeX,
+        badgeY,
+        size,
+        size,
+        1
+    )
+
+
     badge :=
         CreateHelpBadge(
             guiObject,
@@ -106,6 +118,12 @@ CreateHelpBadgeForButton(
             body,
             size
         )
+
+
+    ; Luckiest Guy's ? glyph needs a small optical baseline correction in
+    ; these compact boxes. Keep it fixed two pixels lower so the visible glyph
+    ; is centered inside the mini-button instead of bouncing with animation.
+    badge.LockTextPosition(2)
 
 
     ; Register the actual help control HWND instead of a calculated GUI
@@ -119,7 +137,6 @@ CreateHelpBadgeForButton(
             "HandleClick"
         )
     )
-
 
     return badge
 }

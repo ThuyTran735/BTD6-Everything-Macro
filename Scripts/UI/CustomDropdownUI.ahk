@@ -2,6 +2,7 @@
 
 
 global UIDarkDropdowns := []
+global UIDarkActiveDropdown := ""
 
 global UIDarkDropdownTimerStarted := false
 global UIDarkDropdownMouseWasDown := false
@@ -632,11 +633,29 @@ class DarkDropdown {
 
 
     Open() {
+        global UIDarkActiveDropdown
+
         if this.Items.Length <= 1 {
             return
         }
 
 
+        ; Enforce one popup globally at the Open() layer, not only from
+        ; Toggle(). This also covers any future/programmatic Open() calls and
+        ; guarantees dropdown popups can never overlap each other.
+        if IsObject(UIDarkActiveDropdown) {
+            try {
+                if (
+                    UIDarkActiveDropdown.PopupGui.Hwnd != this.PopupGui.Hwnd
+                    && UIDarkActiveDropdown.IsOpen
+                ) {
+                    UIDarkActiveDropdown.Close()
+                }
+            }
+        }
+
+
+        UIDarkActiveDropdown := this
         this.IsOpen := true
 
 
@@ -785,8 +804,19 @@ class DarkDropdown {
 
 
     Close() {
+        global UIDarkActiveDropdown
+
         this.IsOpen := false
         this.HoveredSlot := 0
+
+
+        if IsObject(UIDarkActiveDropdown) {
+            try {
+                if UIDarkActiveDropdown.PopupGui.Hwnd = this.PopupGui.Hwnd {
+                    UIDarkActiveDropdown := ""
+                }
+            }
+        }
 
 
         try {
@@ -1192,33 +1222,45 @@ class DarkDropdown {
 
 
     UpdateHover(
-        mouseWindow,
-        mouseControl
+        mouseX,
+        mouseY
     ) {
-        mainHovered :=
-            this._Visible
-            && mouseWindow = this.Gui.Hwnd
-            && (
-                mouseControl
-                    = this.MainText.Hwnd
-                || mouseControl
-                    = this.Arrow.Hwnd
+        ; While the popup is open, keep the parent dropdown trigger visually
+        ; locked in its active state. Letting MainHovered toggle underneath an
+        ; open popup caused redundant RefreshMainVisual() calls, which could
+        ; briefly repaint the trigger blue/gray as the cursor crossed it.
+        if this.IsOpen {
+            this.MainHovered := false
+        }
+        else {
+            mainHovered := (
+                this._Visible
+                && this.IsEnabled
+                && UIControlContainsScreenPoint(
+                    this.Border,
+                    mouseX,
+                    mouseY
+                )
             )
 
 
-        if mainHovered != this.MainHovered {
+            if mainHovered != this.MainHovered {
 
-            this.MainHovered :=
-                mainHovered
+                this.MainHovered :=
+                    mainHovered
 
 
-            this.RefreshMainVisual()
+                this.RefreshMainVisual()
+            }
         }
 
 
         if !this.IsOpen {
-
-            this.HoveredSlot := 0
+            if this.HoveredSlot {
+                oldHoveredSlot := this.HoveredSlot
+                this.HoveredSlot := 0
+                this.RefreshRowVisual(oldHoveredSlot)
+            }
 
             return
         }
@@ -1227,22 +1269,30 @@ class DarkDropdown {
         newHoveredSlot := 0
 
 
-        if mouseWindow = this.PopupGui.Hwnd {
+        for slot, row in this.Rows {
 
-            for slot, row in this.Rows {
+            if (
+                row.ItemIndex > 0
+                && row.Text.Visible
+                && (
+                    UIControlContainsScreenPoint(
+                        row.Text,
+                        mouseX,
+                        mouseY
+                    )
+                    || UIControlContainsScreenPoint(
+                        row.Background,
+                        mouseX,
+                        mouseY
+                    )
+                )
+            ) {
 
-                if (
-                    row.ItemIndex > 0
-                    && mouseControl
-                        = row.Text.Hwnd
-                ) {
-
-                    newHoveredSlot :=
-                        slot
+                newHoveredSlot :=
+                    slot
 
 
-                    break
-                }
+                break
             }
         }
 
@@ -1255,11 +1305,55 @@ class DarkDropdown {
         }
 
 
-        this.HoveredSlot :=
-            newHoveredSlot
+        oldHoveredSlot := this.HoveredSlot
+        this.HoveredSlot := newHoveredSlot
+
+        ; Only repaint the two row backgrounds whose hover state changed.
+        ; Rebuilding text/font/visibility for every popup row while the mouse
+        ; moved quickly was the source of the dropdown-list flicker.
+        if oldHoveredSlot {
+            this.RefreshRowVisual(oldHoveredSlot)
+        }
+
+        if newHoveredSlot {
+            this.RefreshRowVisual(newHoveredSlot)
+        }
+    }
 
 
-        this.RefreshRows()
+    RefreshRowVisual(slot) {
+        global UIColorPopupBackground
+        global UIColorControlHoverTop
+        global UIColorControlSelected
+        global UIColorControlSelectedHover
+
+        if slot < 1 || slot > this.Rows.Length {
+            return
+        }
+
+        row := this.Rows[slot]
+
+        if row.ItemIndex < 1 || !row.Background.Visible {
+            return
+        }
+
+        if (
+            row.ItemIndex = this.SelectedIndex
+            && slot = this.HoveredSlot
+        ) {
+            color := UIColorControlSelectedHover
+        }
+        else if row.ItemIndex = this.SelectedIndex {
+            color := UIColorControlSelected
+        }
+        else if slot = this.HoveredSlot {
+            color := UIColorControlHoverTop
+        }
+        else {
+            color := UIColorPopupBackground
+        }
+
+        SetUIProgressColor(row.Background, color)
     }
 
 
@@ -1390,25 +1484,44 @@ class DarkDropdown {
     }
 
 
-    ContainsMouse(
-        mouseWindow,
-        mouseControl
+    PopupContainsScreenPoint(
+        mouseX,
+        mouseY
     ) {
-        if mouseWindow = this.PopupGui.Hwnd {
+        if !this.IsOpen {
+            return false
+        }
+
+        return UIHwndContainsScreenPoint(
+            this.PopupGui.Hwnd,
+            mouseX,
+            mouseY
+        )
+    }
+
+
+    ContainsScreenPoint(
+        mouseX,
+        mouseY
+    ) {
+        if (
+            this._Visible
+            && UIControlContainsScreenPoint(
+                this.Border,
+                mouseX,
+                mouseY
+            )
+        ) {
             return true
         }
 
 
-        if (
-            mouseWindow = this.Gui.Hwnd
-            && (
-                mouseControl
-                    = this.MainText.Hwnd
-                || mouseControl
-                    = this.Arrow.Hwnd
+        if this.IsOpen {
+            return UIHwndContainsScreenPoint(
+                this.PopupGui.Hwnd,
+                mouseX,
+                mouseY
             )
-        ) {
-            return true
         }
 
 
@@ -1454,20 +1567,27 @@ DarkDropdownMouseWheel(
         return
     }
 
-    mouseWindow := 0
+    cursorPoint := Buffer(8, 0)
 
-    try {
-        MouseGetPos(
-            ,
-            ,
-            &mouseWindow
-        )
+    if !DllCall(
+        "GetCursorPos",
+        "Ptr", cursorPoint.Ptr,
+        "Int"
+    ) {
+        return
     }
+
+    mouseX := NumGet(cursorPoint, 0, "Int")
+    mouseY := NumGet(cursorPoint, 4, "Int")
 
     for dropdown in UIDarkDropdowns {
         if (
             dropdown.IsOpen
-            && mouseWindow = dropdown.PopupGui.Hwnd
+            && UIHwndContainsScreenPoint(
+                dropdown.PopupGui.Hwnd,
+                mouseX,
+                mouseY
+            )
         ) {
             dropdown.Scroll(
                 delta > 0 ? 1 : -1
@@ -1493,40 +1613,118 @@ StartDarkDropdownSystem() {
 
     SetTimer(
         PollDarkDropdowns,
-        30
+        16
     )
 }
 
 
 PollDarkDropdowns() {
     global UIDarkDropdowns
+    global UIDarkActiveDropdown
     global UIDarkDropdownMouseWasDown
 
 
-    mouseWindow := 0
-    mouseControl := 0
+    cursorPoint := Buffer(8, 0)
 
 
-    try {
-        MouseGetPos(
-            ,
-            ,
-            &mouseWindow,
-            &mouseControl,
-            2
+    if !DllCall(
+        "GetCursorPos",
+        "Ptr", cursorPoint.Ptr,
+        "Int"
+    ) {
+        return
+    }
+
+
+    mouseX := NumGet(cursorPoint, 0, "Int")
+    mouseY := NumGet(cursorPoint, 4, "Int")
+
+
+    activeOpenDropdown := ""
+
+    if IsObject(UIDarkActiveDropdown) {
+        try {
+            if UIDarkActiveDropdown.IsOpen {
+                activeOpenDropdown := UIDarkActiveDropdown
+            }
+        }
+    }
+
+
+    popupHoverBlocked := false
+
+    if IsObject(activeOpenDropdown) {
+        try popupHoverBlocked := activeOpenDropdown.PopupContainsScreenPoint(
+            mouseX,
+            mouseY
         )
     }
 
 
-    for dropdown in UIDarkDropdowns {
+    activeDropdowns := []
 
-        try {
-            dropdown.UpdateHover(
-                mouseWindow,
-                mouseControl
+
+    for dropdown in UIDarkDropdowns {
+        guiHwnd := 0
+
+        try guiHwnd := dropdown.Gui.Hwnd
+
+        ; Keep dropdowns registered while their owner GUI is hidden during
+        ; construction. WinExist() can report hidden windows as missing and
+        ; previously caused some dropdown/list hover states to disappear
+        ; permanently before the GUI was first shown.
+        if (
+            !guiHwnd
+            || !DllCall(
+                "IsWindow",
+                "Ptr",
+                guiHwnd,
+                "Int"
+            )
+        ) {
+            continue
+        }
+
+        ; Do not permanently unregister a valid dropdown because of a single
+        ; visual refresh during a show/hide or item-update transition.
+        activeDropdowns.Push(dropdown)
+
+        if IsObject(activeOpenDropdown) {
+            isActiveDropdown := false
+
+            try {
+                isActiveDropdown := (
+                    dropdown.PopupGui.Hwnd
+                    = activeOpenDropdown.PopupGui.Hwnd
+                )
+            }
+
+            if isActiveDropdown || !popupHoverBlocked {
+                ; Outside the active popup, every dropdown keeps normal hover.
+                ; Inside it, only the active dropdown may respond so controls
+                ; physically underneath the popup cannot light up through it.
+                try dropdown.UpdateHover(
+                    mouseX,
+                    mouseY
+                )
+            }
+            else {
+                try dropdown.UpdateHover(
+                    -2147483648,
+                    -2147483648
+                )
+            }
+        }
+        else {
+            try dropdown.UpdateHover(
+                mouseX,
+                mouseY
             )
         }
     }
+
+
+    UIDarkDropdowns := activeDropdowns
 
 
     leftDown :=
@@ -1545,9 +1743,9 @@ PollDarkDropdowns() {
 
             if (
                 dropdown.IsOpen
-                && !dropdown.ContainsMouse(
-                    mouseWindow,
-                    mouseControl
+                && !dropdown.ContainsScreenPoint(
+                    mouseX,
+                    mouseY
                 )
             ) {
 
@@ -1559,8 +1757,44 @@ PollDarkDropdowns() {
 
     UIDarkDropdownMouseWasDown :=
         leftDown
+}
 
 
+UIHwndContainsScreenPoint(
+    hwnd,
+    screenX,
+    screenY
+) {
+    if !hwnd {
+        return false
+    }
+
+
+    rect := Buffer(16, 0)
+
+
+    if !DllCall(
+        "GetWindowRect",
+        "Ptr", hwnd,
+        "Ptr", rect.Ptr,
+        "Int"
+    ) {
+        return false
+    }
+
+
+    left := NumGet(rect, 0, "Int")
+    top := NumGet(rect, 4, "Int")
+    right := NumGet(rect, 8, "Int")
+    bottom := NumGet(rect, 12, "Int")
+
+
+    return (
+        screenX >= left
+        && screenX < right
+        && screenY >= top
+        && screenY < bottom
+    )
 }
 
 
@@ -1572,14 +1806,12 @@ CloseOtherDarkDropdowns(
 
     for dropdown in UIDarkDropdowns {
 
-        if (
-            IsObject(
-                exceptDropdown
-            )
-            && dropdown
-                = exceptDropdown
-        ) {
-            continue
+        if IsObject(exceptDropdown) {
+            try {
+                if dropdown.PopupGui.Hwnd = exceptDropdown.PopupGui.Hwnd {
+                    continue
+                }
+            }
         }
 
 

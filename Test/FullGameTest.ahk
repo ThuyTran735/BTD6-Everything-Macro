@@ -5,6 +5,7 @@
 
 ; End-to-end run test.
 ; Uses the same RunMapStrategy() pipeline as real map scripts.
+
 global RunConfig := {
     category: "Beginner",
     map: "Monkey Meadow",

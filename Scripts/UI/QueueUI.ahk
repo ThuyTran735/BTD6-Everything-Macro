@@ -155,6 +155,9 @@ ShowQueueManager(*) {
 
     EnableCustomWindowChrome(QueueGui)
     AddCustomWindowBorder(QueueGui, 620, 500)
+    AddUICard(QueueGui, 14, 76, 592, 298)
+    AddUICard(QueueGui, 14, 376, 592, 50)
+    AddUICard(QueueGui, 14, 430, 592, 56)
 
 
     AddUIOutlinedText(

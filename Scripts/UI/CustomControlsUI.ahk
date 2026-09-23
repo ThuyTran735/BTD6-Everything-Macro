@@ -2,6 +2,7 @@
 
 
 global UIDarkLists := []
+global UIDarkButtons := []
 
 global UICustomControlTimerStarted := false
 global UICustomControlMessagesStarted := false
@@ -72,6 +73,7 @@ class DarkButton {
 
         global UIFontHeading
         global UIColorControlText
+        global UIDarkButtons
 
 
         this.Gui := guiObject
@@ -87,15 +89,24 @@ class DarkButton {
         this.Style := this.AutoStyle
             ? GetDarkButtonStyleForText(text)
             : style
+        this.IsFlatFace := (this.Style = "Flat")
 
         this.ClickCallback := ""
         this.ClickExclusions := []
+        this.LockTextOffset := false
 
         this.IsEnabled := true
         this._Visible := true
 
         this.ActionPending := false
-        this.LastTextOffset := -1
+        this.IsHovered := false
+        this.BaseTextOffset := 0
+        this.LastTextOffset := -999
+        this.LastTextColor := UIColorControlText
+        this.TextX := x
+        this.TextWidth := width
+        this.OverlayStableSurface := false
+        this.ClickAnimationEnabled := true
 
 
         this.Glow := guiObject.Add(
@@ -202,6 +213,25 @@ class DarkButton {
         )
 
 
+        ; A Flat button uses one physical face control instead of two stacked
+        ; Progress controls. Giving Top the full height and keeping Bottom
+        ; hidden removes the native Progress edge that otherwise appears as a
+        ; horizontal seam through wide footer/navigation buttons.
+        if this.IsFlatFace {
+            ; Progress controls carry a native 3D frame. With a full-height
+            ; flat face that frame became the bright white/gray rectangle seen
+            ; around BACK TO PROFILES. Remove the native frames and keep only
+            ; our theme-colored custom border.
+            this.Border.Opt("-0x800000 -E0x200 -E0x20000")
+            this.Top.Opt("-0x800000 -E0x200 -E0x20000")
+            this.Bottom.Opt("-0x800000 -E0x200 -E0x20000")
+            this.Highlight.Opt("-0x800000 -E0x200 -E0x20000")
+
+            this.Top.Move(x, y, width, height)
+            this.Bottom.Visible := false
+        }
+
+
         guiObject.SetFont(
             "s"
             . fontSize
@@ -235,6 +265,8 @@ class DarkButton {
         )
 
 
+        UIDarkButtons.Push(this)
+        StartUICustomControlSystem()
         this.ShowRestState()
     }
 
@@ -250,7 +282,16 @@ class DarkButton {
 
                 if newStyle != this.Style {
                     this.Style := newStyle
-                    this.ShowRestState()
+
+                    if this.ActionPending {
+                        this.ShowPressedState()
+                    }
+                    else if this.IsHovered && this.IsEnabled {
+                        this.ShowHoverState()
+                    }
+                    else {
+                        this.ShowRestState()
+                    }
                 }
             }
         }
@@ -278,14 +319,20 @@ class DarkButton {
             this._Visible := value
 
 
+            if !value {
+                this.IsHovered := false
+                this.ActionPending := false
+            }
+
             this.Glow.Visible := value
             this.Border.Visible := value
 
             this.Top.Visible := value
-            this.Bottom.Visible := value
+            this.Bottom.Visible := value && !this.IsFlatFace
 
             this.Highlight.Visible := value
             this.TextControl.Visible := value
+
         }
     }
 
@@ -342,6 +389,62 @@ class DarkButton {
 
 
         return this
+    }
+
+
+    ProtectTopRightOverlay(
+        overlayX,
+        overlayY,
+        overlayWidth,
+        overlayHeight,
+        padding := 1
+    ) {
+        ; Keep the button as one continuous visual surface. For buttons with
+        ; an embedded help badge, avoid repainting that surface on hover/click
+        ; and shrink only the transparent label's render rectangle so it never
+        ; overlaps the badge. The label remains centered on the original button.
+        cutRight := Max(this.X + 1, overlayX - padding)
+        originalCenter := this.X + (this.Width / 2)
+        textLeft := Round((2 * originalCenter) - cutRight)
+
+        textLeft := Max(this.X, textLeft)
+        textRight := Min(this.X + this.Width, cutRight)
+
+        if textRight > textLeft {
+            this.TextX := textLeft
+            this.TextWidth := textRight - textLeft
+            this.LastTextOffset := -999
+            this.SetTextOffset(0)
+        }
+
+        this.OverlayStableSurface := true
+        return this
+    }
+
+
+    LockTextPosition(baseOffset := 0) {
+        ; Keep this label at one stable baseline while the button surface
+        ; animates. This is especially important for overlapping help badges:
+        ; moving or repeatedly repainting a large transparent text control can
+        ; briefly cover smaller sibling controls.
+        this.LockTextOffset := true
+        this.BaseTextOffset := baseOffset
+        this.LastTextOffset := -999
+        this.SetTextOffset(0)
+        return this
+    }
+
+
+    ApplyTextColor(color) {
+        ; Avoid calling SetFont() on every hover/press/rest repaint when the
+        ; color did not actually change. BackgroundTrans text controls can
+        ; repaint a large area and cause overlapping ? badges to flash.
+        if color = this.LastTextColor {
+            return
+        }
+
+        this.LastTextColor := color
+        this.TextControl.SetFont("Norm c" . color)
     }
 
 
@@ -522,6 +625,18 @@ class DarkButton {
         }
 
 
+        ; Long-running actions such as the manual GitHub update check should
+        ; not repaint the custom Progress layers immediately before the GUI
+        ; thread is blocked. Keeping the existing hover visual prevents the
+        ; button text/help badge from briefly being painted underneath them.
+        if !this.ClickAnimationEnabled {
+            if this.ClickCallback {
+                try this.ClickCallback.Call(this)
+            }
+            return
+        }
+
+
         this.ActionPending := true
 
 
@@ -552,8 +667,12 @@ class DarkButton {
         }
 
 
-        ; Always return to gray before the action fires.
-        this.ShowRestState()
+        if this.IsHovered {
+            this.ShowHoverState()
+        }
+        else {
+            this.ShowRestState()
+        }
 
 
         SetTimer(
@@ -580,6 +699,14 @@ class DarkButton {
         }
 
 
+        if this.IsHovered {
+            this.ShowHoverState()
+        }
+        else {
+            this.ShowRestState()
+        }
+
+
         if !this.ClickCallback {
             return
         }
@@ -594,6 +721,7 @@ class DarkButton {
 
 
     ShowPressedState() {
+        global UIColorBackground
         global UIColorAccent
         global UIColorSuccess
         global UIColorError
@@ -601,6 +729,8 @@ class DarkButton {
         global UIColorControlPressedTop
         global UIColorControlPressedBottom
         global UIColorControlPressedHighlight
+        global UIColorControlTop
+        global UIColorControlBottom
 
         global UIColorControlText
 
@@ -613,22 +743,27 @@ class DarkButton {
 
         if this.Style = "Success" || this.Style = "ToggleOn" {
             accentColor := UIColorSuccess
-            pressedTop := BlendUIColors("272C35", UIColorSuccess, 0.72)
-            pressedBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.58)
+            pressedTop := BlendUIColors(UIColorControlTop, UIColorSuccess, 0.72)
+            pressedBottom := BlendUIColors(UIColorControlBottom, UIColorSuccess, 0.58)
             pressedHighlight := UIColorSuccess
         }
         else if this.Style = "Danger" || this.Style = "ToggleOff" {
             accentColor := UIColorError
-            pressedTop := BlendUIColors("272C35", UIColorError, 0.72)
-            pressedBottom := BlendUIColors("1B1F26", UIColorError, 0.58)
+            pressedTop := BlendUIColors(UIColorControlTop, UIColorError, 0.72)
+            pressedBottom := BlendUIColors(UIColorControlBottom, UIColorError, 0.58)
             pressedHighlight := UIColorError
+        }
+        else if this.Style = "Flat" {
+            ; Flat footer/navigation buttons use one continuous face so
+            ; the normal top/bottom split cannot read as a center seam.
+            pressedBottom := pressedTop
         }
 
 
         SetUIProgressColor(
             this.Glow,
             BlendUIColors(
-                "101216",
+                UIColorBackground,
                 accentColor,
                 0.72
             )
@@ -641,16 +776,20 @@ class DarkButton {
         )
 
 
-        SetUIProgressColor(
-            this.Top,
-            pressedTop
-        )
+        if !this.OverlayStableSurface {
+            SetUIProgressColor(
+                this.Top,
+                pressedTop
+            )
 
 
-        SetUIProgressColor(
-            this.Bottom,
-            pressedBottom
-        )
+            if !this.IsFlatFace {
+                SetUIProgressColor(
+                    this.Bottom,
+                    pressedBottom
+                )
+            }
+        }
 
 
         SetUIProgressColor(
@@ -659,16 +798,111 @@ class DarkButton {
         )
 
 
-        this.TextControl.SetFont(
-            "Norm c"
-            . UIColorControlText
-        )
+        this.ApplyTextColor(UIColorControlText)
 
 
         this.SetTextOffset(
             1
         )
+
     }
+
+    ShowHoverState() {
+        global UIColorBackground
+        global UIColorAccent
+        global UIColorSuccess
+        global UIColorError
+        global UIColorControlBorder
+        global UIColorControlHoverTop
+        global UIColorControlHoverBottom
+        global UIColorControlHoverHighlight
+        global UIColorControlText
+
+        if !this.IsEnabled {
+            return
+        }
+
+        accentColor := UIColorAccent
+        hoverHighlight := UIColorControlHoverHighlight
+        hoverBorder := BlendUIColors(UIColorControlBorder, UIColorAccent, 0.48)
+
+        if this.Style = "Success" || this.Style = "ToggleOn" {
+            accentColor := UIColorSuccess
+            hoverHighlight := UIColorSuccess
+            hoverBorder := BlendUIColors(UIColorControlBorder, UIColorSuccess, 0.58)
+        }
+        else if this.Style = "Danger" || this.Style = "ToggleOff" {
+            accentColor := UIColorError
+            hoverHighlight := UIColorError
+            hoverBorder := BlendUIColors(UIColorControlBorder, UIColorError, 0.58)
+        }
+
+        ; Hover changes only the accent layers. Keeping the large button face
+        ; stable prevents rapid mouse movement from exposing intermediate
+        ; full-blue/green/red Progress frames or briefly hiding transparent
+        ; button text. Click/pressed feedback still uses the full face.
+        isCompact := this.Width <= 24 && this.Height <= 24
+
+        if isCompact {
+            hoverBorder := accentColor
+            glowAmount := 0.34
+        } else {
+            glowAmount := 0.30
+        }
+
+        SetUIProgressColor(this.Glow, BlendUIColors(UIColorBackground, accentColor, glowAmount))
+        SetUIProgressColor(this.Border, hoverBorder)
+        SetUIProgressColor(this.Highlight, hoverHighlight)
+        this.ApplyTextColor(UIColorControlText)
+
+        ; Keep the label stationary on hover. The click animation still presses
+        ; it down, but rapid hover transitions no longer move/redraw a large
+        ; transparent text layer.
+        this.SetTextOffset(0)
+    }
+
+
+    UpdateHover(
+        mouseX,
+        mouseY
+    ) {
+        if !this._Visible || !this.IsEnabled {
+            if this.IsHovered {
+                this.IsHovered := false
+                this.ShowRestState()
+            }
+            return
+        }
+
+        ; Use the control's real screen rectangle. GUI logical coordinates can
+        ; differ from GetCursorPos pixels under Windows DPI scaling, which made
+        ; hover states appear above/below the actual button.
+        hovered := (
+            UIControlContainsScreenPoint(
+                this.Border,
+                mouseX,
+                mouseY
+            )
+            && !this.IsCursorInClickExclusion()
+        )
+
+        if hovered = this.IsHovered {
+            return
+        }
+
+        this.IsHovered := hovered
+
+        if this.ActionPending {
+            return
+        }
+
+        if hovered {
+            this.ShowHoverState()
+        } else {
+            this.ShowRestState()
+        }
+    }
+
 
     ShowRestState() {
         global UIColorBackground
@@ -711,15 +945,18 @@ class DarkButton {
             else if this.Style = "Danger" {
                 restHighlight := UIColorError
             }
+            else if this.Style = "Flat" {
+                restBottom := restTop
+            }
             else if this.Style = "ToggleOn" {
-                restTop := BlendUIColors("272C35", UIColorSuccess, 0.58)
-                restBottom := BlendUIColors("1B1F26", UIColorSuccess, 0.44)
+                restTop := BlendUIColors(UIColorControlTop, UIColorSuccess, 0.58)
+                restBottom := BlendUIColors(UIColorControlBottom, UIColorSuccess, 0.44)
                 restHighlight := UIColorSuccess
                 restBorder := BlendUIColors(UIColorControlBorder, UIColorSuccess, 0.72)
             }
             else if this.Style = "ToggleOff" {
-                restTop := BlendUIColors("272C35", UIColorError, 0.58)
-                restBottom := BlendUIColors("1B1F26", UIColorError, 0.44)
+                restTop := BlendUIColors(UIColorControlTop, UIColorError, 0.58)
+                restBottom := BlendUIColors(UIColorControlBottom, UIColorError, 0.44)
                 restHighlight := UIColorError
                 restBorder := BlendUIColors(UIColorControlBorder, UIColorError, 0.72)
             }
@@ -737,10 +974,12 @@ class DarkButton {
             )
 
 
-            SetUIProgressColor(
-                this.Bottom,
-                restBottom
-            )
+            if !this.IsFlatFace {
+                SetUIProgressColor(
+                    this.Bottom,
+                    restBottom
+                )
+            }
 
 
             SetUIProgressColor(
@@ -749,10 +988,7 @@ class DarkButton {
             )
 
 
-            this.TextControl.SetFont(
-                "Norm c"
-                . UIColorControlText
-            )
+            this.ApplyTextColor(UIColorControlText)
         }
         else {
 
@@ -762,10 +998,12 @@ class DarkButton {
             )
 
 
-            SetUIProgressColor(
-                this.Bottom,
-                UIColorPanel
-            )
+            if !this.IsFlatFace {
+                SetUIProgressColor(
+                    this.Bottom,
+                    UIColorPanel
+                )
+            }
 
 
             SetUIProgressColor(
@@ -774,50 +1012,63 @@ class DarkButton {
             )
 
 
-            this.TextControl.SetFont(
-                "Norm c"
-                . UIColorControlDisabledText
-            )
+            this.ApplyTextColor(UIColorControlDisabledText)
         }
 
 
         this.SetTextOffset(
             0
         )
+
     }
 
 
     SetTextOffset(
         offset
     ) {
-        if offset = this.LastTextOffset {
+        if this.LockTextOffset {
+            offset := 0
+        }
+
+
+        finalOffset := this.BaseTextOffset + offset
+
+
+        if finalOffset = this.LastTextOffset {
             return
         }
 
 
-        this.LastTextOffset :=
-            offset
+        this.LastTextOffset := finalOffset
 
 
         this.TextControl.Move(
-            this.X,
-            this.Y + offset,
-            this.Width,
+            this.TextX,
+            this.Y + finalOffset,
+            this.TextWidth,
             this.Height
         )
     }
 
 
     IsAlive() {
-        try {
-            return !!WinExist(
-                "ahk_id "
-                . this.Gui.Hwnd
-            )
+        try guiHwnd := this.Gui.Hwnd
+        catch {
+            return false
         }
 
 
-        return false
+        ; WinExist() ignores hidden windows unless DetectHiddenWindows is on.
+        ; Custom controls are created while their GUI is still hidden, so the
+        ; hover timer could permanently drop them before the window was shown.
+        ; IsWindow() checks whether the HWND itself is valid regardless of
+        ; visibility, keeping every button/list registered consistently.
+        return !!DllCall(
+            "IsWindow",
+            "Ptr",
+            guiHwnd,
+            "Int"
+        )
     }
 }
 
@@ -1390,63 +1641,38 @@ class DarkList {
         mouseY
     ) {
         if !this._Visible {
+            if this.HoveredSlot {
+                this.HoveredSlot := 0
+                this.RefreshRows()
+            }
             return
         }
-
-
-        point :=
-            this.GetClientPoint(
-                mouseX,
-                mouseY
-            )
 
 
         newHoveredSlot := 0
 
 
-        if point {
-
-            clientX :=
-                point[1]
-
-
-            clientY :=
-                point[2]
-
-
+        ; Test each visible row against its real HWND rectangle so list hover
+        ; remains exact at any Windows display scaling level.
+        for slot, row in this.Rows {
             if (
-                clientX >= this.X
-                && clientX
-                    < this.X
-                        + this.Width
-                && clientY >= this.Y
-                && clientY
-                    < this.Y
-                        + this.Height
-            ) {
-
-                slot :=
-                    Floor(
-                        (
-                            clientY
-                            - this.Y
-                        )
-                        / this.RowHeight
+                row.ItemIndex > 0
+                && row.Text.Visible
+                && (
+                    UIControlContainsScreenPoint(
+                        row.Text,
+                        mouseX,
+                        mouseY
                     )
-                    + 1
-
-
-                if (
-                    slot >= 1
-                    && slot <= this.Rows.Length
-                    && this.Rows[
-                        slot
-                    ].ItemIndex > 0
-                ) {
-
-                    newHoveredSlot :=
-                        slot
-                }
+                    || UIControlContainsScreenPoint(
+                        row.Background,
+                        mouseX,
+                        mouseY
+                    )
+                )
+            ) {
+                newHoveredSlot := slot
+                break
             }
         }
 
@@ -1458,11 +1684,19 @@ class DarkList {
         }
 
 
-        this.HoveredSlot :=
-            newHoveredSlot
+        oldHoveredSlot := this.HoveredSlot
+        this.HoveredSlot := newHoveredSlot
 
+        ; Hover only changes row backgrounds. Rebuilding every row's text,
+        ; font, and visibility on a 16 ms timer caused visible flashing when
+        ; the cursor crossed rows quickly.
+        if oldHoveredSlot {
+            this.RefreshRowVisual(oldHoveredSlot)
+        }
 
-        this.RefreshRows()
+        if newHoveredSlot {
+            this.RefreshRowVisual(newHoveredSlot)
+        }
     }
 
 
@@ -1475,35 +1709,10 @@ class DarkList {
         }
 
 
-        point :=
-            this.GetClientPoint(
-                mouseX,
-                mouseY
-            )
-
-
-        if !point {
-            return false
-        }
-
-
-        clientX :=
-            point[1]
-
-
-        clientY :=
-            point[2]
-
-
-        return (
-            clientX >= this.X
-            && clientX
-                < this.X
-                    + this.Width
-            && clientY >= this.Y
-            && clientY
-                < this.Y
-                    + this.Height
+        return UIControlContainsScreenPoint(
+            this.Border,
+            mouseX,
+            mouseY
         )
     }
 
@@ -1563,6 +1772,42 @@ class DarkList {
                 "Int"
             )
         ]
+    }
+
+
+    RefreshRowVisual(slot) {
+        global UIColorPopupBackground
+        global UIColorControlHoverTop
+        global UIColorControlSelected
+        global UIColorControlSelectedHover
+
+        if slot < 1 || slot > this.Rows.Length {
+            return
+        }
+
+        row := this.Rows[slot]
+
+        if row.ItemIndex < 1 || !row.Background.Visible {
+            return
+        }
+
+        if (
+            row.ItemIndex = this.SelectedIndex
+            && slot = this.HoveredSlot
+        ) {
+            color := UIColorControlSelectedHover
+        }
+        else if row.ItemIndex = this.SelectedIndex {
+            color := UIColorControlSelected
+        }
+        else if slot = this.HoveredSlot {
+            color := UIColorControlHoverTop
+        }
+        else {
+            color := UIColorPopupBackground
+        }
+
+        SetUIProgressColor(row.Background, color)
     }
 
 
@@ -1667,16 +1912,63 @@ class DarkList {
 
 
     IsAlive() {
-        try {
-            return !!WinExist(
-                "ahk_id "
-                . this.Gui.Hwnd
-            )
+        try guiHwnd := this.Gui.Hwnd
+        catch {
+            return false
         }
 
 
+        ; WinExist() ignores hidden windows unless DetectHiddenWindows is on.
+        ; Custom controls are created while their GUI is still hidden, so the
+        ; hover timer could permanently drop them before the window was shown.
+        ; IsWindow() checks whether the HWND itself is valid regardless of
+        ; visibility, keeping every button/list registered consistently.
+        return !!DllCall(
+            "IsWindow",
+            "Ptr",
+            guiHwnd,
+            "Int"
+        )
+    }
+}
+
+
+UIControlContainsScreenPoint(
+    controlObject,
+    screenX,
+    screenY
+) {
+    try controlHwnd := controlObject.Hwnd
+    catch {
         return false
     }
+
+
+    rect := Buffer(16, 0)
+
+
+    if !DllCall(
+        "GetWindowRect",
+        "Ptr", controlHwnd,
+        "Ptr", rect.Ptr,
+        "Int"
+    ) {
+        return false
+    }
+
+
+    left := NumGet(rect, 0, "Int")
+    top := NumGet(rect, 4, "Int")
+    right := NumGet(rect, 8, "Int")
+    bottom := NumGet(rect, 12, "Int")
+
+
+    return (
+        screenX >= left
+        && screenX < right
+        && screenY >= top
+        && screenY < bottom
+    )
 }
 
 
@@ -1693,7 +1985,7 @@ StartUICustomControlSystem() {
 
         SetTimer(
             PollUICustomControls,
-            30
+            16
         )
     }
 
@@ -1714,6 +2006,8 @@ StartUICustomControlSystem() {
 
 PollUICustomControls() {
     global UIDarkLists
+    global UIDarkButtons
+    global UIDarkActiveDropdown
 
 
     cursorPoint := Buffer(
@@ -1748,27 +2042,72 @@ PollUICustomControls() {
         )
 
 
+    ; An open dropdown only owns hover inside the popup rectangle itself.
+    ; Controls elsewhere in the owner UI should continue responding normally.
+    ; This prevents controls physically covered by the popup from highlighting
+    ; through it without freezing unrelated controls around the dropdown.
+    backgroundHoverBlocked := false
+
+    if IsSet(UIDarkActiveDropdown) && IsObject(UIDarkActiveDropdown) {
+        try {
+            backgroundHoverBlocked := (
+                UIDarkActiveDropdown.IsOpen
+                && UIDarkActiveDropdown.PopupContainsScreenPoint(
+                    mouseX,
+                    mouseY
+                )
+            )
+        }
+    }
+
+    hoverX := backgroundHoverBlocked ? -2147483648 : mouseX
+    hoverY := backgroundHoverBlocked ? -2147483648 : mouseY
+
+
+    activeButtons := []
+
+
+    for button in UIDarkButtons {
+        isAlive := false
+
+        try isAlive := button.IsAlive()
+
+        if !isAlive {
+            continue
+        }
+
+        ; Keep a valid control registered even if one visual refresh happens
+        ; during a GUI state transition. A transient draw/move error should not
+        ; permanently remove a button from hover tracking.
+        activeButtons.Push(button)
+
+        try button.UpdateHover(hoverX, hoverY)
+    }
+
+
+    UIDarkButtons := activeButtons
+
+
     activeLists := []
 
 
     for list in UIDarkLists {
+        isAlive := false
 
-        try {
-            if !list.IsAlive() {
-                continue
-            }
+        try isAlive := list.IsAlive()
 
-
-            list.UpdateHover(
-                mouseX,
-                mouseY
-            )
-
-
-            activeLists.Push(
-                list
-            )
+        if !isAlive {
+            continue
         }
+
+        ; As with buttons, only an invalid window handle removes a list from
+        ; tracking. Temporary refresh errors no longer disable future hovers.
+        activeLists.Push(list)
+
+        try list.UpdateHover(
+            hoverX,
+            hoverY
+        )
     }
 
 
@@ -1977,18 +2316,32 @@ SetUIProgressColor(
     progressControl,
     color
 ) {
+    static colorCache := Map()
+
     try {
+        hwnd := progressControl.Hwnd
+        normalizedColor := StrUpper(color)
+
+        if (
+            colorCache.Has(hwnd)
+            && colorCache[hwnd] = normalizedColor
+        ) {
+            return
+        }
+
+        colorCache[hwnd] := normalizedColor
+
+        ; Keep AutoHotkey in charge of Progress styling. Direct PBM color
+        ; messages can make themed Progress controls fall back to a flat gray
+        ; surface after the first hover transition.
         progressControl.Opt(
             "c"
-            . color
+            . normalizedColor
             . " Background"
-            . color
+            . normalizedColor
         )
 
-
         progressControl.Value := 100
-
-
         progressControl.Redraw()
     }
 }

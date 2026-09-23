@@ -7,6 +7,8 @@ global CycleProgressBackground := ""
 
 global CycleStatusLastX := ""
 global CycleStatusLastY := ""
+global CycleStatusRightPanelOpen := false
+global CycleStatusRightPanelMisses := 0
 
 global CycleInputGui := ""
 global CycleInputEdit := ""
@@ -29,6 +31,7 @@ CreateCycleStatusUI() {
     global UIColorPrimaryText
     global UIColorSecondaryText
     global UIColorControlBorder
+    global UIColorPanelBorder
 
 
     if CycleStatusGui {
@@ -47,8 +50,8 @@ CreateCycleStatusUI() {
     CycleCancelButton := ""
 
 
-    hudWidth := 348
-    hudHeight := 78
+    hudWidth := 420
+    hudHeight := 98
 
 
     CycleStatusGui :=
@@ -62,21 +65,18 @@ CreateCycleStatusUI() {
         UIColorBackground
 
 
-    CycleStatusGui.MarginX :=
-        0
-
-
-    CycleStatusGui.MarginY :=
-        0
+    CycleStatusGui.MarginX := 0
+    CycleStatusGui.MarginY := 0
 
 
     AddCustomWindowBorder(CycleStatusGui, hudWidth, hudHeight, 3)
+    AddUICard(CycleStatusGui, 8, 8, 404, 82)
 
 
-    ; Cycle number.
-    SetUIBodyBoldFont(
+    ; Keep the run information together in one compact status block.
+    SetUIHeadingFont(
         CycleStatusGui,
-        10,
+        9,
         UIColorPrimaryText
     )
 
@@ -84,14 +84,13 @@ CreateCycleStatusUI() {
     CycleStatusText :=
         CycleStatusGui.Add(
             "Text",
-            "x16 y10 w205 h22 Center c"
+            "x20 y17 w248 h24 Center +0x200 c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             "CYCLE 1 / 1"
         )
 
 
-    ; Cycles remaining.
     SetUIBodyFont(
         CycleStatusGui,
         8,
@@ -102,18 +101,17 @@ CreateCycleStatusUI() {
     CycleProgressText :=
         CycleStatusGui.Add(
             "Text",
-            "x16 y35 w205 h18 Center c"
+            "x20 y42 w248 h18 Center +0x200 c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "1 CYCLE LEFT"
         )
 
 
-    ; Progress background.
     CycleProgressBackground :=
         CycleStatusGui.Add(
             "Progress",
-            "x16 y59 w205 h8 c"
+            "x20 y68 w248 h8 c"
             . UIColorControlBorder
             . " Background"
             . UIColorControlBorder
@@ -122,11 +120,10 @@ CreateCycleStatusUI() {
         )
 
 
-    ; Progress fill.
     CycleProgressBar :=
         CycleStatusGui.Add(
             "Progress",
-            "x16 y59 w205 h8 Range0-100 c"
+            "x20 y68 w248 h8 Range0-100 c"
             . UIColorAccent
             . " Background"
             . UIColorControlBorder
@@ -135,14 +132,25 @@ CreateCycleStatusUI() {
         )
 
 
-    ; Cancel button.
+    ; Quiet divider between run progress and the stop action.
+    CycleStatusGui.Add(
+        "Progress",
+        "x278 y18 w1 h62 c"
+        . UIColorPanelBorder
+        . " Background"
+        . UIColorPanelBorder
+        . " Disabled",
+        100
+    )
+
+
     CycleCancelButton :=
         CreateDarkButton(
             CycleStatusGui,
-            242,
-            18,
-            92,
-            42,
+            292,
+            26,
+            104,
+            46,
             "CLOSE RUN",
             7
         )
@@ -180,6 +188,8 @@ ShowCycleStatusUI() {
     global CycleStatusGui
     global CycleStatusLastX
     global CycleStatusLastY
+    global CycleStatusRightPanelOpen
+    global CycleStatusRightPanelMisses
 
 
     if !CycleStatusGui {
@@ -188,28 +198,26 @@ ShowCycleStatusUI() {
     }
 
 
+    CycleStatusRightPanelOpen := false
+    CycleStatusRightPanelMisses := 0
+
+
     SetTimer(
         UpdateCycleStatusPosition,
         0
     )
 
 
-    hudWidth := 348
-    hudHeight := 78
+    hudWidth := 420
+    hudHeight := 98
 
 
-    ; Original top-center position.
-    hudX :=
-        Floor(
-            (1920 - hudWidth) / 2
-        )
+    ; Center when safe, but never cover the round-number OCR region. This
+    ; also handles a right-side upgrade panel immediately when the HUD opens.
+    hudX := GetCycleStatusTargetX(hudWidth)
+    hudY := 8
 
 
-    hudY :=
-        8
-
-
-    ; Gui.Show controls the actual client size.
     CycleStatusGui.Show(
         "NA x"
         . hudX
@@ -222,21 +230,105 @@ ShowCycleStatusUI() {
     )
 
 
-    CycleStatusLastX :=
-        hudX
-
-
-    CycleStatusLastY :=
-        hudY
+    CycleStatusLastX := hudX
+    CycleStatusLastY := hudY
 
 
     UpdateCycleStatusUI()
 
 
+    ; Panel detection uses FindText and can take longer than normal UI hover
+    ; work. Give this timer a lower thread priority so it cannot interrupt a
+    ; custom-control paint halfway through and expose a gray intermediate
+    ; Progress layer for a frame.
     SetTimer(
         UpdateCycleStatusPosition,
-        100
+        100,
+        -10
     )
+}
+
+
+IsRightUpgradePanelOpen() {
+    global SellButtonPattern
+
+
+    ; Detect the visible right-side upgrade panel directly, but only search
+    ; the portion of the screen where that panel can actually exist. The Cycle
+    ; HUD lives at the very top of the screen, so excluding that area prevents
+    ; FindText from repeatedly capturing/scanning the HUD itself and cuts the
+    ; amount of work substantially.
+    searchLeft := Floor(A_ScreenWidth * 0.58)
+    searchTop := Floor(A_ScreenHeight * 0.20)
+
+
+    return !!FindText(
+        &X,
+        &Y,
+        searchLeft,
+        searchTop,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        SellButtonPattern
+    )
+}
+
+
+UpdateCycleStatusRightPanelState() {
+    global CycleStatusRightPanelOpen
+    global CycleStatusRightPanelMisses
+
+
+    if IsRightUpgradePanelOpen() {
+        CycleStatusRightPanelOpen := true
+        CycleStatusRightPanelMisses := 0
+        return true
+    }
+
+
+    if CycleStatusRightPanelOpen {
+        CycleStatusRightPanelMisses++
+
+        ; FindText can miss a single frame while the game animates. Keep the
+        ; HUD left through short misses so it does not blink back over the round
+        ; number and then immediately move left again.
+        if CycleStatusRightPanelMisses < 6 {
+            return true
+        }
+    }
+
+
+    CycleStatusRightPanelOpen := false
+    CycleStatusRightPanelMisses := 0
+    return false
+}
+
+
+GetCycleStatusTargetX(hudWidth, refreshPanelState := true) {
+    global CycleStatusRightPanelOpen
+
+
+    minX := 8
+    maxX := Max(minX, A_ScreenWidth - hudWidth - 8)
+
+
+    centerX := Floor((A_ScreenWidth - hudWidth) / 2)
+    hudX := centerX
+
+
+    rightPanelOpen := refreshPanelState
+        ? UpdateCycleStatusRightPanelState()
+        : CycleStatusRightPanelOpen
+
+
+    if rightPanelOpen {
+        hudX := centerX - 360
+    }
+
+
+    return Max(minX, Min(hudX, maxX))
 }
 
 
@@ -244,8 +336,6 @@ UpdateCycleStatusPosition() {
     global CycleStatusGui
     global CycleStatusLastX
     global CycleStatusLastY
-
-
     if !CycleStatusGui {
         return
     }
@@ -259,38 +349,11 @@ UpdateCycleStatusPosition() {
     }
 
 
-    hudWidth := 348
+    hudWidth := 420
 
 
-    centerX :=
-        Floor(
-            (1920 - hudWidth) / 2
-        )
-
-
-    hudX :=
-        centerX
-
-
-    hudY :=
-        8
-
-
-    panelSide :=
-        GetUpgradePanelSide()
-
-
-    if panelSide = "Right" {
-
-        ; The right-side tower panel moves
-        ; BTD6's round display inward.
-        ;
-        ; Temporarily move the cycle tracker
-        ; farther left until the panel closes.
-        hudX :=
-            centerX
-            - 360
-    }
+    hudX := GetCycleStatusTargetX(hudWidth)
+    hudY := 8
 
 
     if (
@@ -301,11 +364,6 @@ UpdateCycleStatusPosition() {
     }
 
 
-    ; Only move the window.
-    ;
-    ; Do NOT resize it with WinMove because
-    ; that changes the outer window dimensions
-    ; and can clip the GUI client area.
     try {
         WinMove(
             hudX,
@@ -318,12 +376,8 @@ UpdateCycleStatusPosition() {
     }
 
 
-    CycleStatusLastX :=
-        hudX
-
-
-    CycleStatusLastY :=
-        hudY
+    CycleStatusLastX := hudX
+    CycleStatusLastY := hudY
 }
 
 
@@ -572,6 +626,8 @@ HideCycleStatusUI() {
     global CycleStatusGui
     global CycleStatusLastX
     global CycleStatusLastY
+    global CycleStatusRightPanelOpen
+    global CycleStatusRightPanelMisses
 
 
     SetTimer(
@@ -586,6 +642,10 @@ HideCycleStatusUI() {
 
     CycleStatusLastY :=
         ""
+
+
+    CycleStatusRightPanelOpen := false
+    CycleStatusRightPanelMisses := 0
 
 
     if !CycleStatusGui {
@@ -791,104 +851,96 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     CloseCycleInputUI()
 
 
-    CycleInputResult :=
-        0
+    CycleInputResult := 0
+    CycleInputFinished := false
 
 
-    CycleInputFinished :=
-        false
-
-
-    dialogWidth := 440
-    dialogHeight := 280
+    dialogWidth := 460
+    dialogHeight := 326
 
 
     isQueuePrompt := (context = "queue" || context = "editqueue")
     isEditQueuePrompt := context = "editqueue"
 
 
-    CycleInputGui :=
-        Gui(
-            "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
-            isEditQueuePrompt
-            ? "Edit Queue Job"
-            : (isQueuePrompt ? "Add to Queue" : "Run Macro")
-        )
+    actionTitle := isEditQueuePrompt
+        ? "SAVE CHANGES"
+        : (isQueuePrompt ? "ADD TO QUEUE" : "RUN CYCLES")
 
 
-    CycleInputGui.BackColor :=
-        UIColorBackground
+    actionDescription := isEditQueuePrompt
+        ? "Choose how many times this edited queue job should run"
+        : (isQueuePrompt
+            ? "Choose how many times this script should run in the queue"
+            : "Choose how many times this strategy should run")
+
+
+    CycleInputGui := Gui(
+        "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
+        isEditQueuePrompt
+        ? "Edit Queue Job"
+        : (isQueuePrompt ? "Add to Queue" : "Run Cycles")
+    )
+
+
+    CycleInputGui.BackColor := UIColorBackground
+    CycleInputGui.MarginX := 0
+    CycleInputGui.MarginY := 0
 
 
     EnableCustomWindowChrome(CycleInputGui)
     AddCustomWindowBorder(CycleInputGui, dialogWidth, dialogHeight)
 
 
-    CycleInputGui.MarginX :=
-        0
-
-
-    CycleInputGui.MarginY :=
-        0
-
-
-    SetUIHeadingFont(
+    AddUIOutlinedText(
         CycleInputGui,
-        13,
-        UIColorPrimaryText
+        actionTitle,
+        20,
+        18,
+        420,
+        30,
+        12,
+        "Center"
     )
 
 
+    SetUIBodyFont(CycleInputGui, 9, UIColorSecondaryText)
     CycleInputGui.Add(
         "Text",
-        "x20 y20 w400 h30 Center c"
-        . UIColorPrimaryText
-        . " BackgroundTrans",
-        isEditQueuePrompt
-        ? "SAVE CHANGES"
-        : (isQueuePrompt ? "ADD TO QUEUE" : "RUN CYCLES")
-    )
-
-
-    SetUIBodyFont(
-        CycleInputGui,
-        9,
-        UIColorSecondaryText
-    )
-
-
-    CycleInputGui.Add(
-        "Text",
-        "x20 y59 w400 h22 Center c"
+        "x20 y52 w420 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        isEditQueuePrompt
-        ? "How many times should this edited job run?"
-        : (isQueuePrompt
-            ? "How many times should this script run in the queue?"
-            : "How many times should this strategy run?")
+        actionDescription
     )
 
 
-    SetUIBodyBoldFont(
+    ; Run-count card.
+    AddUICard(CycleInputGui, 16, 82, 428, 138)
+    AddUIOutlinedText(
         CycleInputGui,
-        8,
-        UIColorAccent
+        "RUN COUNT",
+        30,
+        92,
+        400,
+        20,
+        9,
+        "Center"
     )
 
 
+    SetUIBodyFont(CycleInputGui, 8, UIColorAccent)
     CycleInputGui.Add(
         "Text",
-        "x20 y88 w400 h20 Center c"
+        "x30 y117 w400 h18 Center c"
         . UIColorAccent
         . " BackgroundTrans",
-        "VALID RANGE  -  1 TO 1,000,000"
+        "WHOLE NUMBER  -  1 TO 1,000,000"
     )
 
 
     CycleInputGui.Add(
         "Progress",
-        "x29 y120 w382 h48 c"
+        "x30 y143 w400 h50 c"
         . UIColorInputBorder
         . " Background"
         . UIColorInputBorder
@@ -897,77 +949,57 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     )
 
 
-    SetUIBodyBoldFont(
+    SetUIBodyFont(CycleInputGui, 14, UIColorPrimaryText)
+    CycleInputEdit := CycleInputGui.Add(
+        "Edit",
+        "x32 y145 w396 h46 Center Limit7 c"
+        . UIColorInputText
+        . " Background"
+        . UIColorInputBackground,
+        initialValue
+    )
+
+
+    ApplyDarkControlTheme(CycleInputEdit)
+    CycleInputEdit.OnEvent("Change", CycleInputChanged)
+
+
+    SetUIBodyFont(CycleInputGui, 8, UIColorError)
+    CycleInputErrorText := CycleInputGui.Add(
+        "Text",
+        "x30 y196 w400 h18 Center c"
+        . UIColorError
+        . " BackgroundTrans",
+        ""
+    )
+
+
+    ; Action card keeps the two choices aligned with the rest of the UI.
+    AddUICard(CycleInputGui, 16, 230, 428, 80)
+
+
+    runButton := CreateDarkButton(
         CycleInputGui,
-        14,
-        UIColorPrimaryText
+        30,
+        247,
+        194,
+        44,
+        isEditQueuePrompt
+        ? "SAVE CHANGES"
+        : (isQueuePrompt ? "ADD TO QUEUE" : "START RUN"),
+        8
     )
 
 
-    CycleInputEdit :=
-        CycleInputGui.Add(
-            "Edit",
-            "x31 y122 w378 h44 Center Limit7 c"
-            . UIColorInputText
-            . " Background"
-            . UIColorInputBackground,
-            initialValue
-        )
-
-
-    ApplyDarkControlTheme(
-        CycleInputEdit
-    )
-
-
-
-    CycleInputEdit.OnEvent(
-        "Change",
-        CycleInputChanged
-    )
-
-
-    SetUIBodyFont(
+    cancelButton := CreateDarkButton(
         CycleInputGui,
-        8,
-        UIColorError
+        236,
+        247,
+        194,
+        44,
+        "CANCEL",
+        8
     )
-
-
-    CycleInputErrorText :=
-        CycleInputGui.Add(
-            "Text",
-            "x20 y176 w400 h20 Center c"
-            . UIColorError
-            . " BackgroundTrans",
-            ""
-        )
-
-
-    runButton :=
-        CreateDarkButton(
-            CycleInputGui,
-            30,
-            211,
-            184,
-            44,
-            isEditQueuePrompt
-            ? "SAVE CHANGES"
-            : (isQueuePrompt ? "ADD TO QUEUE" : "START RUN"),
-            8
-        )
-
-
-    cancelButton :=
-        CreateDarkButton(
-            CycleInputGui,
-            226,
-            211,
-            184,
-            44,
-            "CANCEL",
-            8
-        )
 
 
     CreateHelpBadgeForButton(
@@ -992,45 +1024,25 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     )
 
 
-    runButton.OnEvent(
-        "Click",
-        ConfirmCycleInput
+    runButton.OnEvent("Click", ConfirmCycleInput)
+    cancelButton.OnEvent("Click", CancelCycleInput)
+    CycleInputGui.OnEvent("Close", CancelCycleInput)
+    CycleInputGui.OnEvent("Escape", CancelCycleInput)
+
+
+    CycleInputGui.Show(
+        "Hide w"
+        . dialogWidth
+        . " h"
+        . dialogHeight
     )
 
 
-    cancelButton.OnEvent(
-        "Click",
-        CancelCycleInput
-    )
+    ApplyDarkWindowStyle(CycleInputGui)
 
 
-    CycleInputGui.OnEvent(
-        "Close",
-        CancelCycleInput
-    )
-
-
-    CycleInputGui.OnEvent(
-        "Escape",
-        CancelCycleInput
-    )
-
-
-    ApplyDarkWindowStyle(
-        CycleInputGui
-    )
-
-
-    dialogX :=
-        Floor(
-            (1920 - dialogWidth) / 2
-        )
-
-
-    dialogY :=
-        Floor(
-            (1080 - dialogHeight) / 2
-        )
+    dialogX := Floor((A_ScreenWidth - dialogWidth) / 2)
+    dialogY := Floor((A_ScreenHeight - dialogHeight) / 2)
 
 
     CycleInputGui.Show(
@@ -1049,23 +1061,14 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 
     while !CycleInputFinished {
-
-        Sleep(
-            25
-        )
+        Sleep(25)
     }
 
 
-    result :=
-        CycleInputResult
-
-
+    result := CycleInputResult
     CloseCycleInputUI()
-
-
     return result
 }
-
 
 ConfirmCycleInput(*) {
     global CycleInputEdit

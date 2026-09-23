@@ -111,6 +111,45 @@ HandleCustomWindowHitTest(wParam, lParam, msg, hwnd) {
 }
 
 
+AddUICard(
+    guiObject,
+    x,
+    y,
+    width,
+    height,
+    borderColor := "",
+    fillColor := ""
+) {
+    global UIColorPanelBorder
+    global UIColorPanelRaised
+
+    if borderColor = "" {
+        borderColor := UIColorPanelBorder
+    }
+
+    if fillColor = "" {
+        fillColor := UIColorPanelRaised
+    }
+
+    border := guiObject.Add(
+        "Progress",
+        "x" . x . " y" . y . " w" . width . " h" . height
+        . " c" . borderColor . " Background" . borderColor . " Disabled",
+        100
+    )
+
+    fill := guiObject.Add(
+        "Progress",
+        "x" . (x + 1) . " y" . (y + 1)
+        . " w" . (width - 2) . " h" . (height - 2)
+        . " c" . fillColor . " Background" . fillColor . " Disabled",
+        100
+    )
+
+    return {Border: border, Fill: fill}
+}
+
+
 AddCustomWindowBorder(
     guiObject,
     windowWidth,
@@ -825,35 +864,26 @@ UpdateStatus(
     color := ""
 ) {
     global StatusText
+    global StatusIndicator
     global UIColorSuccess
 
 
     if !StatusText {
-
         return
     }
 
 
     if color = "" {
-
-        color :=
-            UIColorSuccess
+        color := UIColorSuccess
     }
 
 
-    try {
-        StatusText.Move(20, 370, 350, 18)
-    }
+    try StatusText.Move(43, 414, 238, 18)
+    try SetUIProgressColor(StatusIndicator, color)
 
 
-    StatusText.SetFont(
-        "c"
-        . color
-    )
-
-
-    StatusText.Text :=
-        text
+    StatusText.SetFont("c" . color)
+    StatusText.Text := text
 }
 
 

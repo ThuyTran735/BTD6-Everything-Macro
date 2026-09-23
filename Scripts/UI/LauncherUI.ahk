@@ -22,6 +22,7 @@ CreateLauncherUI() {
     global MonkeyExpScriptDropdown
 
     global StatusText
+    global StatusIndicator
     global UpdateCheckText
     global UpdateLinkText
 
@@ -50,6 +51,7 @@ CreateLauncherUI() {
     global UIColorSecondaryText
     global UIColorMutedText
     global UIColorSuccess
+    global UIColorPanelBorder
 
 
     categories :=
@@ -93,14 +95,18 @@ CreateLauncherUI() {
     EnableCustomWindowChrome(LauncherGui, 72, 0)
     AddCustomWindowBorder(LauncherGui, GuiWidth, GuiHeight)
 
+    AddUICard(LauncherGui, 16, 92, 398, 166)
+    AddUICard(LauncherGui, 16, 270, 398, 106)
+    AddUICard(LauncherGui, 16, 388, 398, 70)
+
 
     AddUIOutlinedText(
         LauncherGui,
         "BTD6 Everything Macro",
-        20,
+        24,
         18,
-        320,
-        35,
+        300,
+        34,
         14
     )
 
@@ -114,7 +120,7 @@ CreateLauncherUI() {
 
     LauncherGui.Add(
         "Text",
-        "x21 y53 w145 h20 c"
+        "x24 y54 w150 h18 c"
         . UIColorMutedText
         . " BackgroundTrans",
         "Made By @Thuy_"
@@ -125,7 +131,7 @@ CreateLauncherUI() {
 
     LauncherGui.Add(
         "Text",
-        "x170 y53 w55 h20 Center c"
+        "x176 y54 w70 h18 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
         GetAppVersionLabel()
@@ -142,7 +148,7 @@ CreateLauncherUI() {
     SubtitleText :=
         LauncherGui.Add(
             "Text",
-            "x230 y53 w140 h20 Right c"
+            "x254 y54 w152 h18 Right c"
             . UIColorMutedText
             . " BackgroundTrans",
             "Default Mode"
@@ -150,8 +156,10 @@ CreateLauncherUI() {
 
 
     LauncherGui.Add(
-        "Text",
-        "x20 y79 w350 h1 0x10"
+        "Progress",
+        "x24 y79 w382 h1 c" . UIColorPanelBorder
+        . " Background" . UIColorPanelBorder . " Disabled",
+        100
     )
 
 
@@ -159,11 +167,11 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT CATEGORY",
+            28,
+            104,
+            374,
             20,
-            94,
-            350,
-            22,
-            9
+            8
         )
 
 
@@ -171,11 +179,11 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT MAP",
+            28,
+            171,
+            374,
             20,
-            157,
-            350,
-            22,
-            9
+            8
         )
 
 
@@ -189,7 +197,7 @@ CreateLauncherUI() {
     HotkeyText :=
         LauncherGui.Add(
             "Text",
-            "x20 y221 w350 h20 Center c"
+            "x28 y234 w374 h18 Center c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "Run Hotkey   •   Ctrl + Shift + P"
@@ -200,11 +208,11 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "MONKEY EXP GRIND",
-            20,
-            89,
-            350,
-            30,
-            13,
+            28,
+            102,
+            374,
+            22,
+            10,
             "Center",
             false
         )
@@ -220,7 +228,7 @@ CreateLauncherUI() {
     MonkeyExpDescription :=
         LauncherGui.Add(
             "Text",
-            "x35 y157 w320 h65 Center c"
+            "x42 y158 w346 h62 Center c"
             . UIColorSecondaryText
             . " BackgroundTrans Hidden",
             "Monkey EXP Grind controls will go here.`n"
@@ -232,11 +240,11 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT TOWER TYPE",
+            28,
+            128,
+            374,
             20,
-            123,
-            350,
-            22,
-            9,
+            8,
             "Left",
             false
         )
@@ -246,11 +254,11 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT TOWER",
+            28,
+            191,
+            374,
             20,
-            184,
-            350,
-            22,
-            9,
+            8,
             "Left",
             false
         )
@@ -261,10 +269,10 @@ CreateLauncherUI() {
     RunButton :=
         CreateDarkButton(
             LauncherGui,
-            20,
-            250,
-            queueButtonsEnabled ? 160 : 240,
-            44,
+            28,
+            282,
+            queueButtonsEnabled ? 240 : 374,
+            38,
             "SELECT SCRIPT",
             8
         )
@@ -274,10 +282,10 @@ CreateLauncherUI() {
         AddQueueButton :=
             CreateDarkButton(
                 LauncherGui,
-                190,
-                250,
-                100,
-                44,
+                276,
+                282,
+                126,
+                38,
                 "ADD QUEUE",
                 8
             )
@@ -289,10 +297,10 @@ CreateLauncherUI() {
     CloseButton :=
         CreateDarkButton(
             LauncherGui,
-            queueButtonsEnabled ? 300 : 270,
-            250,
-            queueButtonsEnabled ? 70 : 100,
-            44,
+            300,
+            403,
+            102,
+            40,
             "CLOSE",
             8
         )
@@ -313,10 +321,10 @@ CreateLauncherUI() {
         QueueButton :=
             CreateDarkButton(
                 LauncherGui,
-                20,
-                306,
-                110,
-                36,
+                28,
+                328,
+                116,
+                38,
                 "QUEUE (0)",
                 8
             )
@@ -328,10 +336,10 @@ CreateLauncherUI() {
     ModeButton :=
         CreateDarkButton(
             LauncherGui,
-            queueButtonsEnabled ? 140 : 20,
-            306,
-            queueButtonsEnabled ? 110 : 170,
-            36,
+            queueButtonsEnabled ? 152 : 28,
+            328,
+            queueButtonsEnabled ? 116 : 183,
+            38,
             "MODES",
             8
         )
@@ -340,10 +348,10 @@ CreateLauncherUI() {
     SettingsButton :=
         CreateDarkButton(
             LauncherGui,
-            queueButtonsEnabled ? 260 : 200,
-            306,
-            queueButtonsEnabled ? 110 : 170,
-            36,
+            queueButtonsEnabled ? 276 : 219,
+            328,
+            queueButtonsEnabled ? 126 : 183,
+            38,
             "SETTINGS",
             8
         )
@@ -426,65 +434,38 @@ CreateLauncherUI() {
     )
 
 
-    SetUIBodyFont(
-        LauncherGui,
-        8,
-        UIColorSuccess
+    ; The footer uses the same surface color as the launcher so status and
+    ; update text never render as mismatched opaque rectangles.
+    StatusIndicator := LauncherGui.Add(
+        "Progress",
+        "x28 y419 w8 h8 c" . UIColorSuccess
+        . " Background" . UIColorSuccess . " Disabled",
+        100
     )
 
 
-    ; Keep update-check text on its own row so its animation can never
-    ; collide with normal launcher status messages. These controls are
-    ; intentionally opaque so changing animated text cleanly erases the
-    ; previous frame instead of leaving transparent-text remnants.
-    SetUIBodyFont(
-        LauncherGui,
-        8,
-        UIColorMutedText
+    SetUIBodyFont(LauncherGui, 9, UIColorSuccess)
+    StatusText := LauncherGui.Add(
+        "Text",
+        "x43 y414 w238 h18 Left +0x200 c" . UIColorSuccess,
+        "READY"
     )
 
 
-    UpdateCheckText :=
-        LauncherGui.Add(
-            "Text",
-            "x20 y348 w350 h18 Center c"
-            . UIColorMutedText
-            . " Hidden",
-            ""
-        )
-
-
-    SetUIBodyFont(
-        LauncherGui,
-        8,
-        UIColorSuccess
+    SetUIBodyFont(LauncherGui, 8, UIColorMutedText)
+    UpdateCheckText := LauncherGui.Add(
+        "Text",
+        "x43 y439 w238 h15 Left c" . UIColorMutedText . " Hidden",
+        ""
     )
 
 
-    StatusText :=
-        LauncherGui.Add(
-            "Text",
-            "x20 y370 w350 h18 Center c"
-            . UIColorSuccess,
-            "READY"
-        )
-
-
-    SetUIBodyFont(
-        LauncherGui,
-        8,
-        UIColorAccent
+    SetUIBodyFont(LauncherGui, 8, UIColorAccent)
+    UpdateLinkText := LauncherGui.Add(
+        "Text",
+        "x194 y439 w92 h15 Left c" . UIColorAccent . " Hidden",
+        "Update"
     )
-
-
-    UpdateLinkText :=
-        LauncherGui.Add(
-            "Text",
-            "x238 y348 w112 h18 Left c"
-            . UIColorAccent
-            . " Hidden",
-            "Click to Update"
-        )
 
 
     UpdateLinkText.SetFont("Underline")
@@ -494,9 +475,9 @@ CreateLauncherUI() {
     MapDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            20,
-            181,
-            350,
+            28,
+            194,
+            374,
             initialMaps,
             1,
             5
@@ -506,9 +487,9 @@ CreateLauncherUI() {
     CategoryDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            20,
-            118,
-            350,
+            28,
+            127,
+            374,
             categories,
             1,
             5
@@ -518,9 +499,9 @@ CreateLauncherUI() {
     MonkeyExpTypeDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            20,
-            145,
-            350,
+            28,
+            149,
+            374,
             GetMonkeyExpTowerTypes(),
             1,
             5
@@ -530,9 +511,9 @@ CreateLauncherUI() {
     MonkeyExpScriptDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            20,
-            206,
-            350,
+            28,
+            212,
+            374,
             [
                 "No Monkey EXP scripts found"
             ],
@@ -649,7 +630,7 @@ CreateLauncherUI() {
 
     MapDropdown.OnEvent(
         "Change",
-        UpdateLauncherMapFavoriteButton
+        OnLauncherMapChanged
     )
 
 
@@ -661,7 +642,7 @@ CreateLauncherUI() {
 
     MonkeyExpScriptDropdown.OnEvent(
         "Change",
-        UpdateLauncherExpFavoriteButton
+        OnLauncherExpScriptChanged
     )
 
 
@@ -682,6 +663,9 @@ CreateLauncherUI() {
     ApplyModernWindowStyle()
 
 
+    RestoreLauncherState()
+
+
     UpdateLauncherMapFavoriteButton()
     UpdateLauncherExpFavoriteButton()
 
@@ -698,6 +682,8 @@ CreateLauncherUI() {
 
 RequestCloseLauncher(*) {
     global LauncherGui
+
+    SaveLauncherState()
 
     ShowThemedConfirmation(
         "CLOSE MACRO?",
@@ -1211,9 +1197,13 @@ RunDefaultMode() {
 
         if script {
 
-            LaunchMapScript(
+            if LaunchMapScript(
                 script.path
-            )
+            ) {
+                RememberLastRunStrategy(
+                    script.path
+                )
+            }
         }
 
 

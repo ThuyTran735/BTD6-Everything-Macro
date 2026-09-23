@@ -3,6 +3,8 @@
 
 global SettingsGui := ""
 global SettingsStatusText := ""
+global SettingsUpdateCheckActive := false
+global SettingsUpdateCheckFrame := 0
 global LogsGui := ""
 global LogsStatusText := ""
 
@@ -16,9 +18,25 @@ ShowSettingsUI(*) {
     global UIColorAccent
     global UIColorSecondaryText
     global UIColorMutedText
+    global UIColorHeadingText
 
     if MacroRunning
         return
+
+    ; If Settings is already open, keep the existing window instead of
+    ; destroying/recreating it. Rebuilding here caused a visible flicker when
+    ; the launcher SETTINGS button was clicked a second time.
+    if SettingsGui {
+        try {
+            if (
+                DllCall("IsWindow", "Ptr", SettingsGui.Hwnd, "Int")
+                && DllCall("IsWindowVisible", "Ptr", SettingsGui.Hwnd, "Int")
+            ) {
+                try WinActivate("ahk_id " . SettingsGui.Hwnd)
+                return
+            }
+        }
+    }
 
     CloseAllSecondaryMenus()
     CloseContextHelp()
@@ -33,7 +51,12 @@ ShowSettingsUI(*) {
 
 
     EnableCustomWindowChrome(SettingsGui)
-    AddCustomWindowBorder(SettingsGui, 500, 524)
+    AddCustomWindowBorder(SettingsGui, 500, 580)
+    AddUICard(SettingsGui, 30, 88, 440, 196)
+    AddUICard(SettingsGui, 30, 284, 440, 82)
+    AddUICard(SettingsGui, 30, 366, 440, 82)
+    AddUICard(SettingsGui, 30, 448, 440, 54)
+    AddUICard(SettingsGui, 30, 502, 440, 62)
 
     AddUIOutlinedText(SettingsGui, "SETTINGS", 20, 18, 460, 34, 13, "Center")
 
@@ -51,8 +74,8 @@ ShowSettingsUI(*) {
         "Launcher preferences and recovery"
     )
 
-    SetUIBodyFont(SettingsGui, 8, UIColorMutedText)
-    SettingsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "GENERAL")
+    SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
+    SettingsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "GENERAL")
 
     confirmationsEnabled := AreThemedConfirmationsEnabled()
     confirmationsButton := CreateDarkButton(
@@ -66,46 +89,52 @@ ShowSettingsUI(*) {
         queueButtonsEnabled ? "QUEUE BUTTONS: ON" : "QUEUE BUTTONS: OFF", 8
     )
 
-    ; Force Default so RUN HISTORY does not inherit the green RUN action style.
-    historyButton := CreateDarkButton(SettingsGui, 42, 174, 202, 44, "RUN HISTORY", 8, "Default")
-    retryButton := CreateDarkButton(SettingsGui, 256, 174, 202, 44, "RETRY / RECOVERY", 8)
+    rememberStateEnabled := IsRememberLauncherStateEnabled()
+    rememberStateButton := CreateDarkButton(
+        SettingsGui, 42, 174, 416, 44,
+        rememberStateEnabled ? "REMEMBER LAST STATE: ON" : "REMEMBER LAST STATE: OFF", 8
+    )
 
-    SetUIBodyFont(SettingsGui, 8, UIColorMutedText)
-    SettingsGui.Add("Text", "x42 y238 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "MACRO TOOLS")
+    ; Force Default so RUN HISTORY does not inherit the green RUN action style.
+    historyButton := CreateDarkButton(SettingsGui, 42, 228, 202, 44, "RUN HISTORY", 8, "Default")
+    retryButton := CreateDarkButton(SettingsGui, 256, 228, 202, 44, "RETRY / RECOVERY", 8)
+
+    SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
+    SettingsGui.Add("Text", "x42 y292 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "MACRO TOOLS")
 
     dailyChestEnabled := IsPreRunDailyChestEnabled()
     dailyChestButton := CreateDarkButton(
-        SettingsGui, 42, 262, 202, 38,
+        SettingsGui, 42, 316, 202, 38,
         dailyChestEnabled ? "OPEN DAILY CHEST: ON" : "OPEN DAILY CHEST: OFF", 7
     )
 
-    logsButton := CreateDarkButton(SettingsGui, 256, 262, 202, 38, "LOGS", 8, "Default")
+    logsButton := CreateDarkButton(SettingsGui, 256, 316, 202, 38, "LOGS", 8, "Default")
 
-    SetUIBodyFont(SettingsGui, 8, UIColorMutedText)
-    SettingsGui.Add("Text", "x42 y320 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "UPDATES")
+    SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
+    SettingsGui.Add("Text", "x42 y374 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "UPDATES")
 
     autoUpdatesEnabled := IsAutoUpdateCheckEnabled()
     autoUpdatesButton := CreateDarkButton(
-        SettingsGui, 42, 344, 202, 40,
+        SettingsGui, 42, 398, 202, 40,
         autoUpdatesEnabled ? "AUTO UPDATE CHECK: ON" : "AUTO UPDATE CHECK: OFF", 7
     )
 
     checkUpdatesButton := CreateDarkButton(
-        SettingsGui, 256, 344, 202, 40,
+        SettingsGui, 256, 398, 202, 40,
         "CHECK FOR UPDATES", 7, "Default"
     )
-
     SetUIBodyFont(SettingsGui, 8, UIColorSecondaryText)
     SettingsStatusText := SettingsGui.Add(
         "Text",
-        "x42 y402 w416 h38 Center c" . UIColorSecondaryText,
-        "Update checks compare this copy with the version file on GitHub."
+        "x42 y456 w416 h38 Center c" . UIColorSecondaryText,
+        "Launcher selections are stored only inside UserData."
     )
 
-    closeButton := CreateDarkButton(SettingsGui, 90, 458, 320, 42, "BACK TO LAUNCHER", 8, "Default")
+    closeButton := CreateDarkButton(SettingsGui, 90, 512, 320, 42, "BACK TO LAUNCHER", 8, "Default")
 
     confirmationsButton.OnEvent("Click", ToggleConfirmationSetting.Bind(confirmationsButton))
     queueButtonsButton.OnEvent("Click", ToggleQueueLauncherButtonsSetting.Bind(queueButtonsButton))
+    rememberStateButton.OnEvent("Click", ToggleRememberLauncherStateSetting.Bind(rememberStateButton))
     historyButton.OnEvent("Click", OpenHistoryFromSettings)
     retryButton.OnEvent("Click", OpenRetryRecoveryFromSettings)
     dailyChestButton.OnEvent("Click", ToggleDailyChestSetting.Bind(dailyChestButton))
@@ -121,6 +150,10 @@ ShowSettingsUI(*) {
     CreateHelpBadgeForButton(
         SettingsGui, queueButtonsButton, "QUEUE BUTTONS",
         "Shows or hides queue controls on the main launcher."
+    )
+    CreateHelpBadgeForButton(
+        SettingsGui, rememberStateButton, "REMEMBER LAST STATE",
+        "When ON, remembers the last launcher mode, its selections, and the last successfully run strategy in the Select Script screen. The saved values stay in UserData and are ignored by Git."
     )
     CreateHelpBadgeForButton(
         SettingsGui, historyButton, "RUN HISTORY",
@@ -154,9 +187,9 @@ ShowSettingsUI(*) {
     SettingsGui.OnEvent("Close", CloseSettingsAndReturnToLauncher)
     SettingsGui.OnEvent("Escape", CloseSettingsAndReturnToLauncher)
 
-    SettingsGui.Show("Hide w500 h524")
+    SettingsGui.Show("Hide w500 h580")
     ApplyDarkWindowStyle(SettingsGui)
-    SettingsGui.Show("w500 h524 Center")
+    SettingsGui.Show("w500 h580 Center")
 }
 
 
@@ -195,6 +228,26 @@ ToggleConfirmationSetting(button, *) {
     SetThemedConfirmationsEnabled(enabled)
     button.Text := enabled ? "CONFIRMATIONS: ON" : "CONFIRMATIONS: OFF"
     SetSettingsStatus(enabled ? "Confirmation prompts enabled." : "Confirmation prompts disabled.")
+}
+
+
+ToggleRememberLauncherStateSetting(button, *) {
+    enabled := !IsRememberLauncherStateEnabled()
+    SetRememberLauncherStateEnabled(enabled)
+
+    if enabled {
+        SaveLauncherState()
+    }
+    else {
+        ClearLauncherSavedState()
+    }
+
+    button.Text := enabled ? "REMEMBER LAST STATE: ON" : "REMEMBER LAST STATE: OFF"
+    SetSettingsStatus(
+        enabled
+            ? "Launcher state memory enabled. Selections and the last run strategy are saved in UserData."
+            : "Launcher state memory disabled. Saved launcher selections and strategy memory were cleared."
+    )
 }
 
 
@@ -261,33 +314,83 @@ ToggleAutoUpdateCheckSetting(button, *) {
 
 
 CheckForUpdatesFromSettings(*) {
-    SetSettingsStatus("Checking GitHub for a newer version...")
+    global SettingsUpdateCheckActive
+    global SettingsUpdateCheckFrame
 
-    result := GetGitHubUpdateStatus()
+    if SettingsUpdateCheckActive
+        return
 
-    if !result.ok {
-        SetSettingsStatus("Update check failed: " . result.error)
+    ; Let the normal custom-button press/release animation finish first, then
+    ; show a short visible checking sequence before the synchronous web request.
+    SettingsUpdateCheckActive := true
+    SettingsUpdateCheckFrame := 1
+    ShowSettingsUpdateCheckFrame()
+    SetTimer(AdvanceSettingsUpdateCheckAnimation, -260)
+}
+
+
+ShowSettingsUpdateCheckFrame() {
+    global SettingsUpdateCheckFrame
+
+    frames := [
+        "CHECKING FOR UPDATES.",
+        "CHECKING FOR UPDATES..",
+        "CHECKING FOR UPDATES..."
+    ]
+
+    if SettingsUpdateCheckFrame >= 1 && SettingsUpdateCheckFrame <= frames.Length
+        SetSettingsStatus(frames[SettingsUpdateCheckFrame])
+}
+
+
+AdvanceSettingsUpdateCheckAnimation(*) {
+    global SettingsUpdateCheckFrame
+
+    SettingsUpdateCheckFrame += 1
+
+    if SettingsUpdateCheckFrame <= 3 {
+        ShowSettingsUpdateCheckFrame()
+        SetTimer(AdvanceSettingsUpdateCheckAnimation, -260)
         return
     }
 
-    if result.updateAvailable {
-        ShowLauncherUpdateNotice(result.latestVersion)
+    SetTimer(RunSettingsUpdateCheck, -80)
+}
+
+
+RunSettingsUpdateCheck(*) {
+    global SettingsUpdateCheckActive
+
+    try {
+        result := GetGitHubUpdateStatus()
+
+        if !result.ok {
+            SetSettingsStatus("Update check failed: " . result.error)
+            return
+        }
+
+        if result.updateAvailable {
+            ShowLauncherUpdateNotice(result.latestVersion)
+            SetSettingsStatus(
+                "Update available: v" . result.latestVersion
+                . "   |   Installed: v" . result.currentVersion
+            )
+            return
+        }
+
+        if CompareMacroVersions(result.latestVersion, result.currentVersion) = 0 {
+            SetSettingsStatus("You're up to date. Installed version: v" . result.currentVersion)
+            return
+        }
+
         SetSettingsStatus(
-            "Update available: v" . result.latestVersion
-            . "   |   Installed: v" . result.currentVersion
+            "This copy is newer than GitHub. Installed: v" . result.currentVersion
+            . "   |   GitHub: v" . result.latestVersion
         )
-        return
     }
-
-    if CompareMacroVersions(result.latestVersion, result.currentVersion) = 0 {
-        SetSettingsStatus("You're up to date. Installed version: v" . result.currentVersion)
-        return
+    finally {
+        SettingsUpdateCheckActive := false
     }
-
-    SetSettingsStatus(
-        "This copy is newer than GitHub. Installed: v" . result.currentVersion
-        . "   |   GitHub: v" . result.latestVersion
-    )
 }
 
 
@@ -366,6 +469,7 @@ ShowLogsUI(*) {
     global UIColorAccent
     global UIColorSecondaryText
     global UIColorMutedText
+    global UIColorHeadingText
 
     if MacroRunning
         return
@@ -386,6 +490,9 @@ ShowLogsUI(*) {
 
     EnableCustomWindowChrome(LogsGui)
     AddCustomWindowBorder(LogsGui, 500, 442)
+    AddUICard(LogsGui, 30, 88, 440, 84)
+    AddUICard(LogsGui, 30, 176, 440, 140)
+    AddUICard(LogsGui, 30, 314, 440, 50)
 
     AddUIOutlinedText(LogsGui, "LOGS", 20, 18, 460, 34, 13, "Center")
 
@@ -403,8 +510,8 @@ ShowLogsUI(*) {
         "Run diagnostics and log file management"
     )
 
-    SetUIBodyFont(LogsGui, 8, UIColorMutedText)
-    LogsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "RUN LOGGING")
+    SetUIBodyFont(LogsGui, 8, UIColorHeadingText)
+    LogsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "RUN LOGGING")
 
     loggingEnabled := IsLoggingEnabled()
     loggingButton := CreateDarkButton(
@@ -412,8 +519,8 @@ ShowLogsUI(*) {
         loggingEnabled ? "RUN LOGGING: ON" : "RUN LOGGING: OFF", 8
     )
 
-    SetUIBodyFont(LogsGui, 8, UIColorMutedText)
-    LogsGui.Add("Text", "x42 y184 w416 h18 c" . UIColorMutedText . " BackgroundTrans", "LOG FILES")
+    SetUIBodyFont(LogsGui, 8, UIColorHeadingText)
+    LogsGui.Add("Text", "x42 y184 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "LOG FILES")
 
     exportLogsButton := CreateDarkButton(LogsGui, 42, 208, 202, 44, "EXPORT LOGS", 8)
     openLogsButton := CreateDarkButton(LogsGui, 256, 208, 202, 44, "OPEN LOG FOLDER", 8)
@@ -538,6 +645,13 @@ CloseSettingsAndReturnToLauncher(*) {
 CloseSettingsUI(*) {
     global SettingsGui
     global SettingsStatusText
+    global SettingsUpdateCheckActive
+    global SettingsUpdateCheckFrame
+
+    SetTimer(AdvanceSettingsUpdateCheckAnimation, 0)
+    SetTimer(RunSettingsUpdateCheck, 0)
+    SettingsUpdateCheckActive := false
+    SettingsUpdateCheckFrame := 0
 
     try {
         if SettingsGui

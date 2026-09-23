@@ -85,6 +85,14 @@ ShowQueueProfilesManager(*) {
         "Save, describe, repeat, and reuse complete queue setups"
     )
 
+    ; Match the card-based visual hierarchy used by the refreshed launcher,
+    ; Settings, Add Queue, and Modes screens without changing profile behavior.
+    AddUICard(QueueProfilesGui, 16, 82, 648, 92)
+    AddUICard(QueueProfilesGui, 16, 182, 648, 92)
+    AddUICard(QueueProfilesGui, 16, 280, 648, 84)
+    AddUICard(QueueProfilesGui, 16, 378, 648, 60)
+    AddUICard(QueueProfilesGui, 16, 444, 648, 30)
+
     profileLabel := AddUIOutlinedText(QueueProfilesGui, "SELECT PROFILE", 40, 88, 600, 22, 9)
     QueueProfileDropdown := CreateDarkDropdown(
         QueueProfilesGui,
@@ -867,8 +875,8 @@ ShowQueueProfileMoreActions(*) {
     global QueueProfilesGui
     global QueueProfileMoreGui
     global UIColorBackground
-    global UIColorAccent
     global UIColorSecondaryText
+    global UIColorMutedText
 
     CloseQueueProfileMoreActions()
     if QueueProfilesGui {
@@ -888,25 +896,37 @@ ShowQueueProfileMoreActions(*) {
     )
     QueueProfileMoreGui.BackColor := UIColorBackground
 
-
     EnableCustomWindowChrome(QueueProfileMoreGui)
-    AddCustomWindowBorder(QueueProfileMoreGui, 320, 380)
+    AddCustomWindowBorder(QueueProfileMoreGui, 420, 400)
 
-    AddUIOutlinedText(QueueProfileMoreGui, "MORE PROFILE ACTIONS", 20, 18, 280, 30, 11, "Center")
+    AddUIOutlinedText(QueueProfileMoreGui, "MORE PROFILE ACTIONS", 20, 18, 380, 30, 11, "Center")
 
     SetUIBodyFont(QueueProfileMoreGui, 8, UIColorSecondaryText)
     QueueProfileMoreGui.Add(
         "Text",
-        "x20 y53 w280 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "Less common profile tools"
+        "x20 y53 w380 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Manage, move, or remove the selected profile"
     )
 
-    duplicateButton := CreateDarkButton(QueueProfileMoreGui, 40, 84, 240, 40, "DUPLICATE", 8)
-    renameButton := CreateDarkButton(QueueProfileMoreGui, 40, 132, 240, 40, "RENAME", 8)
-    exportButton := CreateDarkButton(QueueProfileMoreGui, 40, 180, 240, 40, "EXPORT", 8)
-    importButton := CreateDarkButton(QueueProfileMoreGui, 40, 228, 240, 40, "IMPORT", 8)
-    deleteButton := CreateDarkButton(QueueProfileMoreGui, 40, 276, 240, 40, "DELETE", 8)
-    closeButton := CreateDarkButton(QueueProfileMoreGui, 40, 324, 240, 40, "BACK", 8, "Default")
+    AddUICard(QueueProfileMoreGui, 16, 82, 388, 226)
+    AddUICard(QueueProfileMoreGui, 16, 316, 388, 68)
+
+    AddUIOutlinedText(QueueProfileMoreGui, "PROFILE TOOLS", 30, 92, 360, 20, 9, "Center")
+
+    duplicateButton := CreateDarkButton(QueueProfileMoreGui, 30, 120, 174, 42, "DUPLICATE", 8)
+    renameButton := CreateDarkButton(QueueProfileMoreGui, 216, 120, 174, 42, "RENAME", 8)
+    exportButton := CreateDarkButton(QueueProfileMoreGui, 30, 172, 174, 42, "EXPORT", 8)
+    importButton := CreateDarkButton(QueueProfileMoreGui, 216, 172, 174, 42, "IMPORT", 8)
+    deleteButton := CreateDarkButton(QueueProfileMoreGui, 30, 224, 360, 42, "DELETE", 8, "Danger")
+
+    SetUIBodyFont(QueueProfileMoreGui, 8, UIColorMutedText)
+    QueueProfileMoreGui.Add(
+        "Text",
+        "x30 y274 w360 h20 Center c" . UIColorMutedText . " BackgroundTrans",
+        "Actions apply to the currently selected Queue Profile"
+    )
+
+    closeButton := CreateDarkButton(QueueProfileMoreGui, 30, 329, 360, 42, "BACK TO PROFILES", 8, "Flat")
 
     duplicateButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(DuplicateSelectedQueueProfile))
     renameButton.OnEvent("Click", RunQueueProfileMoreAction.Bind(RenameSelectedQueueProfile))
@@ -916,48 +936,36 @@ ShowQueueProfileMoreActions(*) {
     closeButton.OnEvent("Click", CloseQueueProfileMoreActionsAndReturn)
 
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        duplicateButton,
-        "DUPLICATE PROFILE",
+        QueueProfileMoreGui, duplicateButton, "DUPLICATE PROFILE",
         "Creates a copy of the selected profile.`n`nThe copy keeps its jobs, run counts, notes, repeat amount, and favorite status."
     )
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        renameButton,
-        "RENAME PROFILE",
+        QueueProfileMoreGui, renameButton, "RENAME PROFILE",
         "Changes only the profile name.`n`nIts jobs, notes, repeat amount, and favorite status stay the same."
     )
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        exportButton,
-        "EXPORT PROFILE",
+        QueueProfileMoreGui, exportButton, "EXPORT PROFILE",
         "Saves this profile as an .ini file.`n`nYou can back it up, share it, or import it into another copy of the macro."
     )
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        importButton,
-        "IMPORT PROFILE",
+        QueueProfileMoreGui, importButton, "IMPORT PROFILE",
         "Imports a Queue Profile from an .ini file.`n`nThe imported profile is added to your saved profiles."
     )
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        deleteButton,
-        "DELETE PROFILE",
+        QueueProfileMoreGui, deleteButton, "DELETE PROFILE",
         "Permanently deletes the selected Queue Profile.`n`nThe map and EXP scripts used by it are not deleted."
     )
     CreateHelpBadgeForButton(
-        QueueProfileMoreGui,
-        closeButton,
-        "BACK",
+        QueueProfileMoreGui, closeButton, "BACK TO PROFILES",
         "Returns to Queue Profiles.`n`nNothing is changed."
     )
 
     QueueProfileMoreGui.OnEvent("Close", CloseQueueProfileMoreActionsAndReturn)
     QueueProfileMoreGui.OnEvent("Escape", CloseQueueProfileMoreActionsAndReturn)
 
-    QueueProfileMoreGui.Show("Hide w320 h380")
+    QueueProfileMoreGui.Show("Hide w420 h400")
     ApplyDarkWindowStyle(QueueProfileMoreGui)
-    QueueProfileMoreGui.Show("w320 h380 Center")
+    QueueProfileMoreGui.Show("w420 h400 Center")
 }
 
 

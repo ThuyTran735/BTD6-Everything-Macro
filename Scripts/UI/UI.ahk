@@ -21,6 +21,7 @@ global MonkeyExpScriptDropdown := ""
 global MonkeyExpScripts := []
 
 global StatusText := ""
+global StatusIndicator := ""
 global UpdateCheckText := ""
 global UpdateLinkText := ""
 
@@ -90,8 +91,8 @@ global LauncherReturnPendingTick := 0
 global MacroContinuationAction := ""
 global MacroContinuationTick := 0
 
-global GuiWidth := 390
-global GuiHeight := 390
+global GuiWidth := 430
+global GuiHeight := 474
 
 global GuiX := 0
 global GuiY := 0
@@ -106,6 +107,7 @@ global CategoryData := Map()
 #Include UIHelpers.ahk
 #Include FavoritesProfilesData.ahk
 #Include FavoritesUI.ahk
+#Include LauncherState.ahk
 #Include LoadingUI.ahk
 #Include CycleStatusUI.ahk
 #Include MapDiscoveryUI.ahk

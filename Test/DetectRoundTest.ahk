@@ -5,6 +5,7 @@
 
 ; Live round OCR/debug test.
 ; Open any active game first, then run this file.
+
 global RunConfig := {
     category: "Beginner",
     map: "Test",

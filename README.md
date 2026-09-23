@@ -1,14 +1,21 @@
 # BTD6 Everything Macro
 
-**Current version: v2.1.0**
+**Current version: v2.2.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Redesigned the macro windows with custom borderless title bars: native Windows caption/X controls are removed, branded headers are draggable, and secondary windows use BACK / CANCEL / GOT IT actions
-- Restored the launcher CLOSE button and removed the small custom header X
-- Replaced the bright top-only window stripe with a clean dark border around all four sides of the launcher, secondary UIs, dialogs, run-status windows, dropdown popups, and Strategy Builder
+- Completed a broad UI overhaul across the launcher, Settings, Select Mode, Select Script, Run Cycles, Add Queue, Cycle Status, Queue Profiles, and More Profile Actions screens with cleaner card layouts, consistent spacing, themed section headers, and unified borderless-window styling
+- Improved shared custom controls with DPI-aware hover hitboxes, hover support for lists / help / favorite controls, single-open-dropdown behavior, popup-aware hover blocking, and reduced list-hover redraw flicker
+- Expanded **REMEMBER LAST STATE** so the launcher restores the last mode-specific selections and the Select Script screen restores the last successfully run Default-mode `.ahk` strategy and its difficulty; disabling the option clears the saved state
+- Improved the Cycle Status HUD with a cleaner compact layout, safer initialization, a responsive **CLOSE RUN** action, and automatic left-side movement when the right-side BTD6 upgrade panel is visible so it does not cover round detection
+- Removed the old full-screen Cycle HUD panel scan and narrowed upgrade-panel detection to reduce UI lag while keeping the HUD responsive during active runs
+- Reworked Queue Profiles and More Profile Actions with clearer profile selection, notes, repeat controls, import / export, duplicate / rename, delete, and navigation sections
+- Added per-run diagnostic logging with one log file per run plus Settings controls to enable / disable logging, export logs, open the log folder, and delete all logs
+- Expanded Run History and failure reporting with specific failure reasons such as map selection, mode entry, placement, and upgrade failures
+- Improved launcher suppression and return handling to prevent the main UI from flashing over BTD6 during run and menu transitions
+- Expanded Strategy Builder with Beast Handler support, automatic tower-based names, dedicated Hero naming, and Deflation strategy generation / validation
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -34,6 +41,7 @@ You can see which maps and modes are finished here:
 - Supports normal runs and grind modes from the launcher
 - Supports favorites for maps, Monkey EXP scripts, and queue profiles
 - Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted
+- Remembers the last launcher mode, its relevant selections, and the last successfully run Default-mode `.ahk` strategy between restarts when **REMEMBER LAST STATE** is enabled
 - Uses themed confirmation dialogs before deleting profiles, clearing the queue, or closing an active run
 
 This project is still being worked on, so not every map or mode has a strategy yet. Check the tracker above for the current list.
@@ -142,6 +150,8 @@ Ctrl + Shift + P
 Once a run starts, avoid moving the mouse or pressing game hotkeys unless you are stopping the macro.
 
 The launcher uses its full **CLOSE** button to exit the macro. Secondary windows intentionally do not have an extra X; use their **BACK**, **CANCEL**, or **GOT IT** action instead. **CLOSE RUN** remains available only while a run is active because it stops automation rather than simply closing a window. All custom windows use the same dark four-sided frame instead of a bright top-only stripe.
+
+By default, the launcher also remembers where you left off. Default mode restores the last category and map, Monkey EXP Grind restores the last monkey category and EXP script, and **Select Script** restores the last Default-mode `.ahk` strategy that successfully started running, including its difficulty when that strategy is still available for the selected map. You can disable this from **Settings -> REMEMBER LAST STATE**. Disabling it clears the saved launcher / strategy state. These values are stored only in `UserData` and are not tracked by Git.
 
 ## Folder layout
 

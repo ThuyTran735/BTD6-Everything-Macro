@@ -24,27 +24,15 @@ ShowScriptPicker(
     }
 
 
-    availableDifficulties := []
-
-
-    for difficulty in [
+    availableDifficulties := [
         "Easy",
         "Medium",
         "Hard"
-    ] {
-        if scripts[difficulty].Length > 0 {
-            availableDifficulties.Push(difficulty)
-        }
-    }
-
-
-    if availableDifficulties.Length = 0 {
-        return
-    }
+    ]
 
 
     windowWidth := 520
-    windowHeight := 552
+    windowHeight := 646
 
 
     ScriptPickerGui := Gui(
@@ -85,7 +73,7 @@ ShowScriptPicker(
 
 
     ; Difficulty card.
-    AddUICard(ScriptPickerGui, 16, 82, 488, 86)
+    AddUICard(ScriptPickerGui, 16, 82, 488, 180)
     AddUIOutlinedText(
         ScriptPickerGui,
         "DIFFICULTY",
@@ -98,59 +86,30 @@ ShowScriptPicker(
     )
 
 
-    difficultyButtons := Map()
-    buttonGap := 10
-    buttonCount := availableDifficulties.Length
-    difficultyWidth := Floor(
-        (
-            460
-            - (buttonGap * (buttonCount - 1))
-        )
-        / buttonCount
+    difficultyList := CreateDarkList(
+        ScriptPickerGui,
+        30,
+        120,
+        460,
+        108,
+        availableDifficulties,
+        36
     )
-    buttonX := 30
 
 
-    for difficulty in availableDifficulties {
-        difficultyButton := CreateDarkButton(
-            ScriptPickerGui,
-            buttonX,
-            120,
-            difficultyWidth,
-            36,
-            StrUpper(difficulty),
-            9
-        )
-
-
-        CreateHelpBadgeForButton(
-            ScriptPickerGui,
-            difficultyButton,
-            StrUpper(difficulty) . " STRATEGIES",
-            "Shows only "
-            . difficulty
-            . " difficulty strategies for this map."
-        )
-
-
-        difficultyButton.OnEvent(
-            "Click",
-            SetStrategyDifficulty.Bind(difficulty)
-        )
-
-
-        difficultyButtons[difficulty] := difficultyButton
-        buttonX += difficultyWidth + buttonGap
-    }
+    difficultyList.OnEvent(
+        "Change",
+        DifficultyListChanged
+    )
 
 
     ; Strategy card.
-    AddUICard(ScriptPickerGui, 16, 178, 488, 230)
+    AddUICard(ScriptPickerGui, 16, 272, 488, 230)
     AddUIOutlinedText(
         ScriptPickerGui,
         "STRATEGY FILES",
         30,
-        188,
+        282,
         460,
         20,
         9,
@@ -161,7 +120,7 @@ ShowScriptPicker(
     strategyList := CreateDarkList(
         ScriptPickerGui,
         30,
-        216,
+        310,
         460,
         180,
         [],
@@ -173,7 +132,7 @@ ShowScriptPicker(
 
 
     ; Actions card.
-    AddUICard(ScriptPickerGui, 16, 418, 488, 118)
+    AddUICard(ScriptPickerGui, 16, 512, 488, 118)
 
 
     actionButtonText := action = "queue"
@@ -184,7 +143,7 @@ ShowScriptPicker(
     runSelectedButton := CreateDarkButton(
         ScriptPickerGui,
         30,
-        432,
+        526,
         220,
         42,
         actionButtonText,
@@ -195,7 +154,7 @@ ShowScriptPicker(
     openFolderButton := CreateDarkButton(
         ScriptPickerGui,
         270,
-        432,
+        526,
         220,
         42,
         "OPEN MAP FOLDER",
@@ -206,7 +165,7 @@ ShowScriptPicker(
     cancelButton := CreateDarkButton(
         ScriptPickerGui,
         30,
-        486,
+        580,
         460,
         36,
         "CANCEL",
@@ -242,7 +201,7 @@ ShowScriptPicker(
 
     ScriptPickerState := {
         gui: ScriptPickerGui,
-        difficultyButtons: difficultyButtons,
+        difficultyList: difficultyList,
         difficulties: availableDifficulties,
         difficulty: availableDifficulties[1],
         list: strategyList,
@@ -284,6 +243,32 @@ ShowScriptPicker(
     )
 }
 
+DifficultyListChanged(listControl, *) {
+    global ScriptPickerState
+
+
+    if !IsObject(ScriptPickerState) {
+        return
+    }
+
+
+    selectedIndex := listControl.Value
+
+
+    if (
+        selectedIndex < 1
+        || selectedIndex > ScriptPickerState.difficulties.Length
+    ) {
+        return
+    }
+
+
+    SetStrategyDifficulty(
+        ScriptPickerState.difficulties[selectedIndex]
+    )
+}
+
+
 SetStrategyDifficulty(
     difficulty,
     *
@@ -298,15 +283,33 @@ SetStrategyDifficulty(
     }
 
 
-    if !ScriptPickerState.difficultyButtons.Has(
-        difficulty
-    ) {
+    difficultyIndex := 0
+
+
+    for index, availableDifficulty in ScriptPickerState.difficulties {
+        if availableDifficulty = difficulty {
+            difficultyIndex := index
+            break
+        }
+    }
+
+
+    if difficultyIndex = 0 {
         return
     }
 
 
     ScriptPickerState.difficulty :=
         difficulty
+
+
+    difficultyList :=
+        ScriptPickerState.difficultyList
+
+
+    if difficultyList.Value != difficultyIndex {
+        difficultyList.Choose(difficultyIndex)
+    }
 
 
     names := []

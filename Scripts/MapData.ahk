@@ -39,6 +39,12 @@ global MapData := Map(
         pattern: "|<>*177$19.zzzzzzzzzrztny0tC0A606T03D01tU3wsDyATz7zzXz07y07w03s0DU0zU3zUDzkTzsTzwTzyTzzDzzzzzzzzzzzzzzzzzzzzzzzzs"
     },
 
+    "Tinkerton", {
+        category: "Beginner",
+        page: 1,
+        pattern: "|<>*158$27.3zzztzzzzyTzzzlzzzy7zzzszzzzjzzzzzzzzzzzzznnzzw7zzz0zzTszzvzzUT7w03sS00T3U03zk00Ts003y000T0003s000T0003s000T0003s000T0000s0000U00060000w0027z000zU007w000zU007w000z0007s000y0007k000U"
+    },
+
     "Intermediate Map", {
         category: "Intermediate",
         page: 6,

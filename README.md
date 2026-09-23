@@ -1,12 +1,16 @@
 # BTD6 Everything Macro
 
-**Current version: v2.2.1**
+**Current version: v2.2.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
-
-- Adjusted Dart EXP and Dark Castle Deflation scripts.
+- Added Monkey Meadow Medium Standard, Military Only, and Reverse scripts.
+- Added In The Loop Medium Standard, Military Only, and Reverse scripts.
+- Added Skull Tweak Medium Standard, Military Only, and Reverse scripts.
+- Added Three Mines 'Round Medium Standard, Military Only, and Reverse scripts.
+- Added Spa Pits Deflation, Medium Standard, Military Only, and Reverse scripts.
+- Added Tinkerton Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse scripts.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.

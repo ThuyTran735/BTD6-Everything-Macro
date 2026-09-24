@@ -122,6 +122,7 @@ global RoundDigits :=
 
 global LastRound := 0
 global LastWeirdRead := 0
+global WeirdReadCount := 0
 global WeirdReadActive := false
 
 global RoundStartTick := 0
@@ -308,6 +309,7 @@ ValidateRound(
 ) {
     global LastRound
     global LastWeirdRead
+    global WeirdReadCount
     global WeirdReadActive
 
 
@@ -326,15 +328,22 @@ ValidateRound(
             && detectedRound <= finalRound
         ) {
 
+            ; The configured starting round is authoritative. The first OCR
+            ; read only confirms that the round display is live; it must not
+            ; skip ahead from a transient high read during game start.
             LastRound :=
-                detectedRound
+                startingRound
 
 
+            ResetWeirdReads()
             TrackRoundStart()
 
 
             return LastRound
         }
+
+
+        return LastRound
     }
 
 
@@ -343,31 +352,31 @@ ValidateRound(
         - LastRound
 
 
-    if !WeirdReadActive {
-
-        if difference = 0 {
-            return LastRound
-        }
-
-
-        if (
-            difference > 0
-            && difference <= 5
-        ) {
-
-            LastRound :=
-                Min(
-                    detectedRound,
-                    finalRound
-                )
+    ; Stale/lower reads never move strategy time forward.
+    if difference < 0 {
+        ResetWeirdReads()
+        return LastRound
+    }
 
 
-            TrackRoundStart()
+    ; Reading the current validated round cancels any pending candidate.
+    if difference = 0 {
+        ResetWeirdReads()
+        return LastRound
+    }
 
 
-            return LastRound
-        }
-
+    ; Every forward transition is confirmed by consecutive identical OCR
+    ; reads. A normal +1 transition needs two reads (about 20 ms total at the
+    ; current polling rate), preventing a single bad frame from firing an
+    ; action one round early. Larger catch-up jumps are also confirmed before
+    ; LastRound is moved directly to the detected round. This prevents the
+    ; validator from crawling one round behind the real game after a missed
+    ; OCR transition.
+    if (
+        !WeirdReadActive
+        || detectedRound != LastWeirdRead
+    ) {
 
         WeirdReadActive :=
             true
@@ -377,71 +386,41 @@ ValidateRound(
             detectedRound
 
 
-        if LastRound < finalRound {
-
-            LastRound++
-
-
-            TrackRoundStart()
-        }
+        WeirdReadCount :=
+            1
 
 
         return LastRound
     }
 
 
-    if detectedRound = LastRound {
-
-        ResetWeirdReads()
+    WeirdReadCount++
 
 
-        return LastRound
-    }
-
-
-    difference :=
-        detectedRound
-        - LastRound
-
-
-    if (
-        difference > 0
-        && difference <= 5
-    ) {
-
-        LastRound :=
-            Min(
-                detectedRound,
-                finalRound
+    requiredReads :=
+        difference = 1
+            ? 2
+            : (
+                difference <= 5
+                    ? 3
+                    : 4
             )
 
 
-        TrackRoundStart()
-
-
-        ResetWeirdReads()
-
-
+    if WeirdReadCount < requiredReads {
         return LastRound
     }
 
 
-    if detectedRound = LastWeirdRead {
-        return LastRound
-    }
+    LastRound :=
+        Min(
+            detectedRound,
+            finalRound
+        )
 
 
-    LastWeirdRead :=
-        detectedRound
-
-
-    if LastRound < finalRound {
-
-        LastRound++
-
-
-        TrackRoundStart()
-    }
+    TrackRoundStart()
+    ResetWeirdReads()
 
 
     return LastRound
@@ -450,10 +429,15 @@ ValidateRound(
 
 ResetWeirdReads() {
     global LastWeirdRead
+    global WeirdReadCount
     global WeirdReadActive
 
 
     LastWeirdRead :=
+        0
+
+
+    WeirdReadCount :=
         0
 
 
@@ -784,6 +768,7 @@ GetRoundElapsedTime() {
 ResetRoundTracking() {
     global LastRound
     global LastWeirdRead
+    global WeirdReadCount
     global WeirdReadActive
     global RoundStartTick
     global LastTrackedRound
@@ -796,6 +781,10 @@ ResetRoundTracking() {
 
 
     LastWeirdRead :=
+        0
+
+
+    WeirdReadCount :=
         0
 
 

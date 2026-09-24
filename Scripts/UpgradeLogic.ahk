@@ -11,6 +11,12 @@ global ConfirmUpgradeUnlockPattern := "|<>*154$127.zzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 ; Approximate affordable green color.
 global UpgradeGreenColor := 0x4FD500
 
+; Keep consecutive upgrade hotkeys at least 250 ms apart. This is a total
+; hotkey-to-hotkey spacing budget, so the 50 ms visual settle and any
+; verification work performed after a purchase count toward the same window.
+global UpgradePurchaseSpacingMs := 250
+global LastUpgradePurchaseTick := 0
+
 ; Deflation pregame should never stall forever waiting for an upgrade.
 global DeflationUpgradeWaitTimeoutMs := 5000
 
@@ -805,18 +811,10 @@ WaitForUpgrade(
     }
 
 
-    lastStateCheck :=
-        A_TickCount
-
-
-    lastPanelCheck :=
-        A_TickCount
-
-
-    lastRoundHealth :=
-        "Readable"
-
-
+    ; Affordability is the hot path. Keep it completely free of FindText,
+    ; round OCR, popup recovery, and panel-side scans so a green upgrade
+    ; can trigger its hotkey within a few milliseconds instead of waiting
+    ; for an unrelated full-screen scan to finish.
     Loop {
 
         if !UpgradePoints.Has(
@@ -845,131 +843,45 @@ WaitForUpgrade(
             ]
 
 
-        ; Keep the normal purchase path as fast as possible.
-        ;
-        ; Once the upgrade is green, return immediately so BuyUpgrade()
-        ; can send the comma/period/slash hotkey without first running
-        ; any FindText-based unlock detection. Locked-upgrade recovery
-        ; now happens only if the post-hotkey button signature does not
-        ; change.
         if IsUpgradeGreen(
             point[1],
             point[2]
         ) {
             MarkUpgradeGreen(timingStep)
+            CacheSelectedUpgradeTower(tower, panelSide)
             return true
         }
 
 
-        if (
-            !IsPregame
-            && A_TickCount - waitStartTick >= 300
-        ) {
+        ; The tower-X heuristic is only a fast guess. Towers near the middle
+        ; of the map can open their upgrade panel on the opposite side from
+        ; that guess (for example Skywarden on Monkey Meadow). Probe the
+        ; other calibrated affordability pixel too. This is only one extra
+        ; PixelGetColor per 5 ms loop and avoids any FindText scan.
+        otherSide := panelSide = "Left" ? "Right" : "Left"
 
-            if (
-                A_TickCount
-                - lastStateCheck
-                >= 70
+
+        if (
+            UpgradePoints.Has(otherSide)
+            && UpgradePoints[otherSide].Has(path)
+        ) {
+            otherPoint := UpgradePoints[otherSide][path]
+
+
+            if IsUpgradeGreen(
+                otherPoint[1],
+                otherPoint[2]
             ) {
-
-                lastStateCheck :=
-                    A_TickCount
-
-
-                state :=
-                    CheckGameState()
-
-
-                if state = "Victory" {
-                    return "Victory"
-                }
-
-
-                if state = "Defeat" {
-                    return "Defeat"
-                }
-
-
-                lastRoundHealth :=
-                    CheckRoundReadRecovery(650)
-
-
-                if lastRoundHealth = "Recovered" {
-
-                    ; The five fallback clicks will have
-                    ; closed the currently selected panel.
-                    ;
-                    ; Immediately reselect THIS monkey.
-                    panelResult :=
-                        EnsureUpgradePanelOpen(
-                            tower,
-                            &panelSide
-                        )
-
-
-                    if panelResult = "Victory" {
-                        return "Victory"
-                    }
-
-
-                    if panelResult = "Defeat" {
-                        return "Defeat"
-                    }
-
-
-                    if panelResult = false {
-                        return false
-                    }
-
-
-                    lastRoundHealth :=
-                        "Readable"
-
-
-                    continue
-                }
-            }
-        }
-
-
-        if (
-            A_TickCount - waitStartTick >= 300
-            && A_TickCount
-            - lastPanelCheck
-            >= (IsFastDeflationPregameUpgrade() ? 75 : 100)
-        ) {
-
-            lastPanelCheck :=
-                A_TickCount
-
-
-            ; Sell-button detection is advisory only. FindText can miss
-            ; while the upgrade panel is actually open, so never reselect
-            ; the monkey solely because this scan returned false.
-            currentPanelSide :=
-                GetUpgradePanelSide()
-
-
-            if currentPanelSide {
-
-                if currentPanelSide != panelSide {
-                    panelSide :=
-                        currentPanelSide
-                }
-
-
-                CacheSelectedUpgradeTower(
-                    tower,
-                    panelSide
-                )
+                panelSide := otherSide
+                CacheSelectedUpgradeTower(tower, panelSide)
+                MarkUpgradeGreen(timingStep)
+                return true
             }
         }
 
 
         ; Deflation begins with a fixed amount of cash. If a scripted
-        ; pregame upgrade is not obtainable, do not wait forever. After
-        ; 5000 ms, skip the rest of this UpgradeTower action and allow
-        ; the strategy to continue toward StartGame().
+        ; pregame upgrade is not obtainable, do not wait forever.
         if (
             IsPregame
             && RunConfig.gameMode = "Deflation"
@@ -986,9 +898,10 @@ WaitForUpgrade(
         }
 
 
-        Sleep(
-            IsFastDeflationPregameUpgrade() ? 5 : 10
-        )
+        ; A small button-area PixelSearch is cheap enough to poll quickly.
+        ; Five milliseconds keeps CPU usage reasonable while making the
+        ; visible-green -> hotkey delay effectively immediate.
+        Sleep(5)
     }
 }
 
@@ -1343,6 +1256,13 @@ HandleLockedUpgrade(
         )
 
 
+    ; Keep all FindText-based locked-upgrade verification inside one
+    ; short shared window. The initial lock scan and every confirmation
+    ; scan below all count toward the same 150 ms budget.
+    scanBudgetMs := 150
+    scanDeadline := A_TickCount + scanBudgetMs
+
+
     if !FindText(
         &X,
         &Y,
@@ -1365,12 +1285,7 @@ HandleLockedUpgrade(
     )
 
 
-    Sleep(
-        500
-    )
-
-
-    Loop 20 {
+    while A_TickCount < scanDeadline {
 
         if FindText(
             &UnlockX,
@@ -1434,8 +1349,15 @@ HandleLockedUpgrade(
         }
 
 
+        remainingMs := scanDeadline - A_TickCount
+
+        if remainingMs <= 0 {
+            break
+        }
+
+
         Sleep(
-            100
+            Min(10, remainingMs)
         )
     }
 
@@ -1466,46 +1388,24 @@ HandleLockedUpgrade(
 IsUpgradeGreen(
     x,
     y,
-    tolerance := 10
+    tolerance := 12
 ) {
     global UpgradeGreenColor
 
 
-    color :=
-        PixelGetColor(
-            x,
-            y
-        )
+    ; Use the calibrated affordability pixel directly. This is the same
+    ; signal the original upgrade logic relied on, but it is now polled by
+    ; the lightweight 5 ms wait loop instead of being surrounded by slow
+    ; full-screen scans.
+    color := PixelGetColor(x, y)
 
+    r1 := (color >> 16) & 0xFF
+    g1 := (color >> 8) & 0xFF
+    b1 := color & 0xFF
 
-    r1 :=
-        (color >> 16)
-        & 0xFF
-
-
-    g1 :=
-        (color >> 8)
-        & 0xFF
-
-
-    b1 :=
-        color
-        & 0xFF
-
-
-    r2 :=
-        (UpgradeGreenColor >> 16)
-        & 0xFF
-
-
-    g2 :=
-        (UpgradeGreenColor >> 8)
-        & 0xFF
-
-
-    b2 :=
-        UpgradeGreenColor
-        & 0xFF
+    r2 := (UpgradeGreenColor >> 16) & 0xFF
+    g2 := (UpgradeGreenColor >> 8) & 0xFF
+    b2 := UpgradeGreenColor & 0xFF
 
 
     return (
@@ -1513,6 +1413,30 @@ IsUpgradeGreen(
         && Abs(g1 - g2) <= tolerance
         && Abs(b1 - b2) <= tolerance
     )
+}
+
+
+WaitForUpgradePurchaseSlot() {
+    global UpgradePurchaseSpacingMs
+    global LastUpgradePurchaseTick
+
+    if LastUpgradePurchaseTick <= 0 {
+        return
+    }
+
+    elapsed := A_TickCount - LastUpgradePurchaseTick
+    remaining := UpgradePurchaseSpacingMs - elapsed
+
+    if remaining > 0 {
+        Sleep(remaining)
+    }
+}
+
+
+MarkUpgradePurchaseSent() {
+    global LastUpgradePurchaseTick
+
+    LastUpgradePurchaseTick := A_TickCount
 }
 
 
@@ -1549,9 +1473,51 @@ BuyUpgrade(
         UpgradePoints[panelSide][path]
 
 
-    ; Capture a tiny visual signature before the purchase. This is cheap
-    ; compared with FindText and lets the common path send the hotkey
-    ; immediately.
+    ; Enforce the configured hotkey-to-hotkey spacing first. The button may
+    ; have briefly appeared green during the previous tier's purchase
+    ; animation, so always re-confirm affordability after the spacing wait
+    ; and immediately before sending the next upgrade hotkey.
+    WaitForUpgradePurchaseSlot()
+
+
+    if !IsUpgradeGreen(
+        point[1],
+        point[2]
+    ) {
+        waitResult :=
+            WaitForUpgrade(
+                tower,
+                path,
+                &panelSide,
+                timingStep
+            )
+
+
+        if (
+            waitResult = "Victory"
+            || waitResult = "Defeat"
+            || waitResult = "DeflationTimeout"
+            || waitResult = false
+        ) {
+            return waitResult
+        }
+
+
+        ; Panel-side recovery can update the point used for this path.
+        if (
+            !UpgradePoints.Has(panelSide)
+            || !UpgradePoints[panelSide].Has(path)
+        ) {
+            return false
+        }
+
+
+        point := UpgradePoints[panelSide][path]
+    }
+
+
+    ; Capture the button immediately before the hotkey so the confirmation
+    ; compares the actual pre-purchase state, not a stale animation frame.
     beforeSignature :=
         CaptureUpgradeButtonSignature(
             point[1],
@@ -1569,11 +1535,13 @@ BuyUpgrade(
     )
 
 
-    ; Intentionally 35 ms slower than the previous 100 ms hotkey settle.
-    ; The first hotkey now starts sooner, while consecutive upgrade presses
-    ; are spaced out a little more for reliability.
+    MarkUpgradePurchaseSent()
+
+
+    ; Keep upgrade hotkeys fast while leaving a short settle window for
+    ; the game to register each comma/period/slash purchase.
     Sleep(
-        135
+        50
     )
 
 
@@ -1582,6 +1550,20 @@ BuyUpgrade(
             point[1],
             point[2]
         )
+
+
+    if afterSignature = beforeSignature {
+        ; Some upgrade panels update a little later than the 50 ms key settle.
+        ; Give the button one more cheap visual check. This remains inside the
+        ; existing 250 ms hotkey-to-hotkey spacing window.
+        Sleep(40)
+
+        afterSignature :=
+            CaptureUpgradeButtonSignature(
+                point[1],
+                point[2]
+            )
+    }
 
 
     if afterSignature != beforeSignature {
@@ -1622,8 +1604,11 @@ BuyUpgrade(
 
     if lockResult = "Unlocked" {
         ; The unlock flow re-opened this tower's panel. Purchase the
-        ; originally requested upgrade once, then use the same 135 ms
+        ; originally requested upgrade once, then use the same 50 ms
         ; hotkey settle.
+        WaitForUpgradePurchaseSlot()
+
+
         MarkUpgradeHotkey(timingStep)
 
 
@@ -1634,8 +1619,11 @@ BuyUpgrade(
         )
 
 
+        MarkUpgradePurchaseSent()
+
+
         Sleep(
-            135
+            50
         )
 
 

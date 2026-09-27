@@ -87,6 +87,8 @@ RunPregameStrategy(actions) {
 
 
 RunStrategy(actions) {
+    global LastRound
+
 
     lastScheduledRound := false
 
@@ -123,11 +125,12 @@ RunStrategy(actions) {
         }
 
 
-        ; Fast non-blocking round read before a scheduled action.
-        ; Popup recovery belongs inside WaitForRound(), where it only runs
-        ; when the round display is genuinely missing.
+        ; Use the round already validated by the round tracker. Do not do an
+        ; extra OCR pass here: when the next action targets a future round,
+        ; WaitForRound() owns the timing-critical polling loop. This avoids
+        ; paying for one full redundant FindText/OCR read before every wait.
         currentRound :=
-            GetValidatedRoundForStrategy()
+            LastRound
 
 
         ; If we have not reached the target yet,

@@ -8,7 +8,6 @@ global CategoryStartPages := Map(
 )
 
 global MapData := Map(
-
     "Monkey Meadow", {
         category: "Beginner",
         page: 1,
@@ -45,6 +44,10 @@ global MapData := Map(
         pattern: "|<>*158$27.3zzztzzzzyTzzzlzzzy7zzzszzzzjzzzzzzzzzzzzznnzzw7zzz0zzTszzvzzUT7w03sS00T3U03zk00Ts003y000T0003s000T0003s000T0003s000T0000s0000U00060000w0027z000zU007w000zU007w000z0007s000y0007k000U"
     },
 
+
+
+
+
     "Intermediate Map", {
         category: "Intermediate",
         page: 6,
@@ -52,10 +55,53 @@ global MapData := Map(
     },
 
 
+
+
+
     "Advanced Map", {
         category: "Advanced",
         page: 0,
         pattern: "|<>YOUR_ADVANCED_MAP_PATTERN"
+    },
+
+
+
+
+
+    "Tricky Tracks", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*132$35.03zzzy07zzzw0zzzzs3zzzzkTzzzzVzzzzzTzzzzzzzzzzzzzzzzzzzzzzzzzznrzzzw7jzzzwDzzzzwTzzzzwzzzzzzzzzzzzzzzzzzyzzzzztzzzzz3zzzzw7zzzzUDzzzw0TzzzU0zzzy01zTzs03zzzU07zzw00Dzzk00Tzy000zzs001zz0003zw0007zU000Dy0000TU0000U"
+    },
+
+    "Glacial Trail", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*142$22.zzzzzzzzzzzzzzxzzzrzzzDzzwzzzlzzy7zzsTyTVzUw3y3kDs60T081w007U0000000000000000000000000000000000000000000000000000000000000002"
+    },
+
+    "Dark Dungeons", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*90$25.DhzzbkzznsTzswTzwSDzzz7zzzUDzzzzzk03zs01zw00Ty00Dz1V7zU03zk03zs00zw00Tzzzzzzzzzz0zzk00zs00zw00Ty007z003zk"
+    },
+
+    "Sanctuary", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*36$21.0Dzs0zz03zs1zz007s001000000000000000001s1kTq07z00zw07zk0zzE7zy0zzy7zzkzzy7zzkzzz7zzwzzzzzzzzzzszzz1zzs1Tz01zs07z00Ts03z003w"
+    },
+
+    "Ravine", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*97$23.zT01yo0HTc0Dbk0Tz00tw01wQ07z00Tzk1ryw1gwD6E03sU01l001W002000000000000A000E0000002020007U000000G001j007z60CDD0zmTzzUzzz3zzzDzzzzzzzzzzzzzzzzzzz"
+    },
+
+    "Flooded Valley", {
+        category: "Expert",
+        page: 15,
+        pattern: "|<>*82$18.0zy1zz3zz7zzTzzTzzzzzzzzzzzzzzzzzzzzzzzzzzy03y03m03003003001001000000000000000000000000000000U"
     },
 
     "Inferno", {

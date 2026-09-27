@@ -25,6 +25,7 @@ global TowerSetup := Map()
 
 #Include PlacementLogic.ahk
 #Include UpgradeLogic.ahk
+#Include SellLogic.ahk
 #Include TargetingLogic.ahk
 #Include SubMonkeyLogic.ahk
 #Include SpecialTargetingLogic.ahk

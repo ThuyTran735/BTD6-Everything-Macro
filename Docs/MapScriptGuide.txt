@@ -22,10 +22,13 @@ map
      - Exact map name used in MapData.ahk.
 
 difficulty
-     - Examples: Easy / Medium / Hard / Impoppable / CHIMPS
+     - Easy / Medium / Hard
 
 gameMode
-     - Example: Standard
+     - Easy modes: Standard / Primary Only / Deflation
+     - Medium modes: Standard / Military Only / Apopalypse / Reverse
+     - Hard modes: Standard / Magic Monkeys Only / Double HP MOABs / Half Cash / Alternate Bloons Rounds / Impoppable / CHIMPS
+     - Impoppable and CHIMPS use difficulty: "Hard".
 
 hero
      - Use a hero name when needed, for example: hero: "Quincy"
@@ -355,7 +358,28 @@ The macro stores the previous mode in:
 Do not change normal targeting while the Sub is submerged.
 
 
-12. ABILITIES
+12. SELLING TOWERS
+
+Use:
+
+SellTower(TowerSetup["Tower Name"])
+
+Example:
+
+[40, 0, () => SellTower(TowerSetup["Dart A"])]
+
+For moving maps, optionally provide the tower's current screen coordinates:
+
+[40, 0, () => SellTower(TowerSetup["Dart A"], 750, 430)]
+
+SellTower():
+     - Selects the tower.
+     - Finds and clicks the real BTD6 Sell button.
+     - Supports optional moving-map X/Y overrides.
+     - Resets placed / upgrade runtime state after a successful sell.
+
+
+13. ABILITIES
 
 Use:
 
@@ -371,7 +395,17 @@ Meaning:
      - Press 1.
 
 
-13. HERO USAGE
+STRATEGY BUILDER
+
+The Strategy Builder can now:
+     - Import existing .ahk strategy scripts.
+     - Edit monkey/hero definitions after they are added.
+     - Set a separate placement delay in milliseconds.
+     - Add Upgrade, Target, Sell, and Ability actions.
+     - Draw click-through screen labels at configured monkey coordinates.
+
+
+14. HERO USAGE
 
 If needed:
 
@@ -395,7 +429,7 @@ hero: false
 Then hero navigation is skipped completely.
 
 
-14. RETRIES
+15. RETRIES
 
 Map scripts perform one attempt per process launch.
 Retry / Recovery is controlled by the main launcher under Settings.
@@ -405,7 +439,7 @@ When a queued cycle fails and Auto Retry is enabled, the launcher starts a fresh
 The Queue Retry Limit controls the maximum number of fresh-process retries for one failed queue cycle.
 
 
-15. SIMPLE COMPLETE EXAMPLE
+16. SIMPLE COMPLETE EXAMPLE
 
 global TowerSetup := Map(
     "Dart A", {
@@ -428,7 +462,7 @@ strategy := [
 ]
 
 
-16. MONKEY SUB COMPLETE EXAMPLE
+17. MONKEY SUB COMPLETE EXAMPLE
 
 global TowerSetup := Map(
     "Sub A", {
@@ -452,7 +486,7 @@ strategy := [
 ]
 
 
-17. MONKEY ACE COMPLETE EXAMPLE
+18. MONKEY ACE COMPLETE EXAMPLE
 
 RunConfig:
 
@@ -479,7 +513,7 @@ strategy := [
 ]
 
 
-18. COMMON MISTAKES
+19. COMMON MISTAKES
 
 Wrong tower name:
 
@@ -518,7 +552,7 @@ Forgetting Round 0 placement when the game needs a starting tower.
 Leaving sample actions enabled in MapTemplate.ahk.
 
 
-19. QUICK REFERENCE
+20. QUICK REFERENCE
 
 PLACE
 
@@ -553,7 +587,7 @@ MID-ROUND
 [20, 5000, () => SomeAction()]
 
 
-20. RECOMMENDED WORKFLOW FOR A NEW MAP
+21. RECOMMENDED WORKFLOW FOR A NEW MAP
 
 1. Copy MapTemplate.ahk.
 2. Set RunConfig.

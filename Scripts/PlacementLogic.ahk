@@ -21,9 +21,37 @@ PlaceTower(tower) {
 
 
     ; A previous UpgradeTower() may have intentionally left its panel open.
-    ; Close that real UI panel before entering placement mode so a later
-    ; UpgradeTower() cannot mistake the old panel for the newly placed tower.
+    ; Close the cached panel first.
     CloseCachedUpgradePanel()
+
+
+    ; Shift-modified tower hotkeys are the only placement path where we have
+    ; seen an unrelated recovery click leave a real tower panel open without
+    ; populating SelectedUpgradeTower. Check for that real panel here, at the
+    ; last possible moment before entering placement mode.
+    ;
+    ; Keep this out of CloseCachedUpgradePanel(): that helper also runs before
+    ; round waits, where a screen-wide Sell-button match can send an unwanted
+    ; Esc and interfere with Hero placement.
+    if SubStr(hotkey, 1, 1) = "+" {
+        if GetUpgradePanelSide() {
+            Send("{Esc}")
+            Sleep(25)
+            ClearSelectedUpgradeTower()
+        }
+    }
+
+
+    ; Move to the intended empty placement point before sending the
+    ; tower hotkey. This keeps Shift-modified hotkeys (such as
+    ; Mermonkey +W) from being triggered while the cursor is still
+    ; sitting over an already-placed tower, which can leave that
+    ; tower selected instead of entering placement mode.
+    MouseMove(
+        tower.x,
+        tower.y,
+        0
+    )
 
 
     ; Hero requires SendEvent in BTD6.
@@ -92,14 +120,6 @@ PlaceTower(tower) {
 
         Sleep(40)
     }
-
-
-    ; Move to the requested placement position.
-    MouseMove(
-        tower.x,
-        tower.y,
-        0
-    )
 
 
     ; Give BTD6 a little time after moving

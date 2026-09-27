@@ -269,8 +269,12 @@ CloseCachedUpgradePanel(settleMs := 25) {
     global SelectedUpgradeTower
 
     ; We intentionally leave the panel open after an upgrade so the same
-    ; monkey can be reused. Before a placement action, close that panel
-    ; first so its Sell button/panel cannot be mistaken for the new tower.
+    ; monkey can be reused. Before a placement action, close that cached
+    ; panel first so it cannot interfere with the next tower hotkey.
+    ;
+    ; Do not scan the whole screen for a visible panel here. This helper is
+    ; also called before round waits, and a false-positive Sell-button match
+    ; can send Esc at the wrong time and break actions such as Hero placement.
     if IsObject(SelectedUpgradeTower) {
         Send("{Esc}")
         Sleep(settleMs)
@@ -354,7 +358,9 @@ IsFastDeflationPregameUpgrade() {
 
 UpgradeTower(
     tower,
-    target
+    target,
+    overrideX := "",
+    overrideY := ""
 ) {
     global IsPregame
 
@@ -389,6 +395,38 @@ UpgradeTower(
             "Upgrade target must be 3 digits, for example: 025"
         )
     }
+
+
+    hasCoordinateOverride :=
+        overrideX != ""
+        || overrideY != ""
+
+
+    if (
+        hasCoordinateOverride
+        && (
+            overrideX = ""
+            || overrideY = ""
+        )
+    ) {
+
+        throw Error(
+            "Upgrade coordinate override requires both X and Y."
+        )
+    }
+
+
+    clickX :=
+        hasCoordinateOverride
+            ? overrideX
+            : tower.x
+
+
+    clickY :=
+        hasCoordinateOverride
+            ? overrideY
+            : tower.y
+
 
 
     upgradeTiming :=
@@ -433,9 +471,12 @@ UpgradeTower(
     panelSide := false
 
 
-    if TryReuseSelectedUpgradeTower(
-        tower,
-        &panelSide
+    if (
+        !hasCoordinateOverride
+        && TryReuseSelectedUpgradeTower(
+            tower,
+            &panelSide
+        )
     ) {
 
         MarkUpgradeMonkeySelected(
@@ -446,8 +487,8 @@ UpgradeTower(
     else {
 
         Click(
-            tower.x,
-            tower.y
+            clickX,
+            clickY
         )
 
 
@@ -466,7 +507,9 @@ UpgradeTower(
         ; and WaitForUpgrade() can still correct it later if needed. Avoiding
         ; a full-screen FindText here makes the first upgrade start faster.
         panelSide :=
-            GetExpectedUpgradePanelSide(tower)
+            GetExpectedUpgradePanelSideFromX(
+                clickX
+            )
 
 
         CacheSelectedUpgradeTower(
@@ -713,8 +756,9 @@ UpgradeTower(
     }
 
 
-    ; Leave this tower selected so a later UpgradeTower() call for the
-    ; same monkey can immediately reuse the open upgrade panel.
+    ; Leave this tower selected so placement logic can reliably close the
+    ; open panel later. A future UpgradeTower() call with coordinate overrides
+    ; will still bypass cache reuse and click its supplied moving-map position.
     CacheSelectedUpgradeTower(
         tower,
         panelSide
@@ -736,11 +780,17 @@ GetExpectedUpgradePanelSide(tower) {
     }
 
 
+    return GetExpectedUpgradePanelSideFromX(
+        tower.x
+    )
+}
+
+
+GetExpectedUpgradePanelSideFromX(x) {
     ; BTD6 places the upgrade panel on the opposite side of the selected
-    ; monkey so it does not cover the tower itself. Using the saved X
-    ; coordinate avoids an expensive full-screen FindText scan on every
-    ; normal upgrade selection.
-    return tower.x < A_ScreenWidth // 2
+    ; monkey so it does not cover the tower itself. Accepting a raw X value
+    ; lets UpgradeTower() use an optional moving-map coordinate override.
+    return x < A_ScreenWidth // 2
         ? "Right"
         : "Left"
 }
@@ -772,6 +822,68 @@ GetUpgradePanelSide() {
 }
 
 
+IsUpgradeWaitDefeatVisible() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has("Restart") {
+        return false
+    }
+
+
+    pattern := GameStatePatterns["Restart"]
+
+
+    if pattern = "" {
+        return false
+    }
+
+
+    return !!FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        pattern
+    )
+}
+
+
+IsUpgradeWaitVictoryVisible() {
+    global GameStatePatterns
+
+
+    if !GameStatePatterns.Has("VictoryNext") {
+        return false
+    }
+
+
+    pattern := GameStatePatterns["VictoryNext"]
+
+
+    if pattern = "" {
+        return false
+    }
+
+
+    return !!FindText(
+        &X,
+        &Y,
+        0,
+        0,
+        A_ScreenWidth,
+        A_ScreenHeight,
+        0,
+        0,
+        pattern
+    )
+}
+
+
 WaitForUpgrade(
     tower,
     path,
@@ -785,6 +897,14 @@ WaitForUpgrade(
 
 
     waitStartTick := A_TickCount
+
+
+    ; Keep terminal-state detection alive while waiting for cash without
+    ; repeatedly running the much heavier CheckGameState() popup scans.
+    ; Fast/affordable upgrades get a short grace period with zero FindText
+    ; work, then defeat is checked frequently and victory less often.
+    lastDefeatCheck := A_TickCount
+    lastVictoryCheck := A_TickCount
 
 
     if !UpgradePoints.Has(
@@ -811,10 +931,10 @@ WaitForUpgrade(
     }
 
 
-    ; Affordability is the hot path. Keep it completely free of FindText,
-    ; round OCR, popup recovery, and panel-side scans so a green upgrade
-    ; can trigger its hotkey within a few milliseconds instead of waiting
-    ; for an unrelated full-screen scan to finish.
+    ; Affordability is the hot path. Check it first on every loop so a green
+    ; upgrade can trigger its hotkey within a few milliseconds. Expensive
+    ; game-state scans are throttled separately below while we are still
+    ; waiting for the upgrade to become affordable.
     Loop {
 
         if !UpgradePoints.Has(
@@ -895,6 +1015,43 @@ WaitForUpgrade(
             )
 
             return "DeflationTimeout"
+        }
+
+
+        if !IsPregame {
+            waitedMs := A_TickCount - waitStartTick
+
+
+            ; Do not interrupt quick upgrade chains with any full-screen
+            ; FindText work. If we are genuinely waiting for cash, keep
+            ; defeat detection responsive with one pattern instead of the
+            ; five-pattern CheckGameState() scan.
+            if (
+                waitedMs >= 750
+                && A_TickCount - lastDefeatCheck >= 500
+            ) {
+                lastDefeatCheck := A_TickCount
+
+
+                if IsUpgradeWaitDefeatVisible() {
+                    return "Defeat"
+                }
+            }
+
+
+            ; Victory while blocked on an upgrade is uncommon, so check it
+            ; less often to keep the affordability hot path fast.
+            if (
+                waitedMs >= 1000
+                && A_TickCount - lastVictoryCheck >= 1000
+            ) {
+                lastVictoryCheck := A_TickCount
+
+
+                if IsUpgradeWaitVictoryVisible() {
+                    return "Victory"
+                }
+            }
         }
 
 

@@ -188,6 +188,21 @@ MapNameDifficultyMode() {
         )],
 
 
+        ; Moving-map upgrade coordinate override (optional)
+        ;
+        ; Useful on maps such as Geared and Sanctuary when the tower has
+        ; moved away from its original placement coordinates. Pass the
+        ; tower's current screen X and Y after the upgrade target.
+        ; Both override coordinates are required when using this form.
+        ;
+        ; [4, 0, () => UpgradeTower(
+        ;     TowerSetup["Tower A"],
+        ;     "022",
+        ;     750,
+        ;     430
+        ; )],
+
+
         ; Normal targeting
         [5, 0, () => SetTargeting(
             TowerSetup["Tower A"],
@@ -425,7 +440,25 @@ MapNameDifficultyMode() {
         ; )],
 
 
-        ; Mid-round action
+        ; Sell a tower
+        ;
+        ; Normal maps use the tower's saved placement coordinates:
+        ;
+        ; [45, 0, () => SellTower(
+        ;     TowerSetup["Dart A"]
+        ; )],
+        ;
+        ; Moving maps such as Geared / Sanctuary can override the current
+        ; tower position with optional X/Y coordinates:
+        ;
+        ; [45, 0, () => SellTower(
+        ;     TowerSetup["Dart A"],
+        ;     750,
+        ;     430
+        ; )],
+        ;
+        ;
+        ; Mid-round action / ability
         ;
         ; 5000 ms into Round 20:
         ;

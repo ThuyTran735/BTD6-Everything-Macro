@@ -144,19 +144,47 @@ GetRoundArea() {
         RunConfig.difficulty
 
 
-    if !RoundAreas.Has(
+    areaKey :=
         difficulty
+
+
+    ; Impoppable and CHIMPS are Hard game modes, but their /100 round
+    ; display uses the wider OCR region that was previously keyed by
+    ; those mode names. Keep the difficulty canonical while selecting
+    ; the correct OCR area from the game mode.
+    if HasProp(
+        RunConfig,
+        "gameMode"
+    ) {
+
+        gameMode :=
+            RunConfig.gameMode
+
+
+        if (
+            gameMode = "Impoppable"
+            || gameMode = "CHIMPS"
+        ) {
+
+            areaKey :=
+                gameMode
+        }
+    }
+
+
+    if !RoundAreas.Has(
+        areaKey
     ) {
 
         throw Error(
             "No round area configured for: "
-            . difficulty
+            . areaKey
         )
     }
 
 
     return RoundAreas[
-        difficulty
+        areaKey
     ]
 }
 
@@ -189,6 +217,25 @@ GetFinalRound() {
     ) {
 
         return RunConfig.endRound
+    }
+
+
+    if HasProp(
+        RunConfig,
+        "gameMode"
+    ) {
+
+        gameMode :=
+            RunConfig.gameMode
+
+
+        if (
+            gameMode = "Impoppable"
+            || gameMode = "CHIMPS"
+        ) {
+
+            return 100
+        }
     }
 
 
@@ -680,6 +727,29 @@ WaitForRound(
         if detectedRound {
 
             ResetRoundReadFailureTracking()
+
+
+            ; The strategy already tells us the exact round it is waiting
+            ; for. As soon as OCR reads that exact target, accept it on the
+            ; first readable frame and fire the scheduled action immediately.
+            ;
+            ; General/background round tracking still uses ValidateRound()
+            ; and its repeated-read protection. Only this timing-critical
+            ; target wait gets the single-read fast path.
+            if (
+                detectedRound = targetRound
+                && detectedRound > LastRound
+            ) {
+                LastRound :=
+                    detectedRound
+
+
+                TrackRoundStart()
+                ResetWeirdReads()
+
+
+                return true
+            }
 
 
             currentRound :=

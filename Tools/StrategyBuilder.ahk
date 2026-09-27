@@ -17,6 +17,11 @@ global BuilderMinimizeControl := false
 global BuilderCloseControl := false
 global BuilderChromeMessageReady := false
 global BuilderWindowBorder := false
+global MonkeyOverlayWindows := []
+global MonkeyOverlayVisible := false
+global ImportedStartRound := ""
+global ImportedEndRound := ""
+global IsImportingStrategy := false
 
 global TowerTypes := [
     "Dart", "Boomerang", "Bomb", "Tack", "Ice", "Glue", "Desperado",
@@ -32,24 +37,28 @@ global HeroNames := [
 ]
 
 global CategoryChoices := ["Beginner", "Intermediate", "Advanced", "Expert"]
-global DifficultyChoices := ["Easy", "Medium", "Hard", "Impoppable", "CHIMPS"]
-global ModeChoices := ["Standard", "Primary Only", "Deflation", "Military Only", "Apopalypse", "Reverse", "Magic Monkeys Only", "Double HP MOABs", "Half Cash", "Alternate Bloons Rounds"]
+global DifficultyChoices := ["Easy", "Medium", "Hard"]
+global ModeChoicesByDifficulty := Map(
+    "Easy", ["Standard", "Primary Only", "Deflation"],
+    "Medium", ["Standard", "Military Only", "Apopalypse", "Reverse"],
+    "Hard", ["Standard", "Magic Monkeys Only", "Double HP MOABs", "Half Cash", "Alternate Bloons Rounds", "Impoppable", "CHIMPS"]
+)
 
-global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, TargetingDDL
-global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionLV
-global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, OutputEdit, StatusText
+global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
+global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, AbilityEdit, ActionLV
+global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
 
 BuildGui()
 
 BuildGui() {
     global MainGui
     global BuilderMinimizeControl, BuilderCloseControl, BuilderChromeMessageReady, BuilderWindowBorder
-    global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, TargetingDDL
-    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionLV
-    global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, OutputEdit, StatusText
-    global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoices
+    global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
+    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, AbilityEdit, ActionLV
+    global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
+    global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoicesByDifficulty
 
-    MainGui := Gui("+Resize +MinSize1040x720 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
+    MainGui := Gui("+Resize +MinSize1040x805 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "0B0F14"
     MainGui.SetFont("s10 cF5F7FA", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())
@@ -59,7 +68,7 @@ BuildGui() {
         BuilderChromeMessageReady := true
     }
 
-    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 720)
+    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 805)
 
     MainGui.SetFont("s16 w400 cFFD45C")
     MainGui.AddText("x20 y14 w920 h28", "BTD6 STRATEGY BUILDER + COORDINATE TOOL")
@@ -74,7 +83,7 @@ BuildGui() {
 
     MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
     MainGui.SetFont("s9 w400 cB8C6D6")
-    MainGui.AddText("x20 y45 w1000 h20", "Add multiple monkeys or one hero, capture placement coordinates, schedule upgrades, then generate a ready-to-use map strategy template.")
+    MainGui.AddText("x20 y45 w1000 h20", "Build, import, edit, label, and export map strategies with placements, upgrades, targeting, sells, and abilities.")
 
     ; Map / strategy metadata
     MainGui.SetFont("s10 w400 cD9E3EE")
@@ -96,12 +105,15 @@ BuildGui() {
     DifficultyDDL := MainGui.AddDropDownList("x120 y137 w150 Choose1", DifficultyChoices)
 
     MainGui.AddText("x290 y141 w55 h20", "Mode")
-    ModeDDL := MainGui.AddDropDownList("x345 y137 w220 Choose1", ModeChoices)
+    ModeDDL := MainGui.AddDropDownList("x345 y137 w220 Choose1", ModeChoicesByDifficulty["Easy"])
+    DifficultyDDL.OnEvent("Change", OnDifficultyChanged)
     ModeDDL.OnEvent("Change", OnModeChanged)
+
+    WingmonkeyMKCheckbox := MainGui.AddCheckBox("x590 y137 w150 h24", "Wingmonkey MK")
 
     ; Entity builder
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x20 y190 w500 h310", " MONKEY / HERO ")
+    MainGui.AddGroupBox("x20 y190 w500 h350", " MONKEY / HERO ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x40 y220 w65 h20", "Name")
@@ -130,87 +142,163 @@ BuildGui() {
     CaptureBtn := MainGui.AddButton("x305 y286 w190 h30", "CAPTURE COORDS (F2)")
     CaptureBtn.OnEvent("Click", CaptureCoordinates)
 
-    MainGui.AddText("x40 y330 w90 h20", "Place Round")
-    PlaceRoundEdit := MainGui.AddEdit("x130 y326 w70 h26 Number", "0")
+    MainGui.AddText("x40 y330 w82 h20", "Place Round")
+    PlaceRoundEdit := MainGui.AddEdit("x122 y326 w58 h26 Number", "0")
     SetEditTextBlack(PlaceRoundEdit)
-    MainGui.AddText("x215 y330 w275 h20 c7F91A6", "Round 0 = pregame")
 
-    AddEntityBtn := MainGui.AddButton("x40 y363 w220 h32", "ADD MONKEY / HERO")
+    MainGui.AddText("x195 y330 w70 h20", "Delay ms")
+    PlaceDelayEdit := MainGui.AddEdit("x260 y326 w70 h26 Number", "0")
+    SetEditTextBlack(PlaceDelayEdit)
+    MainGui.AddText("x345 y330 w145 h20 c7F91A6", "Round 0 = pregame")
+
+    AddEntityBtn := MainGui.AddButton("x40 y363 w140 h32", "ADD")
     AddEntityBtn.OnEvent("Click", AddEntity)
-    DeleteEntityBtn := MainGui.AddButton("x275 y363 w220 h32", "DELETE SELECTED")
+    UpdateEntityBtn := MainGui.AddButton("x190 y363 w145 h32", "UPDATE SELECTED")
+    UpdateEntityBtn.OnEvent("Click", UpdateSelectedEntity)
+    DeleteEntityBtn := MainGui.AddButton("x345 y363 w150 h32", "DELETE SELECTED")
     DeleteEntityBtn.OnEvent("Click", DeleteSelectedEntity)
 
-    EntityLV := MainGui.AddListView("x40 y407 w455 h76 -Multi", ["Name", "Type", "Hero", "X", "Y", "Round"])
-    EntityLV.ModifyCol(1, 105)
-    EntityLV.ModifyCol(2, 75)
-    EntityLV.ModifyCol(3, 95)
-    EntityLV.ModifyCol(4, 45)
-    EntityLV.ModifyCol(5, 45)
-    EntityLV.ModifyCol(6, 50)
+    EntityLV := MainGui.AddListView("x40 y407 w455 h88 -Multi", ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"])
+    EntityLV.ModifyCol(1, 88)
+    EntityLV.ModifyCol(2, 64)
+    EntityLV.ModifyCol(3, 70)
+    EntityLV.ModifyCol(4, 40)
+    EntityLV.ModifyCol(5, 40)
+    EntityLV.ModifyCol(6, 45)
+    EntityLV.ModifyCol(7, 48)
+    EntityLV.ModifyCol(8, 58)
+    EntityLV.OnEvent("DoubleClick", LoadSelectedEntityForEdit)
 
-    ; Upgrade builder
+    OverlayBtn := MainGui.AddButton("x40 y502 w190 h28", "TOGGLE MONKEY LABELS")
+    OverlayBtn.OnEvent("Click", ToggleMonkeyOverlay)
+    MainGui.AddText("x245 y507 w245 h18 c7F91A6", "Double-click a row to load it for editing.")
+
+    ; Scheduled action builder
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x540 y190 w480 h310", " UPGRADE SCHEDULE ")
+    MainGui.AddGroupBox("x540 y190 w480 h350", " ACTION SCHEDULE ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x560 y220 w60 h20", "Monkey")
     ActionEntityDDL := MainGui.AddDropDownList("x620 y216 w180", ["Add a monkey first"])
+    ActionEntityDDL.OnEvent("Change", OnActionEntityChanged)
 
-    MainGui.AddText("x815 y220 w70 h20", "Upgrade")
-    UpgradeEdit := MainGui.AddEdit("x880 y216 w90 h26", "000")
-    SetEditTextBlack(UpgradeEdit)
-
-    MainGui.AddText("x560 y258 w45 h20", "Round")
-    UpgradeRoundEdit := MainGui.AddEdit("x605 y254 w70 h26 Number", "0")
+    MainGui.AddText("x815 y220 w45 h20", "Round")
+    UpgradeRoundEdit := MainGui.AddEdit("x860 y216 w50 h26 Number", "0")
     SetEditTextBlack(UpgradeRoundEdit)
 
-    MainGui.AddText("x695 y258 w65 h20", "Delay ms")
-    UpgradeDelayEdit := MainGui.AddEdit("x760 y254 w80 h26 Number", "0")
+    MainGui.AddText("x920 y220 w38 h20", "Delay")
+    UpgradeDelayEdit := MainGui.AddEdit("x960 y216 w45 h26 Number", "0")
     SetEditTextBlack(UpgradeDelayEdit)
-    MainGui.AddText("x850 y258 w130 h20 c7F91A6", "e.g. 002 / 024 / 520")
 
-    AddUpgradeBtn := MainGui.AddButton("x560 y291 w200 h32", "ADD UPGRADE")
+    MainGui.AddText("x560 y258 w60 h20", "Upgrade")
+    UpgradeEdit := MainGui.AddEdit("x620 y254 w90 h26", "000")
+    SetEditTextBlack(UpgradeEdit)
+
+    MainGui.AddText("x730 y258 w45 h20", "Target")
+    ActionTargetDDL := MainGui.AddDropDownList("x775 y254 w200", ["First", "Last", "Close", "Strong"])
+    ActionTargetDDL.Choose(1)
+
+    MainGui.AddText("x560 y294 w60 h20", "Ability")
+    AbilityEdit := MainGui.AddEdit("x620 y290 w90 h26", "1")
+    SetEditTextBlack(AbilityEdit)
+    MainGui.AddText("x730 y294 w245 h20 c7F91A6", "Ability hotkey, e.g. 1, 2, 3")
+
+    AddUpgradeBtn := MainGui.AddButton("x560 y327 w98 h30", "ADD UPGRADE")
     AddUpgradeBtn.OnEvent("Click", AddUpgradeAction)
-    DeleteUpgradeBtn := MainGui.AddButton("x775 y291 w200 h32", "DELETE SELECTED")
-    DeleteUpgradeBtn.OnEvent("Click", DeleteSelectedUpgrade)
+    AddTargetBtn := MainGui.AddButton("x664 y327 w90 h30", "ADD TARGET")
+    AddTargetBtn.OnEvent("Click", AddTargetingAction)
+    AddSellBtn := MainGui.AddButton("x760 y327 w90 h30", "ADD SELL")
+    AddSellBtn.OnEvent("Click", AddSellAction)
+    AddAbilityBtn := MainGui.AddButton("x856 y327 w119 h30", "ADD ABILITY")
+    AddAbilityBtn.OnEvent("Click", AddAbilityAction)
 
-    ActionLV := MainGui.AddListView("x560 y336 w415 h147 -Multi", ["Monkey", "Upgrade", "Round", "Delay"])
-    ActionLV.ModifyCol(1, 145)
-    ActionLV.ModifyCol(2, 80)
-    ActionLV.ModifyCol(3, 70)
-    ActionLV.ModifyCol(4, 75)
+    DeleteActionBtn := MainGui.AddButton("x560 y363 w415 h28", "DELETE SELECTED ACTION")
+    DeleteActionBtn.OnEvent("Click", DeleteSelectedUpgrade)
+
+    ActionLV := MainGui.AddListView("x560 y400 w415 h122 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
+    ActionLV.ModifyCol(1, 66)
+    ActionLV.ModifyCol(2, 100)
+    ActionLV.ModifyCol(3, 90)
+    ActionLV.ModifyCol(4, 65)
+    ActionLV.ModifyCol(5, 65)
 
     ; Output
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x20 y515 w1000 h160", " GENERATED TEMPLATE ")
+    MainGui.AddGroupBox("x20 y555 w1000 h190", " GENERATED TEMPLATE ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
-    GenerateBtn := MainGui.AddButton("x40 y544 w180 h32", "GENERATE TEMPLATE")
+    GenerateBtn := MainGui.AddButton("x40 y584 w150 h32", "GENERATE TEMPLATE")
     GenerateBtn.OnEvent("Click", GenerateTemplate)
-    CopyBtn := MainGui.AddButton("x235 y544 w160 h32", "COPY TO CLIPBOARD")
+    ImportBtn := MainGui.AddButton("x200 y584 w130 h32", "IMPORT .AHK")
+    ImportBtn.OnEvent("Click", ImportStrategyScript)
+    CopyBtn := MainGui.AddButton("x340 y584 w145 h32", "COPY")
     CopyBtn.OnEvent("Click", CopyTemplate)
-    SaveBtn := MainGui.AddButton("x410 y544 w160 h32", "SAVE .AHK")
+    SaveBtn := MainGui.AddButton("x495 y584 w130 h32", "SAVE .AHK")
     SaveBtn.OnEvent("Click", SaveTemplate)
-    ClearBtn := MainGui.AddButton("x585 y544 w140 h32", "CLEAR ALL")
+    ClearBtn := MainGui.AddButton("x635 y584 w120 h32", "CLEAR ALL")
     ClearBtn.OnEvent("Click", ClearAll)
 
-    StatusText := MainGui.AddText("x745 y550 w250 h22 cB8C6D6", "Ready")
-    OutputEdit := MainGui.AddEdit("x40 y586 w955 h70 ReadOnly -Wrap VScroll", "")
+    StatusText := MainGui.AddText("x770 y590 w225 h22 cB8C6D6", "Ready")
+    OutputEdit := MainGui.AddEdit("x40 y630 w955 h95 ReadOnly -Wrap VScroll", "")
     SetEditTextBlack(OutputEdit)
 
     MainGui.SetFont("s8 c7F91A6")
-    MainGui.AddText("x20 y687 w1000 h18", "Coordinate capture uses SCREEN coordinates. Press F2 anytime for an instant capture, or use CAPTURE COORDS for guided capture mode.")
+    MainGui.AddText("x20 y765 w1000 h18", "F2 captures SCREEN coordinates. Monkey labels are click-through overlays at each configured placement coordinate.")
 
-    MainGui.Show("w1040 h720")
+    MainGui.Show("w1040 h805")
     Hotkey("F2", CaptureCoordinatesInstant, "On")
 }
-
 SetEditTextBlack(control) {
     control.SetFont("c000000", "Segoe UI")
 }
 
+OnDifficultyChanged(*) {
+    global DifficultyDDL, ModeDDL
+
+    difficulty := DifficultyDDL.Text
+    previousMode := ModeDDL.Text
+
+    RefreshModeChoicesForDifficulty(
+        difficulty,
+        previousMode
+    )
+
+    OnModeChanged()
+}
+
+RefreshModeChoicesForDifficulty(
+    difficulty,
+    preferredMode := "Standard"
+) {
+    global ModeDDL
+    global ModeChoicesByDifficulty
+
+    if !ModeChoicesByDifficulty.Has(difficulty)
+        return false
+
+    ModeDDL.Delete()
+    ModeDDL.Add(
+        ModeChoicesByDifficulty[difficulty]
+    )
+
+    if !ChooseDropdownText(
+        ModeDDL,
+        preferredMode
+    ) {
+        ModeDDL.Choose(1)
+    }
+
+    return true
+}
+
 OnModeChanged(*) {
     global ModeDDL, DifficultyDDL, StatusText
+    global ImportedStartRound, ImportedEndRound, IsImportingStrategy
+
+    if !IsImportingStrategy {
+        ImportedStartRound := ""
+        ImportedEndRound := ""
+    }
 
     if ModeDDL.Text = "Deflation" {
         ChooseDropdownText(DifficultyDDL, "Easy")
@@ -295,7 +383,7 @@ CaptureCoordinates(*) {
 }
 
 AddEntity(*) {
-    global Entities, EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, TargetingDDL
+    global Entities, EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
     global StatusText
 
     name := Trim(EntityNameEdit.Value)
@@ -303,6 +391,7 @@ AddEntity(*) {
     x := IntegerOrDefault(XEdit.Value, 0)
     y := IntegerOrDefault(YEdit.Value, 0)
     placeRound := IntegerOrDefault(PlaceRoundEdit.Value, 0)
+    placeDelay := IntegerOrDefault(PlaceDelayEdit.Value, 0)
     targeting := TargetingDDL.Text
     heroName := type = "Hero" ? HeroDDL.Text : ""
 
@@ -336,6 +425,7 @@ AddEntity(*) {
         x: x,
         y: y,
         placeRound: placeRound,
+        placeDelay: placeDelay,
         targeting: targeting
     }
 
@@ -343,14 +433,109 @@ AddEntity(*) {
 
     RefreshEntityList()
     RefreshActionEntityDropdown()
+    RefreshMonkeyOverlayIfVisible()
 
     EntityNameEdit.Value := GetNextEntityName(type)
     HeroDDL.Enabled := (type = "Hero")
     XEdit.Value := "0"
     YEdit.Value := "0"
     PlaceRoundEdit.Value := "0"
+    PlaceDelayEdit.Value := "0"
     ApplyDefaultTargetingForType(type)
     StatusText.Text := "Added " name
+}
+
+LoadSelectedEntityForEdit(*) {
+    global EntityLV, Entities
+    global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
+    global StatusText
+
+    row := EntityLV.GetNext(0)
+    if row = 0
+        return
+
+    entity := Entities[row]
+    EntityNameEdit.Value := entity.name
+    ChooseDropdownText(EntityTypeDDL, entity.type)
+    HeroDDL.Enabled := entity.type = "Hero"
+
+    if entity.type = "Hero" && entity.heroName != ""
+        ChooseDropdownText(HeroDDL, entity.heroName)
+
+    XEdit.Value := entity.x
+    YEdit.Value := entity.y
+    PlaceRoundEdit.Value := entity.placeRound
+    PlaceDelayEdit.Value := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
+    ChooseDropdownText(TargetingDDL, entity.targeting)
+    StatusText.Text := "Editing " entity.name
+}
+
+UpdateSelectedEntity(*) {
+    global EntityLV, Entities, UpgradeActions
+    global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
+    global StatusText
+
+    row := EntityLV.GetNext(0)
+    if row = 0 {
+        MsgBox("Select a monkey/hero first. Double-clicking its row will also load it into the editor.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    oldEntity := Entities[row]
+    oldName := oldEntity.name
+    name := Trim(EntityNameEdit.Value)
+    type := EntityTypeDDL.Text
+    x := IntegerOrDefault(XEdit.Value, 0)
+    y := IntegerOrDefault(YEdit.Value, 0)
+    placeRound := IntegerOrDefault(PlaceRoundEdit.Value, 0)
+    placeDelay := IntegerOrDefault(PlaceDelayEdit.Value, 0)
+    targeting := TargetingDDL.Text
+    heroName := type = "Hero" ? HeroDDL.Text : ""
+
+    if name = "" {
+        MsgBox("Enter a name for this monkey or hero.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    for index, entity in Entities {
+        if index = row
+            continue
+
+        if StrLower(entity.name) = StrLower(name) {
+            MsgBox("An entry named '" name "' already exists.", "Strategy Builder", "Icon!")
+            return
+        }
+
+        if type = "Hero" && entity.type = "Hero" {
+            MsgBox("A strategy can only have one hero entry.", "Strategy Builder", "Icon!")
+            return
+        }
+    }
+
+    Entities[row] := {
+        name: name,
+        type: type,
+        heroName: heroName,
+        x: x,
+        y: y,
+        placeRound: placeRound,
+        placeDelay: placeDelay,
+        targeting: targeting
+    }
+
+    if name != oldName {
+        for action in UpgradeActions {
+            if HasProp(action, "entity") && action.entity = oldName
+                action.entity := name
+        }
+    }
+
+    RefreshEntityList()
+    EntityLV.Modify(row, "Select Focus")
+    RefreshActionEntityDropdown(name)
+    RefreshActionList()
+    RefreshMonkeyOverlayIfVisible()
+    StatusText.Text := "Updated " name
 }
 
 DeleteSelectedEntity(*) {
@@ -366,10 +551,10 @@ DeleteSelectedEntity(*) {
     removedName := Entities[row].name
     Entities.RemoveAt(row)
 
-    ; Remove upgrade actions that belonged to the deleted monkey.
+    ; Remove scheduled actions that belonged to the deleted monkey.
     i := UpgradeActions.Length
     while i >= 1 {
-        if UpgradeActions[i].entity = removedName
+        if HasProp(UpgradeActions[i], "entity") && UpgradeActions[i].entity = removedName
             UpgradeActions.RemoveAt(i)
         i -= 1
     }
@@ -377,6 +562,7 @@ DeleteSelectedEntity(*) {
     RefreshEntityList()
     RefreshActionEntityDropdown()
     RefreshActionList()
+    RefreshMonkeyOverlayIfVisible()
     EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
     StatusText.Text := "Deleted " removedName
 }
@@ -415,9 +601,102 @@ AddUpgradeAction(*) {
     round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
     delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
 
-    UpgradeActions.Push({entity: entityName, upgrade: upgrade, round: round, delay: delay})
+    UpgradeActions.Push({kind: "upgrade", entity: entityName, upgrade: upgrade, round: round, delay: delay})
     RefreshActionList()
     StatusText.Text := "Added " entityName " -> " upgrade " on round " round
+}
+
+AddTargetingAction(*) {
+    global Entities, UpgradeActions, ActionEntityDDL, ActionTargetDDL, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+
+    if Entities.Length = 0 {
+        MsgBox("Add at least one monkey first.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    entityName := ActionEntityDDL.Text
+    if entityName = "" || entityName = "Add a monkey first" {
+        MsgBox("Select a monkey.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    selectedEntity := FindEntityByName(entityName)
+    if !selectedEntity {
+        MsgBox("The selected monkey could not be found.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    if selectedEntity.type = "Dartling" {
+        MsgBox("Dartling Gunners use SetDartlingTargeting() / AimDartling() instead of SetTargeting().", "Strategy Builder", "Icon!")
+        return
+    }
+
+    if selectedEntity.type = "Heli" {
+        MsgBox("Heli Pilots use LockHeliInPlace() / RetargetHeli() instead of SetTargeting().", "Strategy Builder", "Icon!")
+        return
+    }
+
+    if selectedEntity.type = "Mortar" {
+        MsgBox("Mortar Monkeys use SetMortarTarget() / RetargetMortar() instead of SetTargeting().", "Strategy Builder", "Icon!")
+        return
+    }
+
+    targetMode := ActionTargetDDL.Text
+    if targetMode = "" {
+        MsgBox("Select a targeting mode.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
+    delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
+
+    UpgradeActions.Push({kind: "target", entity: entityName, target: targetMode, round: round, delay: delay})
+    RefreshActionList()
+    StatusText.Text := "Added " entityName " targeting -> " targetMode " on round " round
+}
+
+AddSellAction(*) {
+    global Entities, UpgradeActions, ActionEntityDDL, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+
+    if Entities.Length = 0 {
+        MsgBox("Add at least one monkey or hero first.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    entityName := ActionEntityDDL.Text
+    if entityName = "" || entityName = "Add a monkey first" {
+        MsgBox("Select a monkey or hero to sell.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    if !FindEntityByName(entityName) {
+        MsgBox("The selected monkey could not be found.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
+    delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
+
+    UpgradeActions.Push({kind: "sell", entity: entityName, round: round, delay: delay})
+    RefreshActionList()
+    StatusText.Text := "Added sell for " entityName " on round " round
+}
+
+AddAbilityAction(*) {
+    global UpgradeActions, AbilityEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+
+    hotkey := Trim(AbilityEdit.Value)
+    if hotkey = "" {
+        MsgBox("Enter the BTD6 ability hotkey, such as 1, 2, or 3.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
+    delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
+
+    UpgradeActions.Push({kind: "ability", hotkey: hotkey, round: round, delay: delay})
+    RefreshActionList()
+    StatusText.Text := "Added ability " hotkey " on round " round
 }
 
 DeleteSelectedUpgrade(*) {
@@ -425,13 +704,13 @@ DeleteSelectedUpgrade(*) {
 
     row := ActionLV.GetNext(0)
     if row = 0 {
-        MsgBox("Select an upgrade action to delete.", "Strategy Builder", "Icon!")
+        MsgBox("Select a scheduled action to delete.", "Strategy Builder", "Icon!")
         return
     }
 
     UpgradeActions.RemoveAt(row)
     RefreshActionList()
-    StatusText.Text := "Upgrade action deleted"
+    StatusText.Text := "Scheduled action deleted"
 }
 
 RefreshEntityList() {
@@ -440,7 +719,8 @@ RefreshEntityList() {
     EntityLV.Delete()
     for entity in Entities {
         heroDisplay := entity.type = "Hero" ? entity.heroName : "-"
-        EntityLV.Add("", entity.name, entity.type, heroDisplay, entity.x, entity.y, entity.placeRound)
+        placeDelay := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
+        EntityLV.Add("", entity.name, entity.type, heroDisplay, entity.x, entity.y, entity.placeRound, placeDelay, entity.targeting)
     }
 }
 
@@ -448,31 +728,99 @@ RefreshActionList() {
     global ActionLV, UpgradeActions
 
     ActionLV.Delete()
-    for action in UpgradeActions
-        ActionLV.Add("", action.entity, action.upgrade, action.round, action.delay)
+    for action in UpgradeActions {
+        kind := HasProp(action, "kind") ? action.kind : "upgrade"
+
+        if kind = "target" {
+            ActionLV.Add("", "Target", action.entity, action.target, action.round, action.delay)
+        } else if kind = "sell" {
+            value := HasProp(action, "overrideX") ? "@ " action.overrideX "," action.overrideY : "Sell"
+            ActionLV.Add("", "Sell", action.entity, value, action.round, action.delay)
+        } else if kind = "ability" {
+            ActionLV.Add("", "Ability", "-", action.hotkey, action.round, action.delay)
+        } else {
+            value := action.upgrade
+            if HasProp(action, "overrideX")
+                value .= " @ " action.overrideX "," action.overrideY
+            ActionLV.Add("", "Upgrade", action.entity, value, action.round, action.delay)
+        }
+    }
 }
 
-RefreshActionEntityDropdown() {
+RefreshActionEntityDropdown(preferredName := "") {
     global ActionEntityDDL, Entities
 
     names := []
-    for entity in Entities {
-        if entity.type != "Hero"
-            names.Push(entity.name)
-    }
+    for entity in Entities
+        names.Push(entity.name)
 
     ; CB_RESETCONTENT clears all items from a DropDownList/ComboBox.
-    ; Gui.DropDownList does not expose GetCount() in AutoHotkey v2.
     DllCall("SendMessage", "Ptr", ActionEntityDDL.Hwnd, "UInt", 0x014B, "Ptr", 0, "Ptr", 0)
 
     if names.Length = 0 {
         ActionEntityDDL.Add(["Add a monkey first"])
         ActionEntityDDL.Choose(1)
+        RefreshActionTargetDropdown()
         return
     }
 
     ActionEntityDDL.Add(names)
+
+    if preferredName != "" && ChooseDropdownText(ActionEntityDDL, preferredName) {
+        RefreshActionTargetDropdown()
+        return
+    }
+
     ActionEntityDDL.Choose(1)
+    RefreshActionTargetDropdown()
+}
+
+OnActionEntityChanged(*) {
+    RefreshActionTargetDropdown()
+}
+
+RefreshActionTargetDropdown() {
+    global ActionEntityDDL, ActionTargetDDL
+
+    if !ActionTargetDDL
+        return
+
+    DllCall("SendMessage", "Ptr", ActionTargetDDL.Hwnd, "UInt", 0x014B, "Ptr", 0, "Ptr", 0)
+
+    entityName := ActionEntityDDL.Text
+    selectedEntity := FindEntityByName(entityName)
+
+    if !selectedEntity {
+        ActionTargetDDL.Add(["First"])
+        ActionTargetDDL.Choose(1)
+        ActionTargetDDL.Enabled := false
+        return
+    }
+
+    type := selectedEntity.type
+
+    if type = "Dartling" {
+        choices := ["Use Dartling helper"]
+        ActionTargetDDL.Enabled := false
+    } else if type = "Heli" {
+        choices := ["Use Heli helper"]
+        ActionTargetDDL.Enabled := false
+    } else if type = "Mortar" {
+        choices := ["Use Mortar helper"]
+        ActionTargetDDL.Enabled := false
+    } else if type = "Ace" {
+        choices := ["Circle", "Figure Infinite", "Figure Eight", "Centered Path"]
+        ActionTargetDDL.Enabled := true
+    } else if type = "Sniper" {
+        choices := ["First", "Last", "Close", "Strong", "Elite"]
+        ActionTargetDDL.Enabled := true
+    } else {
+        choices := ["First", "Last", "Close", "Strong"]
+        ActionTargetDDL.Enabled := true
+    }
+
+    ActionTargetDDL.Add(choices)
+    ActionTargetDDL.Choose(1)
 }
 
 GenerateTemplate(*) {
@@ -535,17 +883,28 @@ SaveTemplate(*) {
 
 ClearAll(*) {
     global Entities, UpgradeActions, OutputEdit, StatusText, EntityNameEdit, EntityTypeDDL, HeroDDL, TargetingDDL
+    global PlaceRoundEdit, PlaceDelayEdit, XEdit, YEdit
+    global ImportedStartRound, ImportedEndRound
+    global WingmonkeyMKCheckbox
 
-    result := MsgBox("Clear all monkeys, hero, upgrades, and generated output?", "Strategy Builder", "YesNo Icon?")
+    result := MsgBox("Clear all monkeys, hero, scheduled actions, and generated output?", "Strategy Builder", "YesNo Icon?")
     if result != "Yes"
         return
 
+    HideMonkeyOverlay()
     Entities := []
     UpgradeActions := []
+    ImportedStartRound := ""
+    ImportedEndRound := ""
+    WingmonkeyMKCheckbox.Value := 0
     OutputEdit.Value := ""
     EntityTypeDDL.Choose(1)
     HeroDDL.Enabled := false
     EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
+    XEdit.Value := "0"
+    YEdit.Value := "0"
+    PlaceRoundEdit.Value := "0"
+    PlaceDelayEdit.Value := "0"
     ApplyDefaultTargetingForType(EntityTypeDDL.Text)
     RefreshEntityList()
     RefreshActionEntityDropdown()
@@ -556,6 +915,8 @@ ClearAll(*) {
 BuildTemplateText() {
     global Entities, UpgradeActions
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL
+    global ImportedStartRound, ImportedEndRound
+    global WingmonkeyMKCheckbox
 
     if Entities.Length = 0 {
         MsgBox("Add at least one monkey or hero before generating the template.", "Strategy Builder", "Icon!")
@@ -593,12 +954,18 @@ BuildTemplateText() {
     out .= "        difficulty: " q difficulty q ",`r`n"
     out .= "        gameMode: " q gameMode q ",`r`n"
     out .= "        hero: " heroValue ",`r`n"
-    out .= "        wingmonkeyMK: false"
+    out .= "        wingmonkeyMK: " (WingmonkeyMKCheckbox.Value ? "true" : "false")
 
     if isDeflation {
         out .= ",`r`n"
         out .= "        startRound: 31,`r`n"
         out .= "        endRound: 60`r`n"
+    } else if ImportedStartRound != "" || ImportedEndRound != "" {
+        out .= ",`r`n"
+        if ImportedStartRound != ""
+            out .= "        startRound: " ImportedStartRound ",`r`n"
+        if ImportedEndRound != ""
+            out .= "        endRound: " ImportedEndRound "`r`n"
     } else {
         out .= "`r`n"
     }
@@ -615,22 +982,83 @@ BuildTemplateText() {
     out .= "    )`r`n`r`n"
 
     allActions := []
-    for entity in Entities
-        allActions.Push({kind: "place", entity: entity.name, round: entity.placeRound, delay: 0, upgrade: ""})
+    for entity in Entities {
+        placeDelay := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
+        allActions.Push({kind: "place", entity: entity.name, round: entity.placeRound, delay: placeDelay})
+    }
 
-    for action in UpgradeActions
-        allActions.Push({kind: "upgrade", entity: action.entity, round: action.round, delay: action.delay, upgrade: action.upgrade})
+    for action in UpgradeActions {
+        kind := HasProp(action, "kind") ? action.kind : "upgrade"
+
+        if kind = "target" {
+            allActions.Push({
+                kind: "target",
+                entity: action.entity,
+                round: action.round,
+                delay: action.delay,
+                target: action.target
+            })
+        } else if kind = "sell" {
+            item := {
+                kind: "sell",
+                entity: action.entity,
+                round: action.round,
+                delay: action.delay
+            }
+            if HasProp(action, "overrideX") {
+                item.overrideX := action.overrideX
+                item.overrideY := action.overrideY
+            }
+            allActions.Push(item)
+        } else if kind = "ability" {
+            allActions.Push({
+                kind: "ability",
+                round: action.round,
+                delay: action.delay,
+                hotkey: action.hotkey
+            })
+        } else {
+            item := {
+                kind: "upgrade",
+                entity: action.entity,
+                round: action.round,
+                delay: action.delay,
+                upgrade: action.upgrade
+            }
+            if HasProp(action, "overrideX") {
+                item.overrideX := action.overrideX
+                item.overrideY := action.overrideY
+            }
+            allActions.Push(item)
+        }
+    }
 
     SortActions(allActions)
 
     out .= "    strategy := [`r`n"
     for index, action in allActions {
-        entityName := EscapeAhkString(action.entity)
-
-        if action.kind = "place" {
-            out .= "        [" action.round ", " action.delay ", () => PlaceTower(TowerSetup[" q entityName q "])]"
+        if action.kind = "ability" {
+            hotkey := EscapeAhkString(action.hotkey)
+            out .= "        [" action.round ", " action.delay ", () => UseAbility(" q hotkey q ")]"
         } else {
-            out .= "        [" action.round ", " action.delay ", () => UpgradeTower(TowerSetup[" q entityName q "], " q action.upgrade q ")]"
+            entityName := EscapeAhkString(action.entity)
+
+            if action.kind = "place" {
+                out .= "        [" action.round ", " action.delay ", () => PlaceTower(TowerSetup[" q entityName q "])]"
+            } else if action.kind = "target" {
+                targetMode := EscapeAhkString(action.target)
+                out .= "        [" action.round ", " action.delay ", () => SetTargeting(TowerSetup[" q entityName q "], " q targetMode q ")]"
+            } else if action.kind = "sell" {
+                out .= "        [" action.round ", " action.delay ", () => SellTower(TowerSetup[" q entityName q "]"
+                if HasProp(action, "overrideX")
+                    out .= ", " action.overrideX ", " action.overrideY
+                out .= ")]"
+            } else {
+                out .= "        [" action.round ", " action.delay ", () => UpgradeTower(TowerSetup[" q entityName q "], " q action.upgrade q
+                if HasProp(action, "overrideX")
+                    out .= ", " action.overrideX ", " action.overrideY
+                out .= ")]"
+            }
         }
 
         if index < allActions.Length
@@ -662,8 +1090,25 @@ ValidateDeflationRounds() {
 
     for action in UpgradeActions {
         if !IsValidDeflationActionRound(action.round) {
+            kind := HasProp(action, "kind") ? action.kind : "upgrade"
+
+            if kind = "target" {
+                value := action.target
+                actionLabel := "targeting"
+            } else if kind = "sell" {
+                value := "sell"
+                actionLabel := "sell"
+            } else if kind = "ability" {
+                value := action.hotkey
+                actionLabel := "ability"
+            } else {
+                value := action.upgrade
+                actionLabel := "upgrade"
+            }
+
+            entityLabel := HasProp(action, "entity") ? action.entity " " : ""
             MsgBox(
-                action.entity " -> " action.upgrade " uses round " action.round ".`n`n"
+                entityLabel actionLabel " -> " value " uses round " action.round ".`n`n"
                 . "Deflation actions must use round 0 for pregame setup or rounds 31-60.",
                 "Strategy Builder - Deflation",
                 "Icon!"
@@ -786,6 +1231,396 @@ ChooseDropdownText(control, wanted) {
 
     control.Choose(itemIndex + 1)
     return true
+}
+
+ImportStrategyScript(*) {
+    global MainGui, Entities, UpgradeActions, OutputEdit, StatusText
+    global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL
+    global EntityTypeDDL, EntityNameEdit, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit
+    global ImportedStartRound, ImportedEndRound, IsImportingStrategy
+    global WingmonkeyMKCheckbox
+
+    projectRoot := RegExReplace(A_ScriptDir, "i)\\Tools$")
+    MainGui.Opt("-AlwaysOnTop")
+    path := FileSelect("1", projectRoot "\Maps", "Import strategy script", "AutoHotkey Script (*.ahk)")
+    if path = ""
+        return
+
+    try text := FileRead(path, "UTF-8")
+    catch as err {
+        MsgBox("Could not read the strategy file.`n`n" err.Message, "Strategy Builder", "Iconx")
+        return
+    }
+
+    parsed := ParseStrategyScript(text)
+    if !parsed || parsed.entities.Length = 0 {
+        MsgBox("No TowerSetup entries could be imported from this script.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    HideMonkeyOverlay()
+    Entities := parsed.entities
+    UpgradeActions := parsed.actions
+    ImportedStartRound := parsed.startRound
+    ImportedEndRound := parsed.endRound
+    WingmonkeyMKCheckbox.Value := parsed.wingmonkeyMK ? 1 : 0
+
+    IsImportingStrategy := true
+    MapNameEdit.Value := parsed.map
+    FunctionNameEdit.Value := parsed.functionName
+    ChooseDropdownText(CategoryDDL, parsed.category)
+
+    difficulty := parsed.difficulty
+    mode := parsed.gameMode
+    if difficulty = "Impoppable" {
+        difficulty := "Hard"
+        mode := "Impoppable"
+    } else if difficulty = "CHIMPS" {
+        difficulty := "Hard"
+        mode := "CHIMPS"
+    }
+
+    if !ChooseDropdownText(DifficultyDDL, difficulty)
+        DifficultyDDL.Choose(1)
+
+    RefreshModeChoicesForDifficulty(DifficultyDDL.Text, mode)
+    OnModeChanged()
+    IsImportingStrategy := false
+
+    RefreshEntityList()
+    RefreshActionEntityDropdown()
+    RefreshActionList()
+    OutputEdit.Value := ""
+
+    EntityTypeDDL.Choose(1)
+    HeroDDL.Enabled := false
+    EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
+    XEdit.Value := "0"
+    YEdit.Value := "0"
+    PlaceRoundEdit.Value := "0"
+    PlaceDelayEdit.Value := "0"
+    ApplyDefaultTargetingForType(EntityTypeDDL.Text)
+
+    unsupported := parsed.totalStrategyEntries - parsed.parsedStrategyEntries
+    if unsupported > 0 {
+        StatusText.Text := "Imported with " unsupported " unsupported action(s) skipped"
+        MsgBox(
+            "Imported " parsed.entities.Length " monkey/hero entries and " parsed.parsedStrategyEntries " recognized strategy actions.`n`n"
+            . unsupported " action(s) used helpers Strategy Builder does not edit yet, so those actions were skipped.",
+            "Strategy Builder - Import",
+            "Icon!"
+        )
+    } else {
+        StatusText.Text := "Imported: " path
+    }
+}
+
+ParseStrategyScript(text) {
+    cleanText := RegExReplace(text, "m)^\s*;.*$", "")
+
+    result := {
+        functionName: "GeneratedMapStrategy",
+        map: ExtractConfigString(cleanText, "map", "MAP NAME"),
+        category: ExtractConfigString(cleanText, "category", "Beginner"),
+        difficulty: ExtractConfigString(cleanText, "difficulty", "Easy"),
+        gameMode: ExtractConfigString(cleanText, "gameMode", "Standard"),
+        hero: ExtractConfigString(cleanText, "hero", ""),
+        wingmonkeyMK: ExtractConfigBoolean(cleanText, "wingmonkeyMK", false),
+        startRound: ExtractConfigInteger(cleanText, "startRound", ""),
+        endRound: ExtractConfigInteger(cleanText, "endRound", ""),
+        entities: [],
+        actions: [],
+        totalStrategyEntries: CountStrategyEntries(cleanText),
+        parsedStrategyEntries: 0
+    }
+
+    if RegExMatch(cleanText, "im)^\s*([A-Za-z_][A-Za-z0-9_]*)\(\)\s*\{", &functionMatch)
+        result.functionName := functionMatch[1]
+
+    if !RegExMatch(cleanText, "is)global\s+TowerSetup\s*:=\s*Map\((.*?)\)\s*strategy\s*:=", &setupMatch)
+        return result
+
+    setupText := setupMatch[1]
+    entityPattern := "is)\x22([^\x22]+)\x22\s*,\s*\{(.*?)\}"
+    pos := 1
+
+    while matchPos := RegExMatch(setupText, entityPattern, &entityMatch, pos) {
+        name := entityMatch[1]
+        body := entityMatch[2]
+        type := ExtractObjectString(body, "type", "Dart")
+        targeting := ExtractObjectString(body, "targeting", GetBuilderDefaultTargeting(type))
+
+        result.entities.Push({
+            name: name,
+            type: type,
+            heroName: type = "Hero" ? result.hero : "",
+            x: ExtractObjectInteger(body, "x", 0),
+            y: ExtractObjectInteger(body, "y", 0),
+            placeRound: 0,
+            placeDelay: 0,
+            targeting: targeting
+        })
+
+        pos := matchPos + entityMatch.Len(0)
+    }
+
+    importedActions := ParseImportedStrategyActions(cleanText)
+    result.parsedStrategyEntries := importedActions.Length
+    placedEntities := Map()
+
+    for action in importedActions {
+        if action.kind = "place" {
+            entity := FindEntityByNameInArray(result.entities, action.entity)
+
+            ; The builder stores one placement schedule per configured monkey.
+            ; If an imported script sells and later re-places the same object,
+            ; warn instead of silently replacing the first placement action.
+            if !entity || placedEntities.Has(action.entity) {
+                result.parsedStrategyEntries -= 1
+                continue
+            }
+
+            placedEntities[action.entity] := true
+            entity.placeRound := action.round
+            entity.placeDelay := action.delay
+            continue
+        }
+
+        if (
+            HasProp(action, "entity")
+            && !FindEntityByNameInArray(result.entities, action.entity)
+        ) {
+            result.parsedStrategyEntries -= 1
+            continue
+        }
+
+        result.actions.Push(action)
+    }
+
+    return result
+}
+
+ParseImportedStrategyActions(text) {
+    actions := []
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*PlaceTower\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*\)\s*\]",
+        "place",
+        actions
+    )
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*UpgradeTower\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*,\s*\x22(\d{3})\x22\s*(?:,\s*(-?\d+)\s*,\s*(-?\d+)\s*)?\)\s*\]",
+        "upgrade",
+        actions
+    )
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*SetTargeting\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*,\s*\x22([^\x22]+)\x22\s*\)\s*\]",
+        "target",
+        actions
+    )
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*SellTower\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*(?:,\s*(-?\d+)\s*,\s*(-?\d+)\s*)?\)\s*\]",
+        "sell",
+        actions
+    )
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*UseAbility\(\s*\x22([^\x22]+)\x22\s*\)\s*\]",
+        "ability",
+        actions
+    )
+
+    SortImportedActionsByPosition(actions)
+    return actions
+}
+
+CollectImportedActions(text, pattern, kind, actions) {
+    pos := 1
+
+    while matchPos := RegExMatch(text, pattern, &m, pos) {
+        action := {
+            kind: kind,
+            round: Integer(m[1]),
+            delay: Integer(m[2]),
+            sourcePos: matchPos
+        }
+
+        if kind = "place" {
+            action.entity := m[3]
+        } else if kind = "upgrade" {
+            action.entity := m[3]
+            action.upgrade := m[4]
+            if m[5] != "" && m[6] != "" {
+                action.overrideX := Integer(m[5])
+                action.overrideY := Integer(m[6])
+            }
+        } else if kind = "target" {
+            action.entity := m[3]
+            action.target := m[4]
+        } else if kind = "sell" {
+            action.entity := m[3]
+            if m[4] != "" && m[5] != "" {
+                action.overrideX := Integer(m[4])
+                action.overrideY := Integer(m[5])
+            }
+        } else if kind = "ability" {
+            action.hotkey := m[3]
+        }
+
+        actions.Push(action)
+        pos := matchPos + m.Len(0)
+    }
+}
+
+SortImportedActionsByPosition(actions) {
+    i := 2
+    while i <= actions.Length {
+        current := actions[i]
+        j := i - 1
+
+        while j >= 1 && actions[j].sourcePos > current.sourcePos {
+            actions[j + 1] := actions[j]
+            j -= 1
+        }
+
+        actions[j + 1] := current
+        i += 1
+    }
+}
+
+CountStrategyEntries(text) {
+    pattern := "is)\[\s*\d+\s*,\s*\d+\s*,\s*\(\)\s*=>"
+    pos := 1
+    count := 0
+
+    while matchPos := RegExMatch(text, pattern, &m, pos) {
+        count += 1
+        pos := matchPos + m.Len(0)
+    }
+
+    return count
+}
+
+ExtractConfigString(text, field, defaultValue := "") {
+    pattern := "im)^\s*" field "\s*:\s*\x22([^\x22]*)\x22"
+    if RegExMatch(text, pattern, &m)
+        return m[1]
+    return defaultValue
+}
+
+ExtractConfigBoolean(text, field, defaultValue := false) {
+    pattern := "im)^\s*" field "\s*:\s*(true|false)"
+    if RegExMatch(text, pattern, &m)
+        return StrLower(m[1]) = "true"
+    return defaultValue
+}
+
+ExtractConfigInteger(text, field, defaultValue := "") {
+    pattern := "im)^\s*" field "\s*:\s*(-?\d+)"
+    if RegExMatch(text, pattern, &m)
+        return Integer(m[1])
+    return defaultValue
+}
+
+ExtractObjectString(text, field, defaultValue := "") {
+    pattern := "im)^\s*" field "\s*:\s*\x22([^\x22]*)\x22"
+    if RegExMatch(text, pattern, &m)
+        return m[1]
+    return defaultValue
+}
+
+ExtractObjectInteger(text, field, defaultValue := 0) {
+    pattern := "im)^\s*" field "\s*:\s*(-?\d+)"
+    if RegExMatch(text, pattern, &m)
+        return Integer(m[1])
+    return defaultValue
+}
+
+GetBuilderDefaultTargeting(type) {
+    if type = "Ace"
+        return "Circle"
+    if type = "Dartling"
+        return "Normal"
+    if type = "Heli"
+        return "Follow Mouse"
+    if type = "Mortar"
+        return "Target"
+    return "First"
+}
+
+FindEntityByNameInArray(entities, name) {
+    for entity in entities {
+        if entity.name = name
+            return entity
+    }
+    return false
+}
+
+ToggleMonkeyOverlay(*) {
+    global MonkeyOverlayVisible
+
+    if MonkeyOverlayVisible {
+        HideMonkeyOverlay()
+        return
+    }
+
+    ShowMonkeyOverlay()
+}
+
+ShowMonkeyOverlay() {
+    global Entities, MonkeyOverlayWindows, MonkeyOverlayVisible, StatusText
+
+    HideMonkeyOverlay()
+
+    if Entities.Length = 0 {
+        MsgBox("Add or import at least one monkey first.", "Strategy Builder", "Icon!")
+        return false
+    }
+
+    for entity in Entities {
+        overlay := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+        overlay.BackColor := "010203"
+        overlay.SetFont("s10 w600 cFFD45C", "Segoe UI")
+        overlay.AddText("x0 y0 w20 h26 Center +0x200", "+")
+        overlay.AddText("x20 y0 w175 h26 +0x200", entity.name " (" entity.type ")")
+
+        overlayX := entity.x - 10
+        overlayY := entity.y - 13
+        overlay.Show("NA x" overlayX " y" overlayY " w195 h26")
+        WinSetTransColor("010203", "ahk_id " overlay.Hwnd)
+        MonkeyOverlayWindows.Push(overlay)
+    }
+
+    MonkeyOverlayVisible := true
+    StatusText.Text := "Showing " Entities.Length " monkey label(s)"
+    return true
+}
+
+HideMonkeyOverlay(*) {
+    global MonkeyOverlayWindows, MonkeyOverlayVisible
+
+    for overlay in MonkeyOverlayWindows {
+        try overlay.Destroy()
+    }
+
+    MonkeyOverlayWindows := []
+    MonkeyOverlayVisible := false
+    return true
+}
+
+RefreshMonkeyOverlayIfVisible() {
+    global MonkeyOverlayVisible
+
+    if MonkeyOverlayVisible
+        ShowMonkeyOverlay()
 }
 
 IntegerOrDefault(value, defaultValue := 0) {

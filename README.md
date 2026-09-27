@@ -1,12 +1,15 @@
 # BTD6 Everything Macro
 
-**Current version: v2.2.3**
+**Current version: v2.3.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
-- Added Monkey Meadow Hard Standard, Magic Monkeys Only, and Alternate Bloons Rounds scripts.
-- Minor tweaks to monkey upgrade timing and round logic calculations.
+- Added Tricky Tracks Impoppable script.
+- Expanded Expert map navigation data and added dedicated Impoppable confirmation handling.
+- Expanded Strategy Builder with strategy importing, entity editing, placement delays, targeting, selling, abilities, and click-through monkey coordinate labels.
+- Added reusable `SellTower()` support plus moving-map coordinate overrides for upgrades and sells.
+- Improved round-trigger timing, Shift-modified tower placement reliability, and upgrade wait / defeat detection behavior.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.

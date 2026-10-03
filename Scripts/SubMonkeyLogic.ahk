@@ -1,7 +1,14 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the SubMonkey part of the macro. Keep this focused so run bugs are easier to trace later.
+
 SetSubmerge(tower, shouldSubmerge := true) {
+    LogStrategyAction(
+        (shouldSubmerge ? "Submerge " : "Surface ")
+        . GetTowerLogName(tower)
+    )
+
     if !HasProp(tower, "placed") || !tower.placed
         return false
 

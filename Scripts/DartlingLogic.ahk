@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Dartling part of the macro. Keep this focused so run bugs are easier to trace later.
+
 GetDartlingTargetingOrder(tower) {
     if tower.type != "Dartling"
         throw Error("GetDartlingTargetingOrder() can only be used with Dartling Gunners.")

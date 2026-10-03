@@ -1,10 +1,13 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Logs part of the macro. Keep this focused so run bugs are easier to trace later.
+
 global CurrentRunLogFile := ""
 global CurrentRunLogStarted := false
 global CurrentRunLogFinished := false
 global LastRunFailureReason := ""
+global CurrentLogRoundSection := ""
 
 
 GetMacroProjectRoot() {
@@ -106,11 +109,13 @@ InitializeRunLog(context := "") {
     global CurrentRunLogStarted
     global CurrentRunLogFinished
     global LastRunFailureReason
+    global CurrentLogRoundSection
 
     CurrentRunLogFile := ""
     CurrentRunLogStarted := false
     CurrentRunLogFinished := false
     LastRunFailureReason := ""
+    CurrentLogRoundSection := ""
 
     if !IsLoggingEnabled()
         return ""
@@ -164,6 +169,79 @@ LogMessage(level, message) {
     }
 }
 
+
+GetTowerLogName(tower) {
+    global TowerSetup
+
+    try {
+        for towerName, configuredTower in TowerSetup {
+            if (
+                IsObject(configuredTower)
+                && ObjPtr(configuredTower) = ObjPtr(tower)
+            ) {
+                return towerName
+            }
+        }
+    }
+
+    try {
+        if HasProp(tower, "type")
+            return tower.type
+    }
+
+    return "Unknown Tower"
+}
+
+
+LogStrategyRoundHeader(round) {
+    global CurrentRunLogFile
+    global CurrentRunLogStarted
+    global CurrentLogRoundSection
+
+    if !IsLoggingEnabled()
+        return false
+
+    if !CurrentRunLogStarted || CurrentRunLogFile = ""
+        return false
+
+    if CurrentLogRoundSection = round
+        return true
+
+    separator := "------------------------------------------------------------"
+    text := separator . "`r`n"
+    text .= "ROUND " . round . "`r`n"
+
+    try {
+        FileAppend(text, CurrentRunLogFile, "UTF-8")
+        CurrentLogRoundSection := round
+        return true
+    }
+    catch {
+        return false
+    }
+}
+
+
+LogStrategyAction(message) {
+    global CurrentRunLogFile
+    global CurrentRunLogStarted
+
+    if !IsLoggingEnabled()
+        return false
+
+    if !CurrentRunLogStarted || CurrentRunLogFile = ""
+        return false
+
+    line := "[" . GetLogTimestampMs() . "] [ACTION] " . SanitizeLogText(message) . "`r`n"
+
+    try {
+        FileAppend(line, CurrentRunLogFile, "UTF-8")
+        return true
+    }
+    catch {
+        return false
+    }
+}
 
 SetRunFailureReason(reason, detail := "") {
     global LastRunFailureReason

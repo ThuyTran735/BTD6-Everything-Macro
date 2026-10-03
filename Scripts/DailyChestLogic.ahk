@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the DailyChest part of the macro. Keep this focused so run bugs are easier to trace later.
+
 global DailyChestPatterns := Map(
     "Available", "|<>*125$55.U0000001zk0000000zs0000000Ts000000M60000000000000000y00000000zU0E030M0zs0800S20zw0401zkUzy0301zw0TzU001zz0Tzk000zzkDzs000Tzs7zw000Tzy3zy000Dzz1zz0007zzUzzU003zzsTzk001zzs7zs000Tzw3zs000Dzy1zs0007zz0Ts0401zzUDkDy00zzU1UDz007zU00DzU01zVs0Dzk00000UDzw000000Tzz0k0000zzzvy0003zzzU",
 

@@ -4,6 +4,8 @@
 #Include Version.ahk
 
 
+; v3 file note: Handles the IncludeAll part of the macro. Keep this focused so run bugs are easier to trace later.
+
 global RunConfig := {
     category: "",
     map: "",
@@ -33,6 +35,7 @@ global TowerSetup := Map()
 #Include HeliLogic.ahk
 #Include MermonkeyLogic.ahk
 #Include MortarLogic.ahk
+#Include SpikeFactoryLogic.ahk
 
 
 #Include HeroSelection.ahk

@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Placement part of the macro. Keep this focused so run bugs are easier to trace later.
+
 PlaceTower(tower) {
     global TowerHotkeys
 
@@ -20,33 +22,25 @@ PlaceTower(tower) {
     hotkey := TowerHotkeys[tower.type]
 
 
+    LogStrategyAction(
+        "Place "
+        . GetTowerLogName(tower)
+        . " ("
+        . tower.type
+        . ") at "
+        . tower.x
+        . ", "
+        . tower.y
+    )
+
+
     ; A previous UpgradeTower() may have intentionally left its panel open.
     ; Close the cached panel first.
     CloseCachedUpgradePanel()
 
 
-    ; Shift-modified tower hotkeys are the only placement path where we have
-    ; seen an unrelated recovery click leave a real tower panel open without
-    ; populating SelectedUpgradeTower. Check for that real panel here, at the
-    ; last possible moment before entering placement mode.
-    ;
-    ; Keep this out of CloseCachedUpgradePanel(): that helper also runs before
-    ; round waits, where a screen-wide Sell-button match can send an unwanted
-    ; Esc and interfere with Hero placement.
-    if SubStr(hotkey, 1, 1) = "+" {
-        if GetUpgradePanelSide() {
-            Send("{Esc}")
-            Sleep(25)
-            ClearSelectedUpgradeTower()
-        }
-    }
-
-
     ; Move to the intended empty placement point before sending the
-    ; tower hotkey. This keeps Shift-modified hotkeys (such as
-    ; Mermonkey +W) from being triggered while the cursor is still
-    ; sitting over an already-placed tower, which can leave that
-    ; tower selected instead of entering placement mode.
+    ; tower hotkey so placement starts from the requested coordinate.
     MouseMove(
         tower.x,
         tower.y,
@@ -69,55 +63,10 @@ PlaceTower(tower) {
         Sleep(140)
 
 
-    ; Shift-modified tower hotkeys.
-    ;
-    ; Example:
-    ; "Desperado", "+q"
-    ;
-    ; BTD6 can occasionally miss Shift if the
-    ; modifier and tower key are sent too quickly.
-    ;
-    ; Send the entire sequence manually and give
-    ; BTD6 enough time to register each state.
-    } else if SubStr(hotkey, 1, 1) = "+" {
-        key := SubStr(hotkey, 2)
-
-
-        ; Start from a known Shift state.
-        SendEvent("{Shift up}")
-        Sleep(40)
-
-
-        ; Press and hold Shift.
-        SendEvent("{Shift down}")
-        Sleep(80)
-
-
-        ; Press the tower hotkey while Shift
-        ; is definitely being held.
-        SendEvent("{" key " down}")
-        Sleep(80)
-
-
-        ; Release the tower hotkey while
-        ; continuing to hold Shift.
-        SendEvent("{" key " up}")
-        Sleep(100)
-
-
-        ; Release Shift.
-        SendEvent("{Shift up}")
-
-
-        ; Give BTD6 time to enter placement mode
-        ; for the Shift-modified tower.
-        Sleep(120)
-
-
     } else {
-        ; Normal tower hotkey.
+        ; Send the configured tower hotkey as-is. The three newer monkeys use
+        ; dedicated F-keys so we do not have to depend on Shift staying held.
         Send(hotkey)
-
         Sleep(40)
     }
 

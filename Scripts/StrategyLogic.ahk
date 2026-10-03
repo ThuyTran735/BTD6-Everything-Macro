@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Strategy part of the macro. Keep this focused so run bugs are easier to trace later.
+
 global IsPregame := false
 global CurrentStrategyTargetRound := 0
 global CurrentStrategyRoundDetectedTick := 0
@@ -15,6 +17,10 @@ MarkStrategyRoundDetected(targetRound) {
     CurrentStrategyTargetRound := targetRound
     CurrentStrategyRoundDetectedTick := A_TickCount
     CurrentStrategyRoundDetectedTimestamp := GetLogTimestampMs()
+
+    ; Round header is emitted before any callback/action logs. The helper
+    ; deduplicates repeated actions on the same round.
+    LogStrategyRoundHeader(targetRound)
 }
 
 
@@ -358,6 +364,11 @@ StartGame() {
 
 
 UseAbility(hotkey) {
+
+    LogStrategyAction(
+        "Use ability " . hotkey
+    )
+
 
     Send(
         hotkey

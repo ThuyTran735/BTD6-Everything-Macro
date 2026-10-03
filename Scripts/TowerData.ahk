@@ -1,4 +1,6 @@
-﻿global TowerHotkeys := Map(
+﻿; v3 file note: Handles the TowerData part of the macro. Keep this focused so run bugs are easier to trace later.
+
+global TowerHotkeys := Map(
     ; Heroes
     "Hero", "u",
 
@@ -9,7 +11,7 @@
     "Tack", "r",
     "Ice", "t",
     "Glue", "y",
-    "Desperado", "+q",
+    "Desperado", "{F8}",
     
     ; Military
     "Sniper", "z",
@@ -26,8 +28,8 @@
     "Ninja", "d",
     "Alchemist", "f",
     "Druid", "g",
-    "Mermonkey", "+w",
-    "Skywarden", "+e",
+    "Mermonkey", "{F6}",
+    "Skywarden", "{F7}",
 
     ; Support
     "Farm", "h",

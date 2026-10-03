@@ -1,8 +1,10 @@
 ﻿#Requires AutoHotkey v2.0
 
+; v3 file note: Handles the Version part of the macro. Keep this focused so run bugs are easier to trace later.
+
 ; Single source of truth for the installed application's version.
 ; Change only this value when bumping the local/runtime version.
-global AppVersion := "2.3.0"
+global AppVersion := "3.0.0"
 
 GetAppVersion() {
     global AppVersion

@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Setup part of the macro. Keep this focused so run bugs are easier to trace later.
+
 IsBTD6Fullscreen() {
     gameWindow :=
         WinExist(

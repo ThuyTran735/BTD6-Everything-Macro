@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: Handles the Targeting part of the macro. Keep this focused so run bugs are easier to trace later.
+
 global EliteSniperActive := false
 
 
@@ -112,6 +114,10 @@ GetDefaultTargeting(tower) {
         return "Target"
 
 
+    if tower.type = "SpikeFactory"
+        return "Normal"
+
+
     profileName := GetTargetingProfile(tower)
 
 
@@ -125,6 +131,13 @@ GetDefaultTargeting(tower) {
 
 SetTargeting(tower, targetMode) {
     global TargetingProfiles
+
+    LogStrategyAction(
+        "Target "
+        . GetTowerLogName(tower)
+        . " -> "
+        . targetMode
+    )
 
     if !HasProp(tower, "placed") || !tower.placed
         return false
@@ -144,6 +157,12 @@ SetTargeting(tower, targetMode) {
     if tower.type = "Mortar" {
         throw Error(
             "Use SetMortarTarget() or RetargetMortar() for Mortar Monkeys."
+        )
+    }
+
+    if tower.type = "SpikeFactory" {
+        throw Error(
+            "Use SetSpikeFactoryTargeting() or SetSpikeFactoryTarget() for Spike Factories."
         )
     }
 

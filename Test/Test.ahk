@@ -3,6 +3,8 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
+; v3 file note: Quick manual test for shared macro behavior. It stays separate from the normal launcher.
+
 ; Lightweight shared-code smoke test.
 ; This does not click or type into BTD6.
 

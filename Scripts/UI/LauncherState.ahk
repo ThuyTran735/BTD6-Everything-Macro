@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: UI code for LauncherState. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+
 GetLauncherStateFilePath() {
     return A_ScriptDir . "\UserData\LauncherState.ini"
 }

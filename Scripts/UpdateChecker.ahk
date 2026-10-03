@@ -1,5 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
+; v3 file note: Handles the UpdateChecker part of the macro. Keep this focused so run bugs are easier to trace later.
+
 ; Update checking for the public GitHub repository.
 ; The remote version is read directly from Scripts/Version.ahk.
 

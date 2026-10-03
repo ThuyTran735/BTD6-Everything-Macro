@@ -1,6 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
+; v3 file note: UI code for ScriptPicker. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+
 ShowScriptPicker(
     mapName,
     mapDirectory,
@@ -332,17 +334,35 @@ SetStrategyDifficulty(
     strategyList.Delete()
 
 
+    if names.Length = 0 {
+
+        ; A blank list looks broken, so say which difficulty has nothing yet.
+        strategyList.Add(
+            [
+                "No "
+                . difficulty
+                . " strategies available"
+            ]
+        )
+
+
+        strategyList.Choose(
+            1
+        )
+
+
+        return
+    }
+
+
     strategyList.Add(
         names
     )
 
 
-    if names.Length > 0 {
-
-        strategyList.Choose(
-            1
-        )
-    }
+    strategyList.Choose(
+        1
+    )
 }
 
 
@@ -412,7 +432,9 @@ RunPickedScript(*) {
     ) {
 
         ToolTip(
-            "Select a script first."
+            ScriptPickerState.scripts[difficulty].Length = 0
+            ? "No " . difficulty . " strategies available."
+            : "Select a script first."
         )
 
 

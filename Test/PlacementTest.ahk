@@ -3,6 +3,8 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
+; v3 file note: Quick manual test for Placement. It stays separate from the normal launcher.
+
 ; Manual placement test.
 ; Start inside a loaded BTD6 game with enough cash for the selected tower.
 

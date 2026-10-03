@@ -3,6 +3,8 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
+; v3 file note: Quick manual test for FullGame. It stays separate from the normal launcher.
+
 ; End-to-end run test.
 ; Uses the same RunMapStrategy() pipeline as real map scripts.
 

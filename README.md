@@ -1,15 +1,16 @@
 # BTD6 Everything Macro
 
-**Current version: v2.3.0**
+**Current version: v3.0.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
-- Added Tricky Tracks Impoppable script.
-- Expanded Expert map navigation data and added dedicated Impoppable confirmation handling.
-- Expanded Strategy Builder with strategy importing, entity editing, placement delays, targeting, selling, abilities, and click-through monkey coordinate labels.
-- Added reusable `SellTower()` support plus moving-map coordinate overrides for upgrades and sells.
-- Improved round-trigger timing, Shift-modified tower placement reliability, and upgrade wait / defeat detection behavior.
+- Reorganized the largest gameplay, navigation, UI, and Strategy Builder files into smaller focused modules.
+- Added short human-style file notes across the non-map AutoHotkey files so it is easier to tell what belongs where.
+- Kept the old public include paths as compatibility wrappers, so existing map scripts do not need path changes.
+- Added Glacial Trail Impoppable script.
+- Changed Mermonkey, Skywarden, and Desperado to dedicated F-key placement hotkeys.
+- Added UserData backup and restore from Settings for moving preferences and profiles between versions.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -37,8 +38,30 @@ You can see which maps and modes are finished here:
 - Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted
 - Remembers the last launcher mode, its relevant selections, and the last successfully run Default-mode `.ahk` strategy between restarts when **REMEMBER LAST STATE** is enabled
 - Uses themed confirmation dialogs before deleting profiles, clearing the queue, or closing an active run
+- Can export and import the full `UserData` folder from Settings so preferences, favorites, profiles, history, and logs can be carried between versions
 
 This project is still being worked on, so not every map or mode has a strategy yet. Check the tracker above for the current list.
+
+
+## v3.0.0 code layout
+
+v3.0.0 reorganizes the large script files without changing the public include paths used by map scripts. Files such as `RoundLogic.ahk`, `UpgradeLogic.ahk`, and the larger UI files are now small entry files that include focused pieces from subfolders.
+
+The main folders are now easier to follow:
+
+```text
+Scripts/Gameplay/          Round, upgrade, and game-state internals
+Scripts/Navigation/        Map/mode/hero navigation pieces
+Scripts/UI/Common/         Shared window/launcher helpers
+Scripts/UI/Controls/       Custom buttons, lists, and dropdowns
+Scripts/UI/Launcher/       Main launcher window and run-start flow
+Scripts/UI/Queue/          Queue manager, job builder, and queue profiles
+Scripts/UI/Run/            Run HUD and run-count prompt
+Scripts/UI/Settings/       Settings window, updates, and log controls
+Tools/StrategyBuilder/     Strategy Builder editor/import/export pieces
+```
+
+The old top-level files are intentionally kept as compatibility wrappers, so existing map strategies can continue using `Scripts\\IncludeAll.ahk` without path changes.
 
 ## Installation
 
@@ -77,15 +100,28 @@ Before starting the macro:
 - Make sure Windows display scaling and the BTD6 UI scale have not changed.
 - Open the BTD6 hotkey settings and **reset every hotkey to its default**. If you have changed any tower, ability, upgrade, targeting, or menu hotkeys, reset them before using the macro.
 
-After resetting the hotkeys, set these three special monkey hotkeys:
+### Important focus / hotkey warning
+
+Before using the macro, open BTD6's hotkey settings and **reset every hotkey to its default first**. After the reset, manually bind these three monkeys:
 
 | Monkey | Hotkey |
 |---|---|
-| Desperado | `Shift + Q` |
-| Mermonkey | `Shift + W` |
-| Skywarden | `Shift + E` |
+| Mermonkey | `F6` |
+| Skywarden | `F7` |
+| Desperado | `F8` |
 
 Leave every other hotkey at its default. Different bindings can make the macro place the wrong tower, buy the wrong upgrade, or stop the strategy completely.
+
+BTD6 can also get into a bad keyboard/focus state after **Alt+Tab** or **Tab**.
+
+- Do **not** use Alt+Tab or Tab while BTD6 is being used with the macro.
+- If you need to click another application, press the **Windows key** first, then switch to the other application from there.
+- If you accidentally use Alt+Tab or Tab, completely close and restart BTD6 before running the macro again.
+- Use the macro at your own risk. The macro author is not responsible for bans, suspensions, lost progress, or other action taken against your game account from using it.
+
+The launcher shows this setup/warning screen before continuing. It appears on each startup unless you check **Never show this warning again** before pressing **I AGREE - CONTINUE**. Leaving the box unchecked lets you continue normally but keeps the reminder for the next launch.
+
+The warning preference is versioned. Existing installs that hid an older warning will see this updated version once so they can choose whether to hide it again.
 
 ## Special targeting towers
 
@@ -147,6 +183,8 @@ The launcher uses its full **CLOSE** button to exit the macro. Secondary windows
 
 By default, the launcher also remembers where you left off. Default mode restores the last category and map, Monkey EXP Grind restores the last monkey category and EXP script, and **Select Script** restores the last Default-mode `.ahk` strategy that successfully started running, including its difficulty when that strategy is still available for the selected map. You can disable this from **Settings -> REMEMBER LAST STATE**. Disabling it clears the saved launcher / strategy state. These values are stored only in `UserData` and are not tracked by Git.
 
+To move your setup to another macro version, open **Settings -> BACKUP / RESTORE USER DATA**. **EXPORT USER DATA** creates a dated backup containing the full `UserData` folder. **IMPORT USER DATA** merges a backup into the current copy and overwrites matching files while keeping files that only exist in the newer version. Restart the macro after importing so all restored values are reloaded.
+
 ## Folder layout
 
 ```text
@@ -176,7 +214,7 @@ Check that both the Windows display and BTD6 are set to 1920×1080, with BTD6 ru
 
 ### A tower is not placing
 
-Reset the BTD6 hotkeys to their defaults, then restart the macro.
+Reset the BTD6 hotkeys to their defaults, then set Mermonkey to `F6`, Skywarden to `F7`, and Desperado to `F8`. Restart the macro after changing the bindings.
 
 ### Round or button detection stops working
 

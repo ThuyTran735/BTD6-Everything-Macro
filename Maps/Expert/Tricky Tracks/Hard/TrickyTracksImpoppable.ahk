@@ -9,7 +9,9 @@ TrickyTracksImpoppable() {
         difficulty: "Hard",
         gameMode: "Impoppable",
         hero: "Benjamin",
-        wingmonkeyMK: false
+        wingmonkeyMK: false,
+        startRound: 6,
+        endRound: 100,
     }
 
     global TowerSetup := Map(

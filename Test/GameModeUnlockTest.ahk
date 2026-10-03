@@ -2,6 +2,8 @@
 #SingleInstance Force
 #Include ..\Scripts\Version.ahk
 
+; v3 file note: Quick manual test for GameModeUnlock. It stays separate from the normal launcher.
+
 ; Automatic game-mode unlock end-to-end test.
 ; Launch the REAL Deflation map script so prerequisite path discovery uses
 ; the same filename/location rules as production runs.

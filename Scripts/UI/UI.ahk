@@ -1,5 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
+; v3 file note: UI code for . Game automation should stay in the gameplay/navigation files instead of creeping in here.
+
 global LauncherGui := ""
 
 global SubtitleText := ""
@@ -105,6 +107,7 @@ global CategoryData := Map()
 #Include HelpUI.ahk
 #Include ConfirmUI.ahk
 #Include UIHelpers.ahk
+#Include FirstRunWarningUI.ahk
 #Include FavoritesProfilesData.ahk
 #Include FavoritesUI.ahk
 #Include LauncherState.ahk
@@ -126,7 +129,5 @@ global CategoryData := Map()
 ; Load persistent favorites before discovery builds launcher lists.
 LoadFavoriteData()
 
-; UI.ahk is only loaded by the main launcher.
-; Run the fake boot sequence before Main.ahk
-; creates the normal launcher window.
-RunMainStartupLoadingAnimation()
+; Main.ahk starts the boot animation after the one-time warning has been
+; accepted, so first-time users see the warning before any launcher UI.

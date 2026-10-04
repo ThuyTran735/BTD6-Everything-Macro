@@ -796,3 +796,27 @@ Mortar target-point behavior:
      - Waits 250 ms after the click.
      - Closes the upgrade panel and waits another 100 ms.
      - Stores the latest point in tower.targetX / tower.targetY.
+
+GAME SPEED CHANGES
+
+BTD6 starts a normal map with two Space presses:
+     - first Space starts the round
+     - second Space switches to fast speed
+
+During a running round, use:
+
+SetGameSpeed("Normal")
+SetGameSpeed("Fast")
+
+The normal strategy delay value controls when the speed change happens inside the round.
+
+Example:
+
+[39, 10000, () => SetGameSpeed("Normal")],
+[41, 0, () => SetGameSpeed("Fast")]
+
+Meaning:
+     - 10 seconds into round 39, press Space once to return to normal speed.
+     - At the start of round 41, press Space once to return to fast speed.
+
+Do not schedule a speed action on round 0 because the game has not started yet.

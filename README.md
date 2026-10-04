@@ -1,20 +1,12 @@
 # BTD6 Everything Macro
 
-**Current version: v3.1.0**
+**Current version: v3.1.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
-- Bumped the project to **v3.1.0** after the larger launcher, settings, input, targeting, and tower-action changes.
-- Completed the **Dark Dungeons Impoppable** script.
-- Removed selected-tower upgrade-panel caching so actions select towers fresh instead of trusting stale panel state.
-- Fixed Spike Factory **Set Target** flow so it stops on Set Target, uses the Monkey Special hotkey, clicks the requested coordinate, and closes the panel afterward.
-- Standardized intentional `Esc` inputs to wait at least 300 ms for BTD6 UI animations to clear.
-- Simplified selling to click the tower and use the default Backspace sell hotkey without upgrade-panel detection.
-- Added dedicated F6/F7/F8 bindings for Mermonkey, Skywarden, and Desperado plus updated first-run setup guidance.
-- Added UserData backup and restore from Settings so preferences and profiles can be carried between versions.
-- Always show the difficulty/strategy picker and clearly label difficulties with no available scripts.
-- Kept the v3 modular gameplay, navigation, UI, and Strategy Builder layout with compatibility wrappers for existing map scripts.
+- Added scheduled game-speed control so strategies can switch between normal and fast speed at a specific round and in-round delay.
+- Adjusted Dark Dungeons Impoppable round 40 and round 100.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -187,6 +179,18 @@ The launcher uses its full **CLOSE** button to exit the macro. Secondary windows
 By default, the launcher also remembers where you left off. Default mode restores the last category and map, Monkey EXP Grind restores the last monkey category and EXP script, and **Select Script** restores the last Default-mode `.ahk` strategy that successfully started running, including its difficulty when that strategy is still available for the selected map. You can disable this from **Settings -> REMEMBER LAST STATE**. Disabling it clears the saved launcher / strategy state. These values are stored only in `UserData` and are not tracked by Git.
 
 To move your setup to another macro version, open **Settings -> BACKUP / RESTORE USER DATA**. **EXPORT USER DATA** creates a dated backup containing the full `UserData` folder. **IMPORT USER DATA** merges a backup into the current copy and overwrites matching files while keeping files that only exist in the newer version. Restart the macro after importing so all restored values are reloaded.
+
+
+## Scheduled game speed
+
+Strategies can switch BTD6 between normal and fast speed with `SetGameSpeed()`. The normal strategy delay field still works, so speed changes can happen partway through a round.
+
+```ahk
+[39, 10000, () => SetGameSpeed("Normal")],
+[41, 0, () => SetGameSpeed("Fast")],
+```
+
+The example slows the game down 10 seconds into round 39, then returns to fast speed as soon as round 41 is detected. `StartGame()` still presses Space twice at the beginning, so normal map runs begin at fast speed. Strategy Builder can add and import these speed actions too.
 
 ## Folder layout
 

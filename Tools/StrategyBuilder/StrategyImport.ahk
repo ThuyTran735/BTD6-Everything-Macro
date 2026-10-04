@@ -222,6 +222,13 @@ ParseImportedStrategyActions(text) {
         actions
     )
 
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*SetGameSpeed\(\s*\x22(Normal|Fast)\x22\s*\)\s*\]",
+        "speed",
+        actions
+    )
+
     SortImportedActionsByPosition(actions)
     return actions
 }
@@ -271,6 +278,8 @@ CollectImportedActions(text, pattern, kind, actions) {
             }
         } else if kind = "ability" {
             action.hotkey := m[3]
+        } else if kind = "speed" {
+            action.speed := m[3]
         }
 
         actions.Push(action)
@@ -363,4 +372,3 @@ FindEntityByNameInArray(entities, name) {
     }
     return false
 }
-

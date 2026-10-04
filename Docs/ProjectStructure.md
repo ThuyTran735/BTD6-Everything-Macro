@@ -11,6 +11,7 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 - `Scripts/Gameplay/Rounds/` - round OCR, Glacial Trail cleanup, validation, recovery, and waiting.
 - `Scripts/Gameplay/Upgrades/` - upgrade timing, panel state/detection, buying, waiting, and locked-upgrade handling.
 - `Scripts/Gameplay/GameState/` - popups, victory/defeat, home-screen checks, and run reset.
+- `Scripts/GameSpeedLogic.ahk` - tracked normal/fast game-speed changes used by scheduled strategy actions.
 - `Scripts/Navigation/` - map/mode navigation plus hero selection.
 - `Scripts/UI/Common/` - shared window chrome, launcher visibility, child-run IPC, and launcher monitoring.
 - `Scripts/UI/Controls/` - custom buttons, lists, and dropdowns.

@@ -161,6 +161,31 @@ AddAbilityAction(*) {
     StatusText.Text := "Added ability " hotkey " on round " round
 }
 
+
+AddGameSpeedAction(*) {
+    global UpgradeActions, GameSpeedDDL, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+
+    speedMode := GameSpeedDDL.Text
+    if speedMode != "Normal" && speedMode != "Fast" {
+        MsgBox("Select Normal or Fast game speed.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
+    delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
+
+    ; Round 0 happens before StartGame(), where Space starts the match instead
+    ; of changing speed, so speed actions must be scheduled on real rounds.
+    if round <= 0 {
+        MsgBox("Game speed actions must use round 1 or later.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    UpgradeActions.Push({kind: "speed", speed: speedMode, round: round, delay: delay})
+    RefreshActionList()
+    StatusText.Text := "Added game speed -> " speedMode " on round " round
+}
+
 DeleteSelectedUpgrade(*) {
     global ActionLV, UpgradeActions, StatusText
 
@@ -203,6 +228,8 @@ RefreshActionList() {
             ActionLV.Add("", "Sell", action.entity, value, action.round, action.delay)
         } else if kind = "ability" {
             ActionLV.Add("", "Ability", "-", action.hotkey, action.round, action.delay)
+        } else if kind = "speed" {
+            ActionLV.Add("", "Speed", "-", action.speed, action.round, action.delay)
         } else {
             value := action.upgrade
             if HasProp(action, "overrideX")

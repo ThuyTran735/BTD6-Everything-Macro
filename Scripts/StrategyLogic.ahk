@@ -310,6 +310,27 @@ WaitForRoundTime(targetMs) {
 
 StartGame() {
 
+    ; Before the first Space the game has not started yet, so there is no
+    ; speed state worth trusting. The first press starts the round at normal
+    ; speed and the second press switches BTD6 to fast speed.
+    ResetGameSpeedState()
+
+
+    Send(
+        "{Space}"
+    )
+
+
+    Sleep(
+        100
+    )
+
+
+    SetTrackedGameSpeed(
+        "Normal"
+    )
+
+
     Send(
         "{Space}"
     )
@@ -320,13 +341,8 @@ StartGame() {
     )
 
 
-    Send(
-        "{Space}"
-    )
-
-
-    Sleep(
-        100
+    SetTrackedGameSpeed(
+        "Fast"
     )
 
 

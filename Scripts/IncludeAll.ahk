@@ -49,6 +49,7 @@ global TowerSetup := Map()
 
 #Include GameStateLogic.ahk
 #Include RoundLogic.ahk
+#Include GameSpeedLogic.ahk
 #Include StrategyLogic.ahk
 
 

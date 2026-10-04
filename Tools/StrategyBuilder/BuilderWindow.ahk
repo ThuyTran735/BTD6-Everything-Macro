@@ -46,7 +46,7 @@ global ModeChoicesByDifficulty := Map(
 )
 
 global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
-global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, ActionLV
+global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
 global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
 
 BuildGui()
@@ -55,7 +55,7 @@ BuildGui() {
     global MainGui
     global BuilderMinimizeControl, BuilderCloseControl, BuilderChromeMessageReady, BuilderWindowBorder
     global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
-    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, ActionLV
+    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoicesByDifficulty
 
@@ -84,7 +84,7 @@ BuildGui() {
 
     MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
     MainGui.SetFont("s9 w400 cB8C6D6")
-    MainGui.AddText("x20 y45 w1000 h20", "Build, import, edit, label, and export map strategies with placements, upgrades, targeting, sells, and abilities.")
+    MainGui.AddText("x20 y45 w1000 h20", "Build, import, edit, label, and export map strategies with placements, upgrades, targeting, sells, abilities, and speed changes.")
 
     ; Map / strategy metadata
     MainGui.SetFont("s10 w400 cD9E3EE")
@@ -213,7 +213,12 @@ BuildGui() {
     MainGui.AddText("x560 y294 w60 h20", "Ability")
     AbilityEdit := MainGui.AddEdit("x620 y290 w90 h26", "1")
     SetEditTextBlack(AbilityEdit)
-    MainGui.AddText("x730 y294 w245 h20 c7F91A6", "Ability hotkey, e.g. 1, 2, 3")
+
+    MainGui.AddText("x730 y294 w45 h20", "Speed")
+    GameSpeedDDL := MainGui.AddDropDownList("x775 y290 w100", ["Normal", "Fast"])
+    GameSpeedDDL.Choose(1)
+    AddSpeedBtn := MainGui.AddButton("x885 y289 w90 h28", "ADD SPEED")
+    AddSpeedBtn.OnEvent("Click", AddGameSpeedAction)
 
     AddUpgradeBtn := MainGui.AddButton("x560 y327 w98 h30", "ADD UPGRADE")
     AddUpgradeBtn.OnEvent("Click", AddUpgradeAction)

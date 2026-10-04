@@ -65,7 +65,7 @@ ClearAll(*) {
     global Entities, UpgradeActions, OutputEdit, StatusText, EntityNameEdit, EntityTypeDDL, HeroDDL, TargetingDDL
     global PlaceRoundEdit, PlaceDelayEdit, XEdit, YEdit
     global ImportedStartRound, ImportedEndRound
-    global WingmonkeyMKCheckbox
+    global WingmonkeyMKCheckbox, GameSpeedDDL
 
     result := MsgBox("Clear all monkeys, hero, scheduled actions, and generated output?", "Strategy Builder", "YesNo Icon?")
     if result != "Yes"
@@ -77,6 +77,8 @@ ClearAll(*) {
     ImportedStartRound := ""
     ImportedEndRound := ""
     WingmonkeyMKCheckbox.Value := 0
+    if GameSpeedDDL
+        GameSpeedDDL.Choose(1)
     OutputEdit.Value := ""
     EntityTypeDDL.Choose(1)
     HeroDDL.Enabled := false
@@ -202,6 +204,13 @@ BuildTemplateText() {
                 delay: action.delay,
                 hotkey: action.hotkey
             })
+        } else if kind = "speed" {
+            allActions.Push({
+                kind: "speed",
+                round: action.round,
+                delay: action.delay,
+                speed: action.speed
+            })
         } else {
             item := {
                 kind: "upgrade",
@@ -225,6 +234,9 @@ BuildTemplateText() {
         if action.kind = "ability" {
             hotkey := EscapeAhkString(action.hotkey)
             out .= "        [" action.round ", " action.delay ", () => UseAbility(" q hotkey q ")]"
+        } else if action.kind = "speed" {
+            speedMode := EscapeAhkString(action.speed)
+            out .= "        [" action.round ", " action.delay ", () => SetGameSpeed(" q speedMode q ")]"
         } else {
             entityName := EscapeAhkString(action.entity)
 
@@ -296,6 +308,9 @@ ValidateDeflationRounds() {
             } else if kind = "ability" {
                 value := action.hotkey
                 actionLabel := "ability"
+            } else if kind = "speed" {
+                value := action.speed
+                actionLabel := "game speed"
             } else {
                 value := action.upgrade
                 actionLabel := "upgrade"
@@ -427,4 +442,3 @@ ChooseDropdownText(control, wanted) {
     control.Choose(itemIndex + 1)
     return true
 }
-

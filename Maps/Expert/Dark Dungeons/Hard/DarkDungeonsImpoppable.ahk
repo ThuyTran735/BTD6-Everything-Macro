@@ -311,8 +311,10 @@ DarkDungeonsImpoppable() {
         [34, 0, () => UpgradeTower(TowerSetup["Dart D"], "300")],
         [35, 0, () => PlaceTower(TowerSetup["Tack A"])],
         [35, 0, () => UpgradeTower(TowerSetup["Tack A"], "204")],
-        [39, 6500, () => UpgradeTower(TowerSetup["Alchemist A"], "300")],
+        [39, 12000, () => SetGameSpeed("Normal")],
+        [40, 0, () => UpgradeTower(TowerSetup["Alchemist A"], "300")],
         [40, 0, () => UseAbility("1")],
+        [41, 0, () => SetGameSpeed("Fast")],
         [41, 0, () => PlaceTower(TowerSetup["Ninja A"])],
         [41, 0, () => UpgradeTower(TowerSetup["Ninja A"], "020")],
         [42, 0, () => UpgradeTower(TowerSetup["SpikeFactory B"], "102")],
@@ -391,6 +393,8 @@ DarkDungeonsImpoppable() {
         [99, 100, () => UseAbility("4")],
         [100, 100, () => UseAbility("5")],
         [100, 200, () => UseAbility("5")],
+        [100, 300, () => UseAbility("5")],
+        [100, 400, () => UseAbility("5")],
     ]
 
     return RunMapStrategy(strategy)

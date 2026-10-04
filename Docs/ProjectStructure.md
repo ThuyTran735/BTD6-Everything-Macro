@@ -9,7 +9,7 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 ## Where things live
 
 - `Scripts/Gameplay/Rounds/` - round OCR, Glacial Trail cleanup, validation, recovery, and waiting.
-- `Scripts/Gameplay/Upgrades/` - upgrade timing, panel reuse, buying, waiting, and locked-upgrade handling.
+- `Scripts/Gameplay/Upgrades/` - upgrade timing, panel state/detection, buying, waiting, and locked-upgrade handling.
 - `Scripts/Gameplay/GameState/` - popups, victory/defeat, home-screen checks, and run reset.
 - `Scripts/Navigation/` - map/mode navigation plus hero selection.
 - `Scripts/UI/Common/` - shared window chrome, launcher visibility, child-run IPC, and launcher monitoring.
@@ -17,7 +17,7 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 - `Scripts/UI/Launcher/` - launcher drawing and run/queue start logic.
 - `Scripts/UI/Queue/` - queue manager, queue job builder, and queue profile code.
 - `Scripts/UI/Run/` - the in-run HUD and run-count prompt.
-- `Scripts/UI/Settings/` - settings toggles, update checks, and log controls.
+- `Scripts/UI/Settings/` - settings toggles, update checks, log controls, and UserData backup/restore.
 - `Tools/StrategyBuilder/` - Strategy Builder window, editors, import/export, overlays, and chrome.
 
 ## A couple rules worth keeping

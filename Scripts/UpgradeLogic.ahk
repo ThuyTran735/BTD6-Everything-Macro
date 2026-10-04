@@ -6,7 +6,7 @@
 ; The split is organization-only; callers can keep including this file like before.
 
 #Include Gameplay\Upgrades\UpgradeState.ahk
-#Include Gameplay\Upgrades\UpgradePanelCache.ahk
+#Include Gameplay\Upgrades\UpgradePanelState.ahk
 #Include Gameplay\Upgrades\UpgradeFlow.ahk
 #Include Gameplay\Upgrades\UpgradePanelDetection.ahk
 #Include Gameplay\Upgrades\UpgradeWait.ahk

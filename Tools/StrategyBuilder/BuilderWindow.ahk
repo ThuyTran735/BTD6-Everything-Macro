@@ -130,7 +130,7 @@ BuildGui() {
     HeroDDL.Enabled := false
 
     MainGui.AddText("x275 y256 w45 h20", "Target")
-    TargetingDDL := MainGui.AddDropDownList("x320 y252 w175", ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite", "Normal", "Smart", "Automatic", "Set Target", "Locked", "Target Independent", "Follow Mouse", "Lock in Place", "Patrol Points", "Pursuit", "Target"])
+    TargetingDDL := MainGui.AddDropDownList("x320 y252 w175", ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite", "Normal", "Smart", "Set Target", "Automatic", "Locked", "Target Independent", "Follow Mouse", "Lock in Place", "Patrol Points", "Pursuit", "Target"])
     TargetingDDL.Choose(1)
 
     MainGui.AddText("x40 y292 w65 h20", "X")
@@ -349,4 +349,3 @@ ApplyDefaultTargetingForType(type) {
     else
         ChooseDropdownText(TargetingDDL, "First")
 }
-

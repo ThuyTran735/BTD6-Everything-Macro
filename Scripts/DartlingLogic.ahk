@@ -28,19 +28,8 @@ GetDartlingTargetingOrder(tower) {
 
 
 EnsureDartlingSelected(tower) {
-    if IsUpgradeTowerSelected(tower)
-        return true
-
-    ClearSelectedUpgradeTower()
     Click(tower.x, tower.y)
     Sleep(35)
-
-    ; Reuse the normal upgrade-panel side cache so a following
-    ; upgrade can still benefit from selected-monkey handling.
-    CacheSelectedUpgradeTower(
-        tower,
-        GetExpectedUpgradePanelSide(tower)
-    )
 
     return true
 }
@@ -89,7 +78,8 @@ SetDartlingTargeting(tower, targetMode, aimX := "", aimY := "") {
         return true
     }
 
-    EnsureDartlingSelected(tower)
+    if !EnsureDartlingSelected(tower)
+        return false
 
     ; When entering Locked targeting for the first time, the current
     ; cursor position becomes the initial lock direction. Move there
@@ -118,9 +108,7 @@ SetDartlingTargeting(tower, targetMode, aimX := "", aimY := "") {
 
     ; Normal and Target Independent do not need a fixed cursor point.
     if targetMode != "Locked" {
-        Send("{Esc}")
-        ClearSelectedUpgradeTower()
-        Sleep(20)
+        SendEscapeAndWait()
     }
 
     return true
@@ -160,7 +148,9 @@ RetargetDartling(tower, aimX, aimY) {
         )
     }
 
-    EnsureDartlingSelected(tower)
+    if !EnsureDartlingSelected(tower)
+        return false
+
     return ClickDartlingAimPoint(tower, aimX, aimY)
 }
 
@@ -173,9 +163,6 @@ ClickDartlingAimPoint(tower, aimX, aimY) {
     tower.aimX := aimX
     tower.aimY := aimY
 
-    ; The set-target click may dismiss/rearrange the tower panel, so do
-    ; not trust the selected-monkey cache after an aim-point click.
-    ClearSelectedUpgradeTower()
-
+    ; The shared helper closes any panel still visible after the aim click.
     return true
 }

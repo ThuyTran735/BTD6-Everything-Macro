@@ -22,13 +22,6 @@ global LastUpgradePurchaseTick := 0
 global DeflationUpgradeWaitTimeoutMs := 5000
 
 
-; Tracks the tower whose upgrade panel is intentionally left open between
-; strategy actions. Reusing this selection avoids redundant monkey clicks
-; when multiple upgrades target the same tower on later rounds.
-global SelectedUpgradeTower := false
-global SelectedUpgradePanelSide := false
-
-
 GetUpgradeTowerLogName(tower) {
     global TowerSetup
 
@@ -74,7 +67,6 @@ CreateUpgradeActionTiming(tower, target) {
         roundTimestamp: roundTimestamp,
         selectedTick: 0,
         selectedTimestamp: "",
-        selectionReused: false,
         firstGreenTick: 0,
         firstGreenTimestamp: "",
         firstHotkeyTick: 0,
@@ -86,14 +78,13 @@ CreateUpgradeActionTiming(tower, target) {
 }
 
 
-MarkUpgradeMonkeySelected(timing, reused := false) {
+MarkUpgradeMonkeySelected(timing) {
     if !IsObject(timing) {
         return
     }
 
     timing.selectedTick := A_TickCount
     timing.selectedTimestamp := GetLogTimestampMs()
-    timing.selectionReused := reused
 }
 
 
@@ -216,10 +207,6 @@ LogUpgradeActionTiming(timing, outcome := "Success") {
         return
     }
 
-    selectionLabel := timing.selectionReused
-        ? timing.selectedTimestamp . " (cached)"
-        : timing.selectedTimestamp
-
     LogMessage(
         "TIMING",
         timing.towerName
@@ -230,7 +217,7 @@ LogUpgradeActionTiming(timing, outcome := "Success") {
         . " detected="
         . timing.roundTimestamp
         . " | monkey selected="
-        . (selectionLabel != "" ? selectionLabel : "n/a")
+        . (timing.selectedTimestamp != "" ? timing.selectedTimestamp : "n/a")
         . " | first green="
         . (timing.firstGreenTimestamp != "" ? timing.firstGreenTimestamp : "n/a")
         . " | first hotkey="
@@ -253,5 +240,3 @@ LogUpgradeActionTiming(timing, outcome := "Success") {
         . outcome
     )
 }
-
-

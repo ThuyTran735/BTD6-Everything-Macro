@@ -143,17 +143,7 @@ HandleLockedUpgrade(
             )
 
 
-            Send(
-                "{Esc}"
-            )
-
-
-            ClearSelectedUpgradeTower()
-
-
-            Sleep(
-                350
-            )
+            SendEscapeAndWait(350)
 
 
             panelResult :=
@@ -195,17 +185,7 @@ HandleLockedUpgrade(
     }
 
 
-    Send(
-        "{Esc}"
-    )
-
-
-    ClearSelectedUpgradeTower()
-
-
-    Sleep(
-        350
-    )
+    SendEscapeAndWait(350)
 
 
     EnsureUpgradePanelOpen(
@@ -216,5 +196,3 @@ HandleLockedUpgrade(
 
     return "Failed"
 }
-
-

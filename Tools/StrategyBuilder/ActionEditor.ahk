@@ -296,7 +296,7 @@ RefreshActionTargetDropdown() {
         choices := ["Use Mortar helper"]
         ActionTargetDDL.Enabled := false
     } else if type = "SpikeFactory" {
-        choices := ["Normal", "Close", "Smart", "Automatic", "Set Target"]
+        choices := ["Normal", "Close", "Smart", "Set Target", "Automatic"]
         ActionTargetDDL.Enabled := true
     } else if type = "Ace" {
         choices := ["Circle", "Figure Infinite", "Figure Eight", "Centered Path"]
@@ -313,4 +313,3 @@ RefreshActionTargetDropdown() {
     ActionTargetDDL.Choose(1)
     RefreshActionTargetCoordinateState()
 }
-

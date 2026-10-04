@@ -88,7 +88,6 @@ WaitForUpgrade(
             point[2]
         ) {
             MarkUpgradeGreen(timingStep)
-            CacheSelectedUpgradeTower(tower, panelSide)
             return true
         }
 
@@ -113,7 +112,6 @@ WaitForUpgrade(
                 otherPoint[2]
             ) {
                 panelSide := otherSide
-                CacheSelectedUpgradeTower(tower, panelSide)
                 MarkUpgradeGreen(timingStep)
                 return true
             }
@@ -213,19 +211,11 @@ EnsureUpgradePanelOpen(
             currentPanelSide
 
 
-        CacheSelectedUpgradeTower(
-            tower,
-            panelSide
-        )
-
-
         return true
     }
 
 
-    ; Selection is no longer confirmed. Recovery will cache it again
-    ; immediately after the correct panel is found.
-    ClearSelectedUpgradeTower()
+    ; If the panel vanished, recovery will reselect this exact tower.
 
 
     ; A level-up screen can appear just after the
@@ -270,12 +260,6 @@ EnsureUpgradePanelOpen(
 
             panelSide :=
                 currentPanelSide
-
-
-            CacheSelectedUpgradeTower(
-                tower,
-                panelSide
-            )
 
 
             return true
@@ -379,12 +363,6 @@ EnsureUpgradePanelOpen(
                     currentPanelSide
 
 
-                CacheSelectedUpgradeTower(
-                    tower,
-                    panelSide
-                )
-
-
                 return true
             }
 
@@ -428,12 +406,6 @@ EnsureUpgradePanelOpen(
                         currentPanelSide
 
 
-                    CacheSelectedUpgradeTower(
-                        tower,
-                        panelSide
-                    )
-
-
                     return true
                 }
             }
@@ -458,5 +430,3 @@ EnsureUpgradePanelOpen(
         )
     }
 }
-
-

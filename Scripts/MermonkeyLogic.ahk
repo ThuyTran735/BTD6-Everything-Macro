@@ -4,17 +4,8 @@
 ; v3 file note: Handles the Mermonkey part of the macro. Keep this focused so run bugs are easier to trace later.
 
 EnsureMermonkeySelected(tower) {
-    if IsUpgradeTowerSelected(tower)
-        return true
-
-    ClearSelectedUpgradeTower()
     Click(tower.x, tower.y)
     Sleep(35)
-
-    CacheSelectedUpgradeTower(
-        tower,
-        GetExpectedUpgradePanelSide(tower)
-    )
 
     return true
 }
@@ -46,7 +37,9 @@ PlaceMermonkeyTotem(tower, totemX, totemY) {
         )
     }
 
-    EnsureMermonkeySelected(tower)
+    if !EnsureMermonkeySelected(tower)
+        return false
+
     return ClickMermonkeyTotemPoint(tower, totemX, totemY)
 }
 
@@ -67,9 +60,6 @@ ClickMermonkeyTotemPoint(tower, totemX, totemY) {
     tower.totemX := totemX
     tower.totemY := totemY
 
-    ; Manual-target placement can dismiss or rearrange the upgrade panel,
-    ; so the selected-monkey cache is no longer trusted after the click.
-    ClearSelectedUpgradeTower()
-
+    ; The shared helper closes any panel still visible after the target click.
     return true
 }

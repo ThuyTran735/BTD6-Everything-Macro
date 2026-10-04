@@ -4,7 +4,7 @@
 
 ; Single source of truth for the installed application's version.
 ; Change only this value when bumping the local/runtime version.
-global AppVersion := "3.0.0"
+global AppVersion := "3.1.0"
 
 GetAppVersion() {
     global AppVersion

@@ -121,57 +121,35 @@ UpgradeTower(
         )
 
 
-    ; Reuse an already-selected monkey whenever its upgrade panel was
-    ; intentionally left open by the previous strategy action.
+    ; Select the requested tower fresh for every UpgradeTower() action.
+    ; There is no selected-tower cache and no proactive Esc/panel scan here.
     panelSide := false
 
 
-    if (
-        !hasCoordinateOverride
-        && TryReuseSelectedUpgradeTower(
-            tower,
-            &panelSide
-        )
-    ) {
-
-        MarkUpgradeMonkeySelected(
-            upgradeTiming,
-            true
-        )
-    }
-    else {
-
-        Click(
-            clickX,
-            clickY
-        )
+    Click(
+        clickX,
+        clickY
+    )
 
 
-        Sleep(
-            IsFastDeflationPregameUpgrade() ? 25 : 35
-        )
+    Sleep(
+        IsFastDeflationPregameUpgrade() ? 25 : 35
+    )
 
 
-        MarkUpgradeMonkeySelected(
-            upgradeTiming
+    MarkUpgradeMonkeySelected(
+        upgradeTiming
+    )
+
+
+    ; Start affordability polling immediately after selection. The saved tower
+    ; X still gives us a fast first guess; WaitForUpgrade() corrects the side
+    ; if BTD6 opened the panel on the opposite side.
+    panelSide :=
+        GetExpectedUpgradePanelSideFromX(
+            clickX
         )
 
-
-        ; Start affordability polling immediately after selection.
-        ; The saved tower X position reliably predicts the normal panel side,
-        ; and WaitForUpgrade() can still correct it later if needed. Avoiding
-        ; a full-screen FindText here makes the first upgrade start faster.
-        panelSide :=
-            GetExpectedUpgradePanelSideFromX(
-                clickX
-            )
-
-
-        CacheSelectedUpgradeTower(
-            tower,
-            panelSide
-        )
-    }
 
 
     while tower.upgrades[1] < targetTop {
@@ -207,9 +185,7 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
-            Send("{Esc}")
-            ClearSelectedUpgradeTower()
-            Sleep(45)
+            SendEscapeAndWait()
             return true
         }
 
@@ -286,9 +262,7 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
-            Send("{Esc}")
-            ClearSelectedUpgradeTower()
-            Sleep(45)
+            SendEscapeAndWait()
             return true
         }
 
@@ -365,9 +339,7 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
-            Send("{Esc}")
-            ClearSelectedUpgradeTower()
-            Sleep(45)
+            SendEscapeAndWait()
             return true
         }
 
@@ -411,13 +383,9 @@ UpgradeTower(
     }
 
 
-    ; Leave this tower selected so placement logic can reliably close the
-    ; open panel later. A future UpgradeTower() call with coordinate overrides
-    ; will still bypass cache reuse and click its supplied moving-map position.
-    CacheSelectedUpgradeTower(
-        tower,
-        panelSide
-    )
+    ; This UpgradeTower() selected the tower itself, so close that known panel
+    ; exactly once. Do not scan the screen or send an extra Esc later.
+    SendEscapeAndWait()
 
 
     LogUpgradeActionTiming(
@@ -427,5 +395,3 @@ UpgradeTower(
 
     return true
 }
-
-

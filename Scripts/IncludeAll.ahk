@@ -23,6 +23,7 @@ global TowerSetup := Map()
 
 #Include TowerData.ahk
 #Include MapData.ahk
+#Include InputHelpers.ahk
 
 
 #Include PlacementLogic.ahk

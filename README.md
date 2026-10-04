@@ -1,17 +1,20 @@
 # BTD6 Everything Macro
 
-**Current version: v3.0.0**
+**Current version: v3.1.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
-- Reorganized the largest gameplay, navigation, UI, and Strategy Builder files into smaller focused modules.
-- Added short human-style file notes across the non-map AutoHotkey files so it is easier to tell what belongs where.
-- Kept the old public include paths as compatibility wrappers, so existing map scripts do not need path changes.
-- Added Glacial Trail Impoppable script.
-- Changed Mermonkey, Skywarden, and Desperado to dedicated F-key placement hotkeys.
-- Added UserData backup and restore from Settings for moving preferences and profiles between versions.
-
+- Bumped the project to **v3.1.0** after the larger launcher, settings, input, targeting, and tower-action changes.
+- Completed the **Dark Dungeons Impoppable** script.
+- Removed selected-tower upgrade-panel caching so actions select towers fresh instead of trusting stale panel state.
+- Fixed Spike Factory **Set Target** flow so it stops on Set Target, uses the Monkey Special hotkey, clicks the requested coordinate, and closes the panel afterward.
+- Standardized intentional `Esc` inputs to wait at least 300 ms for BTD6 UI animations to clear.
+- Simplified selling to click the tower and use the default Backspace sell hotkey without upgrade-panel detection.
+- Added dedicated F6/F7/F8 bindings for Mermonkey, Skywarden, and Desperado plus updated first-run setup guidance.
+- Added UserData backup and restore from Settings so preferences and profiles can be carried between versions.
+- Always show the difficulty/strategy picker and clearly label difficulties with no available scripts.
+- Kept the v3 modular gameplay, navigation, UI, and Strategy Builder layout with compatibility wrappers for existing map scripts.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

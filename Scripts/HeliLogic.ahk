@@ -4,17 +4,8 @@
 ; v3 file note: Handles the Heli part of the macro. Keep this focused so run bugs are easier to trace later.
 
 EnsureHeliSelected(tower) {
-    if IsUpgradeTowerSelected(tower)
-        return true
-
-    ClearSelectedUpgradeTower()
     Click(tower.x, tower.y)
     Sleep(35)
-
-    CacheSelectedUpgradeTower(
-        tower,
-        GetExpectedUpgradePanelSide(tower)
-    )
 
     return true
 }
@@ -55,7 +46,8 @@ LockHeliInPlace(tower, lockX, lockY) {
 
     NormalizeHeliTargetingState(tower)
 
-    EnsureHeliSelected(tower)
+    if !EnsureHeliSelected(tower)
+        return false
 
     ; Base Helis start on Follow Mouse. Lock in Place is the next mode.
     ; A 2xx+ Heli automatically switches to Pursuit when Pursuit is bought;
@@ -99,7 +91,9 @@ RetargetHeli(tower, lockX, lockY) {
     if tower.targeting != "Lock in Place"
         return LockHeliInPlace(tower, lockX, lockY)
 
-    EnsureHeliSelected(tower)
+    if !EnsureHeliSelected(tower)
+        return false
+
     return ClickHeliLockPoint(tower, lockX, lockY)
 }
 
@@ -113,9 +107,6 @@ ClickHeliLockPoint(tower, lockX, lockY) {
     tower.lockY := lockY
     tower.targeting := "Lock in Place"
 
-    ; The set-target click can dismiss/rearrange the panel, so do not reuse
-    ; the selected-monkey cache after setting a Heli hover point.
-    ClearSelectedUpgradeTower()
-
+    ; The shared helper closes any panel still visible after the target click.
     return true
 }

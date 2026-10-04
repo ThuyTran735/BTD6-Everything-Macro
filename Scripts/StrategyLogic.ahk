@@ -80,12 +80,6 @@ RunPregameStrategy(actions) {
         return true
     }
     finally {
-
-        ; Pregame is finished; no cached upgrade panel should remain open
-        ; while StartGame() transitions into normal rounds.
-        CloseCachedUpgradePanel()
-
-
         IsPregame :=
             false
     }
@@ -95,8 +89,6 @@ RunPregameStrategy(actions) {
 RunStrategy(actions) {
     global LastRound
 
-
-    lastScheduledRound := false
 
     for action in actions {
 
@@ -116,18 +108,6 @@ RunStrategy(actions) {
         ; before StartGame().
         if targetRound = 0 {
             continue
-        }
-
-
-        ; Keep a selected monkey only across immediate actions scheduled for
-        ; the same round. If the queue advances to another round or adds an
-        ; in-round delay, there is no immediate reuse, so close the menu.
-        if (
-            lastScheduledRound = false
-            || targetRound != lastScheduledRound
-            || delayMs > 0
-        ) {
-            CloseCachedUpgradePanel()
         }
 
 
@@ -233,16 +213,7 @@ RunStrategy(actions) {
         if actionResult = false {
             return EnsureRunFailureReason("STRATEGY ACTION FAILED")
         }
-
-
-        lastScheduledRound :=
-            targetRound
     }
-
-
-    ; All scripted actions are finished. Nothing else can reuse a
-    ; cached monkey selection, so close the upgrade panel now.
-    CloseCachedUpgradePanel()
 
 
     ; Keep round scanning active while waiting for

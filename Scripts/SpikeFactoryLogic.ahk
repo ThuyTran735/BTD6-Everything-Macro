@@ -12,12 +12,15 @@ GetSpikeFactoryTargetingOrder(tower) {
 
     ; xx2 Smart Spikes unlocks Spike Factory's special targeting modes.
     if tower.upgrades[3] >= 2 {
+        ; This is the order BTD6 cycles with Tab. Set Target comes before
+        ; Automatic in the live panel; putting Automatic first makes a Set
+        ; Target request overshoot by one Tab and land on Automatic instead.
         return [
             "Normal",
             "Close",
             "Smart",
-            "Automatic",
-            "Set Target"
+            "Set Target",
+            "Automatic"
         ]
     }
 
@@ -45,17 +48,8 @@ NormalizeSpikeFactoryTargetingState(tower) {
 
 
 EnsureSpikeFactorySelected(tower) {
-    if IsUpgradeTowerSelected(tower)
-        return true
-
-    ClearSelectedUpgradeTower()
     Click(tower.x, tower.y)
     Sleep(35)
-
-    CacheSelectedUpgradeTower(
-        tower,
-        GetExpectedUpgradePanelSide(tower)
-    )
 
     return true
 }
@@ -114,7 +108,8 @@ SetSpikeFactoryTargeting(tower, targetMode, targetX := "", targetY := "") {
         return true
     }
 
-    EnsureSpikeFactorySelected(tower)
+    if !EnsureSpikeFactorySelected(tower)
+        return false
 
     profileLength := targetingOrder.Length
     forwardSteps := Mod(
@@ -130,20 +125,20 @@ SetSpikeFactoryTargeting(tower, targetMode, targetX := "", targetY := "") {
     tower.targeting := targetMode
 
     if targetMode = "Set Target" {
-        if targetX != "" && targetY != ""
+        if targetX != "" && targetY != "" {
+            ; Give BTD6 a moment to actually switch into Set Target before
+            ; PgDn starts the manual target click. Sending it right away can
+            ; make the game ignore PgDn and treat the coordinate like a normal click.
+            Sleep(250)
             return ClickSpikeFactoryTargetPoint(tower, targetX, targetY)
+        }
 
-        ; The targeting mode can be selected without immediately changing
-        ; the target point. Close the panel and leave the mode synchronized.
-        Send("{Esc}")
-        ClearSelectedUpgradeTower()
-        Sleep(20)
+        ; This action selected the Spike Factory, so close that panel once.
+        SendEscapeAndWait()
         return true
     }
 
-    Send("{Esc}")
-    ClearSelectedUpgradeTower()
-    Sleep(20)
+    SendEscapeAndWait()
 
     return true
 }
@@ -176,7 +171,9 @@ RetargetSpikeFactory(tower, targetX, targetY) {
         )
     }
 
-    EnsureSpikeFactorySelected(tower)
+    if !EnsureSpikeFactorySelected(tower)
+        return false
+
     return ClickSpikeFactoryTargetPoint(tower, targetX, targetY)
 }
 
@@ -190,8 +187,7 @@ ClickSpikeFactoryTargetPoint(tower, targetX, targetY) {
     tower.targetX := targetX
     tower.targetY := targetY
 
-    ; Manual target placement can dismiss/rearrange the upgrade panel.
-    ClearSelectedUpgradeTower()
-
+    ; The shared special-target helper closes the panel once and now waits
+    ; the full 300 ms so the close animation finishes before the next action.
     return true
 }

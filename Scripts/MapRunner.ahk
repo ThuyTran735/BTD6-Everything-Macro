@@ -195,16 +195,12 @@ RunMapStrategyCore(strategy) {
 
 
             ; Back out of the locked game mode screen.
-            Send("{Esc}")
-
-            Sleep(500)
+            SendEscapeAndWait(500)
 
 
             ; Back out of the Easy / Medium / Hard screen
             ; so the prerequisite starts from map selection.
-            Send("{Esc}")
-
-            Sleep(700)
+            SendEscapeAndWait(700)
 
 
             if !TryRunPrerequisiteMode(

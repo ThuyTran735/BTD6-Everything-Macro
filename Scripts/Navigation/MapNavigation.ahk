@@ -36,9 +36,7 @@ NavigateToMap(
             return SetRunFailureReason("FAILED TO SELECT HERO", hero)
         }
 
-        Send("{Esc}")
-
-        Sleep(1000)
+        SendEscapeAndWait(1000)
     }
 
     if !FindAndClickMap(
@@ -346,4 +344,3 @@ FindAndClickMap(
 
     return SetRunFailureReason("MAP NOT FOUND", mapName)
 }
-

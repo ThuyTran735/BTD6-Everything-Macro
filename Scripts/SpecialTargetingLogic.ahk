@@ -5,16 +5,16 @@
 
 ClickSpecialTargetPoint(targetX, targetY) {
     ; Shared special/manual targeting flow:
-    ; PgDn -> 300 ms -> target click -> 250 ms -> close panel -> 100 ms settle.
+    ; PgDn -> 300 ms -> target click -> 250 ms -> close panel -> 300 ms settle.
     Send("{PgDn}")
     Sleep(300)
 
     Click(targetX, targetY)
     Sleep(250)
 
-    ; Special/manual targeting leaves the tower upgrade panel open.
-    ; Close it so later placement/upgrade actions always start cleanly.
-    CloseCachedUpgradePanel(100)
+    ; This action selected the tower itself, so close that known panel once.
+    ; Do not scan the screen and guess whether some other panel is open.
+    SendEscapeAndWait()
 
     return true
 }

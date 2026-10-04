@@ -227,11 +227,8 @@ SetTargeting(tower, targetMode) {
         return true
 
 
-    if !IsUpgradeTowerSelected(tower) {
-        ClearSelectedUpgradeTower()
-        Click(tower.x, tower.y)
-        Sleep(250)
-    }
+    Click(tower.x, tower.y)
+    Sleep(250)
 
 
     profileLength := targetingOrder.Length
@@ -254,9 +251,7 @@ SetTargeting(tower, targetMode) {
     tower.targeting := targetMode
 
 
-    Send("{Esc}")
-    ClearSelectedUpgradeTower()
-    Sleep(20)
+    SendEscapeAndWait()
 
 
     return true

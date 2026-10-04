@@ -34,11 +34,6 @@ PlaceTower(tower) {
     )
 
 
-    ; A previous UpgradeTower() may have intentionally left its panel open.
-    ; Close the cached panel first.
-    CloseCachedUpgradePanel()
-
-
     ; Move to the intended empty placement point before sending the
     ; tower hotkey so placement starts from the requested coordinate.
     MouseMove(

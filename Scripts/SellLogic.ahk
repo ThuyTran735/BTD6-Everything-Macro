@@ -57,49 +57,23 @@ SellTower(
             : tower.y
 
 
-    ; If an upgrade just happened on this same tower, its panel may already
-    ; be open. Otherwise click it first, including moving-map overrides.
-    if (
-        hasCoordinateOverride
-        || !IsUpgradeTowerSelected(
-            tower
-        )
-    ) {
-        ClearSelectedUpgradeTower()
+    Click(
+        clickX,
+        clickY
+    )
 
 
-        Click(
-            clickX,
-            clickY
-        )
+    Sleep(90)
 
 
-        Sleep(90)
-    }
-
-
-    ; Backspace is BTD6's default sell hotkey. We still check that a tower
-    ; panel is actually open first so a missed click does not fake a sale.
-    if !GetUpgradePanelSide() {
-        ClearSelectedUpgradeTower()
-
-
-        return SetRunFailureReason(
-            "SELL FAILED",
-            "Could not select tower for selling"
-        )
-    }
-
-
+    ; Backspace sells the tower we just clicked. Do not wait on upgrade-panel
+    ; detection here; the click itself is all we need before sending the hotkey.
     Send(
         "{Backspace}"
     )
 
 
     Sleep(180)
-
-
-    ClearSelectedUpgradeTower()
 
 
     tower.placed :=

@@ -64,6 +64,7 @@ SaveTemplate(*) {
 ClearAll(*) {
     global Entities, UpgradeActions, OutputEdit, StatusText, EntityNameEdit, EntityTypeDDL, HeroDDL, TargetingDDL
     global PlaceRoundEdit, PlaceDelayEdit, XEdit, YEdit
+    global UpgradeEdit, UpgradeXEdit, UpgradeYEdit
     global ImportedStartRound, ImportedEndRound
     global WingmonkeyMKCheckbox, GameSpeedDDL
 
@@ -87,6 +88,9 @@ ClearAll(*) {
     YEdit.Value := "0"
     PlaceRoundEdit.Value := "0"
     PlaceDelayEdit.Value := "0"
+    UpgradeEdit.Value := "000"
+    UpgradeXEdit.Value := ""
+    UpgradeYEdit.Value := ""
     ApplyDefaultTargetingForType(EntityTypeDDL.Text)
     RefreshEntityList()
     RefreshActionEntityDropdown()

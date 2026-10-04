@@ -212,6 +212,14 @@ strategy := [
     [6, 0, () => UpgradeTower(TowerSetup["Dart A"], "025")]
 ]
 
+For moving maps such as Geared, optionally provide the tower's current screen coordinates:
+
+[39, 0, () => UpgradeTower(TowerSetup["Dart A"], "024", 812, 447)]
+
+Strategy Builder has optional Upgrade X/Y fields for this. Press F3 while the mouse is over
+the tower's current position to capture those coordinates. The builder also remembers the
+latest upgrade value for each monkey when switching between monkey entries.
+
 The upgrade system:
      - Clicks the tower.
      - Waits 250 ms for the panel animation.

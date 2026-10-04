@@ -70,13 +70,22 @@ CollectDailyChest(silent := false) {
     Sleep(1000)
 
 
-    ; Different rewards can show different screens.
-    ; Advance through them using the known screen coordinate.
-    ClickDailyChestRewardScreens()
+    ; Different rewards can take a different number of clicks. Keep clicking
+    ; the same reward spot and check for the home Play button after each one.
+    if !ClickDailyChestRewardScreens() {
+        if !silent {
+            ToolTip(
+                "Daily chest did not return to the home screen."
+            )
+
+            Sleep(1000)
+            ToolTip()
+        }
+
+        return false
+    }
 
 
-    ; The ten reward clicks advance through and close the Daily Chest flow.
-    ; Keep only a tiny settle before continuing.
     Sleep(100)
 
 
@@ -94,17 +103,27 @@ CollectDailyChest(silent := false) {
 }
 
 
-ClickDailyChestRewardScreens() {
+ClickDailyChestRewardScreens(timeoutMs := 20000) {
     previousMouseCoordMode := A_CoordModeMouse
+    startTick := A_TickCount
 
     try {
         CoordMode("Mouse", "Screen")
 
-        Loop 10 {
+        ; Daily Chest screens do not always need the same number of clicks.
+        ; Click once, let the screen change, then scan for the home Play button.
+        ; Repeat until we know the chest flow is actually finished.
+        Loop {
             Click(583, 388)
+            Sleep(325)
 
-            if A_Index < 10
-                Sleep(325)
+            if IsHomeScreenVisible()
+                return true
+
+            ; Do not get stuck clicking forever if BTD6 changes the Play button
+            ; or something unexpected covers the home screen.
+            if A_TickCount - startTick >= timeoutMs
+                return false
         }
     }
     finally {

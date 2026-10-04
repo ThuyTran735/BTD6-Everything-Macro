@@ -49,6 +49,103 @@ CaptureCoordinates(*) {
     }
 }
 
+
+RemapAllPlacementCoordinates(*) {
+    global MainGui, Entities, MonkeyOverlayVisible, StatusText
+
+    if Entities.Length = 0 {
+        MsgBox(
+            "Import or add a strategy first. Remap mode only changes each monkey/hero X/Y coordinate.",
+            "Strategy Builder",
+            "Icon!"
+        )
+        return
+    }
+
+    result := MsgBox(
+        "Remap every placement coordinate for this strategy?`n`n"
+        . "This keeps the same monkeys, placement rounds, placement delays, upgrades, targeting, sells, abilities, speed actions, and action delays.`n`n"
+        . "For each monkey/hero, move the mouse to its new map position and press F4. Press Esc at any time to cancel and restore all original coordinates.",
+        "Strategy Builder - Remap X/Y",
+        "YesNo Icon?"
+    )
+
+    if result != "Yes"
+        return
+
+    originalCoords := []
+    for entity in Entities {
+        originalCoords.Push({x: entity.x, y: entity.y})
+    }
+
+    overlayWasVisible := MonkeyOverlayVisible
+    if overlayWasVisible
+        HideMonkeyOverlay()
+
+    MainGui.Hide()
+    Sleep(150)
+
+    for index, entity in Entities {
+        ToolTip(
+            "REMAP " index "/" Entities.Length "`n"
+            . entity.name " (" entity.type ")`n`n"
+            . "Move the mouse to the NEW placement spot and press F4.`n"
+            . "Press Esc to cancel all remapped coordinates."
+        )
+
+        Loop {
+            if GetKeyState("Escape", "P") {
+                KeyWait("Escape")
+
+                for restoreIndex, coords in originalCoords {
+                    Entities[restoreIndex].x := coords.x
+                    Entities[restoreIndex].y := coords.y
+                }
+
+                ToolTip()
+                MainGui.Show()
+                MainGui.Opt("+AlwaysOnTop")
+                WinActivate("ahk_id " MainGui.Hwnd)
+                SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+                RefreshEntityList()
+
+                if overlayWasVisible
+                    ShowMonkeyOverlay()
+
+                StatusText.Text := "Coordinate remap cancelled; original X/Y restored"
+                return
+            }
+
+            if GetKeyState("F4", "P") {
+                MouseGetPos(&mx, &my)
+                KeyWait("F4")
+
+                Entities[index].x := mx
+                Entities[index].y := my
+
+                ToolTip("Saved " entity.name ": " mx ", " my)
+                Sleep(180)
+                break
+            }
+
+            Sleep(20)
+        }
+    }
+
+    ToolTip()
+    MainGui.Show()
+    MainGui.Opt("+AlwaysOnTop")
+    WinActivate("ahk_id " MainGui.Hwnd)
+    SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+
+    RefreshEntityList()
+
+    if overlayWasVisible
+        ShowMonkeyOverlay()
+
+    StatusText.Text := "Remapped " Entities.Length " placement X/Y values; rounds and scheduled actions preserved"
+}
+
 AddEntity(*) {
     global Entities, EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
     global StatusText
@@ -235,4 +332,3 @@ DeleteSelectedEntity(*) {
     EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
     StatusText.Text := "Deleted " removedName
 }
-

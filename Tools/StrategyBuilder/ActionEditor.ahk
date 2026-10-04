@@ -4,7 +4,7 @@
 ; Split out in v3.0.0 so this part is easier to find without scrolling forever.
 
 AddUpgradeAction(*) {
-    global Entities, UpgradeActions, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+    global Entities, UpgradeActions, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
 
     if Entities.Length = 0 {
         MsgBox("Add at least one monkey first.", "Strategy Builder", "Icon!")
@@ -37,9 +37,34 @@ AddUpgradeAction(*) {
     round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
     delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
 
-    UpgradeActions.Push({kind: "upgrade", entity: entityName, upgrade: upgrade, round: round, delay: delay})
+    action := {
+        kind: "upgrade",
+        entity: entityName,
+        upgrade: upgrade,
+        round: round,
+        delay: delay
+    }
+
+    overrideXText := Trim(UpgradeXEdit.Value)
+    overrideYText := Trim(UpgradeYEdit.Value)
+
+    if overrideXText != "" || overrideYText != "" {
+        if overrideXText = "" || overrideYText = "" {
+            MsgBox("Upgrade coordinate override requires both X and Y.", "Strategy Builder", "Icon!")
+            return
+        }
+
+        action.overrideX := IntegerOrDefault(overrideXText, 0)
+        action.overrideY := IntegerOrDefault(overrideYText, 0)
+    }
+
+    UpgradeActions.Push(action)
     RefreshActionList()
-    StatusText.Text := "Added " entityName " -> " upgrade " on round " round
+
+    if HasProp(action, "overrideX")
+        StatusText.Text := "Added " entityName " -> " upgrade " @ " action.overrideX "," action.overrideY " on round " round
+    else
+        StatusText.Text := "Added " entityName " -> " upgrade " on round " round
 }
 
 AddTargetingAction(*) {
@@ -197,6 +222,7 @@ DeleteSelectedUpgrade(*) {
 
     UpgradeActions.RemoveAt(row)
     RefreshActionList()
+    RefreshUpgradeEditForSelectedEntity()
     StatusText.Text := "Scheduled action deleted"
 }
 
@@ -253,6 +279,8 @@ RefreshActionEntityDropdown(preferredName := "") {
         ActionEntityDDL.Add(["Add a monkey first"])
         ActionEntityDDL.Choose(1)
         RefreshActionTargetDropdown()
+        RefreshUpgradeEditForSelectedEntity()
+        ClearUpgradeCoordinateInputs()
         return
     }
 
@@ -260,15 +288,113 @@ RefreshActionEntityDropdown(preferredName := "") {
 
     if preferredName != "" && ChooseDropdownText(ActionEntityDDL, preferredName) {
         RefreshActionTargetDropdown()
+        RefreshUpgradeEditForSelectedEntity()
+        ClearUpgradeCoordinateInputs()
         return
     }
 
     ActionEntityDDL.Choose(1)
     RefreshActionTargetDropdown()
+    RefreshUpgradeEditForSelectedEntity()
+    ClearUpgradeCoordinateInputs()
 }
 
 OnActionEntityChanged(*) {
     RefreshActionTargetDropdown()
+    RefreshUpgradeEditForSelectedEntity()
+    ClearUpgradeCoordinateInputs()
+}
+
+GetRememberedUpgradeForEntity(entityName) {
+    global UpgradeActions
+
+    remembered := "000"
+
+    for action in UpgradeActions {
+        kind := HasProp(action, "kind") ? action.kind : "upgrade"
+
+        if (
+            kind = "upgrade"
+            && HasProp(action, "entity")
+            && action.entity = entityName
+        ) {
+            remembered := action.upgrade
+        }
+    }
+
+    return remembered
+}
+
+RefreshUpgradeEditForSelectedEntity() {
+    global ActionEntityDDL, UpgradeEdit
+
+    if !UpgradeEdit
+        return
+
+    selectedEntity := FindEntityByName(ActionEntityDDL.Text)
+
+    if !selectedEntity || selectedEntity.type = "Hero" {
+        UpgradeEdit.Value := "000"
+        return
+    }
+
+    UpgradeEdit.Value := GetRememberedUpgradeForEntity(selectedEntity.name)
+}
+
+ClearUpgradeCoordinateInputs() {
+    global UpgradeXEdit, UpgradeYEdit
+
+    if UpgradeXEdit
+        UpgradeXEdit.Value := ""
+
+    if UpgradeYEdit
+        UpgradeYEdit.Value := ""
+}
+
+CaptureUpgradeCoordinatesInstant(*) {
+    global UpgradeXEdit, UpgradeYEdit, StatusText
+
+    MouseGetPos(&mx, &my)
+    UpgradeXEdit.Value := mx
+    UpgradeYEdit.Value := my
+    StatusText.Text := "Captured upgrade coordinates: " mx ", " my
+    ToolTip("Captured upgrade coordinates: " mx ", " my)
+    SetTimer(() => ToolTip(), -800)
+}
+
+CaptureUpgradeCoordinates(*) {
+    global MainGui, UpgradeXEdit, UpgradeYEdit, StatusText
+
+    StatusText.Text := "Move cursor and press F3..."
+    MainGui.Hide()
+    Sleep(150)
+    ToolTip("Move the mouse over the tower's current BTD6 position.`nPress F3 to capture upgrade coordinates.`nPress Esc to cancel.")
+
+    Loop {
+        if GetKeyState("Escape", "P") {
+            KeyWait("Escape")
+            ToolTip()
+            MainGui.Show()
+            StatusText.Text := "Upgrade coordinate capture cancelled"
+            return
+        }
+
+        if GetKeyState("F3", "P") {
+            MouseGetPos(&mx, &my)
+            KeyWait("F3")
+            ToolTip()
+            UpgradeXEdit.Value := mx
+            UpgradeYEdit.Value := my
+            MainGui.Show()
+            MainGui.Opt("+AlwaysOnTop")
+            WinActivate("ahk_id " MainGui.Hwnd)
+            SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+            StatusText.Text := "Captured upgrade coordinates: " mx ", " my
+            return
+        }
+
+        Sleep(20)
+    }
 }
 
 OnActionTargetChanged(*) {

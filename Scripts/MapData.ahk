@@ -46,6 +46,126 @@ global MapData := Map(
         pattern: "|<>*158$27.3zzztzzzzyTzzzlzzzy7zzzszzzzjzzzzzzzzzzzzznnzzw7zzz0zzTszzvzzUT7w03sS00T3U03zk00Ts003y000T0003s000T0003s000T0003s000T0000s0000U00060000w0027z000zU007w000zU007w000z0007s000y0007k000U"
     },
 
+    "Tree Stump", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*159$17.3y07s0TU0y03w0Ds0zk1zk3zs71sA1zk0zU1x01s03k07U0DS1kz30Tg07s03k03U0701s1zk3z04"
+    },
+
+    "Town Center", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*155$25.3sDw1yy7kzy3sTw0wDw0S7s0C3s0C1s070w03UT02M3k240Q320D3303xUU0zsE0Tzw01zy001z00000000000000002"
+    },
+
+    "Middle Of The Road", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*126$26.00zz00Dzk03zw00zz00Dzk03zw00zzA0Dzn0TzysDzziTzznzzzwzXzzDsTzn63zwv0zzjUDznk3zww0zzDzzznzzzwnDzzAvzzkS3zww0zz70Dzls3zwS0zz3UDzks3zwC1zz3UTzm"
+    },
+
+    "One Two Tree", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*208$27.zzw07zzU0zzw07zzU0zzw07zzU0zzw07zzU0w7w070TU0U1k003zw03zzztzzzzTz1zzzk03Tw00Pz007TU00vw007T001vs00DD003tw01zD0C7ts10TD0k3tsy1zD7UTtss3zA7UztUA7zA1Uzw"
+    },
+
+    "Scrapyard", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*147$26.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzvzzzz000Dns03zy00zy00Dy003w000z0007k07tw03zT01zzk0Tzw00AT0007yA0Vy"
+    },
+
+    "The Cabin", {
+        category: "Beginner",
+        page: 2,
+        pattern: "|<>*34$28.D3500wAw03szk0zny03zDk0Dxk00zb003yQ0EDvk0kzi037zs03zzU0Czz00vzzs3jzzkAyzzUnnzz7Djzzszzzz3zzzsDzzzszzzznzzzyDzzzkzzzy3zzzUDzzy0zzzs3zzzkDzzzkzzzznzzzzjzzzzzzz0Tzzw0Dszk0z1y03w7s0DkTU0zkS02"
+    },
+
+    "Resort", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*189$36.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzk07zs0000Ds00007s00000k00000k00000w00000zs0000zs0000zk0000zU0000y00000yU0000zU0000v00003s00003s00007s00003w00003U"
+    },
+
+    "Skates", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*149$28.zx03zzU0Dzw01zzk47zy00Tzk03zy08Dzk01zz007zk00zy143zk00Tz241jwlkBzw81rzX0DzzU3zzk0STz0XvzwATzzz7zzzlzzzkDzzz7zzzwzzzzrzvzzzzzzzwzzzzXzzzs"
+    },
+
+    "Lotus Island", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*174$23.zs3zzU7zy0Dzk0Dy00Tw00zU01y003w007s007k00TU01z003y007y00Tw01zw03zw0Dzy0zzy1zzy3zzwDzs"
+    },
+
+    "Candy Falls", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*147$27.01zzs07zz00zzs03zz007zs00zz003zs00Tz003zs00Dz001zs007z000zw003zk00Ty003zs00Tz003zs00DzU01zw00Dz001zs00Dz003zk00Ty003zU00Ts007z000zs00Dz001zs00Dy003z600T0006000000U"
+    },
+
+    "Winter Park", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*235$28.003zk007z000Tw001zk00Dz000zw003zkDzzzDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzxwzzzzzDyk00Tz001zs007zU00Ty001zs007zU00Ti001ys007zU00Ty001zs007zU00Ty001zs007zU00Ty001zu"
+    },
+
+    "Carved", {
+        category: "Beginner",
+        page: 3,
+        pattern: "|<>*94$42.zbsTzzzY3szzzzU3zzzzzk3zzzzz03zzzzz03zzzTz07zzwzz07zztzz0Dzzjzz0DzytTz0Dztk/z0Tza0Tz0zyA0Dz1zzy0Bz3zzM0zzDzzM0DsTzzg4y0zzziTw0zzzbDU0zzzsTU0zzzlzk0zzzzzk0zzzzzk0zzzzyk0zzzzyE0zzzzy00zzzzw00zzzzw00zzzzw00zzzzs00zzzzs00zzzzs00zzzzs00zzzzk00zzzzk00zzzzU00zzzzU00zzzz000zzzz000zzzzU00zzzzk00zzzzk00zzzzk00U"
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 4,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 5,
+        pattern: ""
+    },
+
+    "", {
+        category: "Beginner",
+        page: 5,
+        pattern: ""
+    },
+
 
 
 

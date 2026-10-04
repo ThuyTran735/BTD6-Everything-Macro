@@ -46,7 +46,7 @@ global ModeChoicesByDifficulty := Map(
 )
 
 global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
-global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
+global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
 global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
 
 BuildGui()
@@ -55,11 +55,11 @@ BuildGui() {
     global MainGui
     global BuilderMinimizeControl, BuilderCloseControl, BuilderChromeMessageReady, BuilderWindowBorder
     global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
-    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
+    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
     global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoicesByDifficulty
 
-    MainGui := Gui("+Resize +MinSize1040x805 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
+    MainGui := Gui("+Resize +MinSize1040x790 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "0B0F14"
     MainGui.SetFont("s10 cF5F7FA", "Segoe UI")
     MainGui.OnEvent("Close", (*) => ExitApp())
@@ -69,7 +69,7 @@ BuildGui() {
         BuilderChromeMessageReady := true
     }
 
-    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 805)
+    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 790)
 
     MainGui.SetFont("s16 w400 cFFD45C")
     MainGui.AddText("x20 y14 w920 h28", "BTD6 STRATEGY BUILDER + COORDINATE TOOL")
@@ -114,7 +114,7 @@ BuildGui() {
 
     ; Entity builder
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x20 y190 w500 h350", " MONKEY / HERO ")
+    MainGui.AddGroupBox("x20 y190 w500 h330", " MONKEY / HERO ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x40 y220 w65 h20", "Name")
@@ -159,7 +159,7 @@ BuildGui() {
     DeleteEntityBtn := MainGui.AddButton("x345 y363 w150 h32", "DELETE SELECTED")
     DeleteEntityBtn.OnEvent("Click", DeleteSelectedEntity)
 
-    EntityLV := MainGui.AddListView("x40 y407 w455 h88 -Multi", ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"])
+    EntityLV := MainGui.AddListView("x40 y407 w455 h68 -Multi", ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"])
     EntityLV.ModifyCol(1, 88)
     EntityLV.ModifyCol(2, 64)
     EntityLV.ModifyCol(3, 70)
@@ -170,13 +170,15 @@ BuildGui() {
     EntityLV.ModifyCol(8, 58)
     EntityLV.OnEvent("DoubleClick", LoadSelectedEntityForEdit)
 
-    OverlayBtn := MainGui.AddButton("x40 y502 w190 h28", "TOGGLE MONKEY LABELS")
+    OverlayBtn := MainGui.AddButton("x40 y482 w190 h28", "TOGGLE MONKEY LABELS")
     OverlayBtn.OnEvent("Click", ToggleMonkeyOverlay)
-    MainGui.AddText("x245 y507 w245 h18 c7F91A6", "Double-click a row to load it for editing.")
+
+    RemapCoordsBtn := MainGui.AddButton("x245 y482 w250 h28", "REMAP ALL X/Y")
+    RemapCoordsBtn.OnEvent("Click", RemapAllPlacementCoordinates)
 
     ; Scheduled action builder
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x540 y190 w480 h350", " ACTION SCHEDULE ")
+    MainGui.AddGroupBox("x540 y190 w480 h390", " ACTION SCHEDULE ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
     MainGui.AddText("x560 y220 w60 h20", "Monkey")
@@ -192,47 +194,58 @@ BuildGui() {
     SetEditTextBlack(UpgradeDelayEdit)
 
     MainGui.AddText("x560 y258 w60 h20", "Upgrade")
-    UpgradeEdit := MainGui.AddEdit("x620 y254 w90 h26", "000")
+    UpgradeEdit := MainGui.AddEdit("x620 y254 w70 h26", "000")
     SetEditTextBlack(UpgradeEdit)
 
-    MainGui.AddText("x730 y258 w45 h20", "Target")
-    ActionTargetDDL := MainGui.AddDropDownList("x775 y254 w115", ["First", "Last", "Close", "Strong"])
+    MainGui.AddText("x700 y258 w38 h20", "Upg X")
+    UpgradeXEdit := MainGui.AddEdit("x740 y254 w55 h26 Number", "")
+    SetEditTextBlack(UpgradeXEdit)
+
+    MainGui.AddText("x805 y258 w12 h20", "Y")
+    UpgradeYEdit := MainGui.AddEdit("x820 y254 w55 h26 Number", "")
+    SetEditTextBlack(UpgradeYEdit)
+
+    CaptureUpgradeBtn := MainGui.AddButton("x885 y253 w120 h28", "CAPTURE (F3)")
+    CaptureUpgradeBtn.OnEvent("Click", CaptureUpgradeCoordinates)
+
+    MainGui.AddText("x560 y294 w60 h20", "Target")
+    ActionTargetDDL := MainGui.AddDropDownList("x620 y290 w160", ["First", "Last", "Close", "Strong"])
     ActionTargetDDL.Choose(1)
     ActionTargetDDL.OnEvent("Change", OnActionTargetChanged)
 
-    MainGui.AddText("x898 y258 w12 h20", "X")
-    ActionTargetXEdit := MainGui.AddEdit("x910 y254 w42 h26 Number", "0")
+    MainGui.AddText("x790 y294 w12 h20", "X")
+    ActionTargetXEdit := MainGui.AddEdit("x805 y290 w60 h26 Number", "0")
     SetEditTextBlack(ActionTargetXEdit)
     ActionTargetXEdit.Enabled := false
 
-    MainGui.AddText("x958 y258 w12 h20", "Y")
-    ActionTargetYEdit := MainGui.AddEdit("x970 y254 w42 h26 Number", "0")
+    MainGui.AddText("x875 y294 w12 h20", "Y")
+    ActionTargetYEdit := MainGui.AddEdit("x890 y290 w60 h26 Number", "0")
     SetEditTextBlack(ActionTargetYEdit)
     ActionTargetYEdit.Enabled := false
 
-    MainGui.AddText("x560 y294 w60 h20", "Ability")
-    AbilityEdit := MainGui.AddEdit("x620 y290 w90 h26", "1")
+    MainGui.AddText("x560 y330 w60 h20", "Ability")
+    AbilityEdit := MainGui.AddEdit("x620 y326 w90 h26", "1")
     SetEditTextBlack(AbilityEdit)
 
-    MainGui.AddText("x730 y294 w45 h20", "Speed")
-    GameSpeedDDL := MainGui.AddDropDownList("x775 y290 w100", ["Normal", "Fast"])
+    MainGui.AddText("x730 y330 w45 h20", "Speed")
+    GameSpeedDDL := MainGui.AddDropDownList("x775 y326 w100", ["Normal", "Fast"])
     GameSpeedDDL.Choose(1)
-    AddSpeedBtn := MainGui.AddButton("x885 y289 w90 h28", "ADD SPEED")
+    AddSpeedBtn := MainGui.AddButton("x885 y325 w90 h28", "ADD SPEED")
     AddSpeedBtn.OnEvent("Click", AddGameSpeedAction)
 
-    AddUpgradeBtn := MainGui.AddButton("x560 y327 w98 h30", "ADD UPGRADE")
+    AddUpgradeBtn := MainGui.AddButton("x560 y363 w98 h30", "ADD UPGRADE")
     AddUpgradeBtn.OnEvent("Click", AddUpgradeAction)
-    AddTargetBtn := MainGui.AddButton("x664 y327 w90 h30", "ADD TARGET")
+    AddTargetBtn := MainGui.AddButton("x664 y363 w90 h30", "ADD TARGET")
     AddTargetBtn.OnEvent("Click", AddTargetingAction)
-    AddSellBtn := MainGui.AddButton("x760 y327 w90 h30", "ADD SELL")
+    AddSellBtn := MainGui.AddButton("x760 y363 w90 h30", "ADD SELL")
     AddSellBtn.OnEvent("Click", AddSellAction)
-    AddAbilityBtn := MainGui.AddButton("x856 y327 w119 h30", "ADD ABILITY")
+    AddAbilityBtn := MainGui.AddButton("x856 y363 w119 h30", "ADD ABILITY")
     AddAbilityBtn.OnEvent("Click", AddAbilityAction)
 
-    DeleteActionBtn := MainGui.AddButton("x560 y363 w415 h28", "DELETE SELECTED ACTION")
+    DeleteActionBtn := MainGui.AddButton("x560 y399 w415 h28", "DELETE SELECTED ACTION")
     DeleteActionBtn.OnEvent("Click", DeleteSelectedUpgrade)
 
-    ActionLV := MainGui.AddListView("x560 y400 w415 h122 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
+    ActionLV := MainGui.AddListView("x560 y436 w415 h125 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
     ActionLV.ModifyCol(1, 66)
     ActionLV.ModifyCol(2, 100)
     ActionLV.ModifyCol(3, 90)
@@ -241,29 +254,30 @@ BuildGui() {
 
     ; Output
     MainGui.SetFont("s10 w400 cD9E3EE")
-    MainGui.AddGroupBox("x20 y555 w1000 h190", " GENERATED TEMPLATE ")
+    MainGui.AddGroupBox("x20 y590 w1000 h160", " GENERATED TEMPLATE ")
     MainGui.SetFont("s9 w400 cD9E3EE")
 
-    GenerateBtn := MainGui.AddButton("x40 y584 w150 h32", "GENERATE TEMPLATE")
+    GenerateBtn := MainGui.AddButton("x40 y615 w150 h32", "GENERATE TEMPLATE")
     GenerateBtn.OnEvent("Click", GenerateTemplate)
-    ImportBtn := MainGui.AddButton("x200 y584 w130 h32", "IMPORT .AHK")
+    ImportBtn := MainGui.AddButton("x200 y615 w130 h32", "IMPORT .AHK")
     ImportBtn.OnEvent("Click", ImportStrategyScript)
-    CopyBtn := MainGui.AddButton("x340 y584 w145 h32", "COPY")
+    CopyBtn := MainGui.AddButton("x340 y615 w145 h32", "COPY")
     CopyBtn.OnEvent("Click", CopyTemplate)
-    SaveBtn := MainGui.AddButton("x495 y584 w130 h32", "SAVE .AHK")
+    SaveBtn := MainGui.AddButton("x495 y615 w130 h32", "SAVE .AHK")
     SaveBtn.OnEvent("Click", SaveTemplate)
-    ClearBtn := MainGui.AddButton("x635 y584 w120 h32", "CLEAR ALL")
+    ClearBtn := MainGui.AddButton("x635 y615 w120 h32", "CLEAR ALL")
     ClearBtn.OnEvent("Click", ClearAll)
 
-    StatusText := MainGui.AddText("x770 y590 w225 h22 cB8C6D6", "Ready")
-    OutputEdit := MainGui.AddEdit("x40 y630 w955 h95 ReadOnly -Wrap VScroll", "")
+    StatusText := MainGui.AddText("x770 y621 w225 h22 cB8C6D6", "Ready")
+    OutputEdit := MainGui.AddEdit("x40 y657 w955 h68 ReadOnly -Wrap VScroll", "")
     SetEditTextBlack(OutputEdit)
 
     MainGui.SetFont("s8 c7F91A6")
-    MainGui.AddText("x20 y765 w1000 h18", "F2 captures SCREEN coordinates. Monkey labels are click-through overlays at each configured placement coordinate.")
+    MainGui.AddText("x20 y760 w1000 h18", "F2 = placement coords. F3 = moving upgrade coords. REMAP ALL X/Y uses F4 for each new tower position.")
 
-    MainGui.Show("w1040 h805")
+    MainGui.Show("w1040 h790")
     Hotkey("F2", CaptureCoordinatesInstant, "On")
+    Hotkey("F3", CaptureUpgradeCoordinatesInstant, "On")
 }
 SetEditTextBlack(control) {
     control.SetFont("c000000", "Segoe UI")

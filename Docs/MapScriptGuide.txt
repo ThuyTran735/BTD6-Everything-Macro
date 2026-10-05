@@ -236,6 +236,10 @@ Use:
 
 SetTargeting(TowerSetup["Tower Name"], "Target")
 
+For moving maps, you can optionally override the tower click position for that one targeting action:
+
+SetTargeting(TowerSetup["Tower Name"], "Target", x, y)
+
 Standard targets:
      - First
      - Last
@@ -247,6 +251,12 @@ Examples:
 [5, 0, () => SetTargeting(TowerSetup["Dart A"], "Last")]
 
 [10, 0, () => SetTargeting(TowerSetup["Dart A"], "Strong")]
+
+Moving-map example:
+
+[34, 750, () => SetTargeting(TowerSetup["Sniper A"], "First", 763, 1029)]
+
+The optional X/Y values are only used to click/select the tower. They do not change the tower's saved placement coordinates.
 
 The targeting system:
      - Clicks the tower.

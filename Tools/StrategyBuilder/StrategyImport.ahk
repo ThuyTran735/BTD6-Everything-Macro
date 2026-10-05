@@ -189,7 +189,7 @@ ParseImportedStrategyActions(text) {
 
     CollectImportedActions(
         text,
-        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*SetTargeting\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*,\s*\x22([^\x22]+)\x22\s*\)\s*\]",
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*SetTargeting\(\s*TowerSetup\[\x22([^\x22]+)\x22\]\s*,\s*\x22([^\x22]+)\x22\s*(?:,\s*(-?\d+)\s*,\s*(-?\d+)\s*)?\)\s*\]",
         "target",
         actions
     )
@@ -256,6 +256,10 @@ CollectImportedActions(text, pattern, kind, actions) {
         } else if kind = "target" {
             action.entity := m[3]
             action.target := m[4]
+            if m[5] != "" && m[6] != "" {
+                action.overrideX := Integer(m[5])
+                action.overrideY := Integer(m[6])
+            }
         } else if kind = "spikeTarget" {
             action.kind := "target"
             action.entity := m[3]

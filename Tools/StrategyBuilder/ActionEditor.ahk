@@ -120,17 +120,27 @@ AddTargetingAction(*) {
         delay: delay
     }
 
-    if selectedEntity.type = "SpikeFactory" && targetMode = "Set Target" {
-        targetX := IntegerOrDefault(ActionTargetXEdit.Value, 0)
-        targetY := IntegerOrDefault(ActionTargetYEdit.Value, 0)
+    targetXText := Trim(ActionTargetXEdit.Value)
+    targetYText := Trim(ActionTargetYEdit.Value)
 
-        if targetX = 0 && targetY = 0 {
-            MsgBox("Enter the Spike Factory Set Target X and Y coordinates.", "Strategy Builder", "Icon!")
+    if selectedEntity.type = "SpikeFactory" && targetMode = "Set Target" {
+        if targetXText = "" || targetYText = "" {
+            MsgBox("Enter both Spike Factory Set Target X and Y coordinates.", "Strategy Builder", "Icon!")
             return
         }
 
-        action.targetX := targetX
-        action.targetY := targetY
+        action.targetX := IntegerOrDefault(targetXText, 0)
+        action.targetY := IntegerOrDefault(targetYText, 0)
+    } else if selectedEntity.type != "SpikeFactory" {
+        if targetXText != "" || targetYText != "" {
+            if targetXText = "" || targetYText = "" {
+                MsgBox("Targeting coordinate override requires both X and Y.", "Strategy Builder", "Icon!")
+                return
+            }
+
+            action.overrideX := IntegerOrDefault(targetXText, 0)
+            action.overrideY := IntegerOrDefault(targetYText, 0)
+        }
     }
 
     UpgradeActions.Push(action)
@@ -138,6 +148,8 @@ AddTargetingAction(*) {
 
     if selectedEntity.type = "SpikeFactory" && targetMode = "Set Target"
         StatusText.Text := "Added " entityName " Set Target -> " action.targetX "," action.targetY " on round " round
+    else if HasProp(action, "overrideX")
+        StatusText.Text := "Added " entityName " targeting -> " targetMode " @ " action.overrideX "," action.overrideY " on round " round
     else
         StatusText.Text := "Added " entityName " targeting -> " targetMode " on round " round
 }
@@ -247,7 +259,9 @@ RefreshActionList() {
         if kind = "target" {
             value := action.target
             if action.target = "Set Target" && HasProp(action, "targetX")
-                value .= " @ " action.targetX "," action.targetY
+                value .= " -> " action.targetX "," action.targetY
+            else if HasProp(action, "overrideX")
+                value .= " @ " action.overrideX "," action.overrideY
             ActionLV.Add("", "Target", action.entity, value, action.round, action.delay)
         } else if kind = "sell" {
             value := HasProp(action, "overrideX") ? "@ " action.overrideX "," action.overrideY : "Sell"
@@ -281,6 +295,7 @@ RefreshActionEntityDropdown(preferredName := "") {
         RefreshActionTargetDropdown()
         RefreshUpgradeEditForSelectedEntity()
         ClearUpgradeCoordinateInputs()
+        ClearTargetCoordinateInputs()
         return
     }
 
@@ -290,6 +305,7 @@ RefreshActionEntityDropdown(preferredName := "") {
         RefreshActionTargetDropdown()
         RefreshUpgradeEditForSelectedEntity()
         ClearUpgradeCoordinateInputs()
+        ClearTargetCoordinateInputs()
         return
     }
 
@@ -297,12 +313,14 @@ RefreshActionEntityDropdown(preferredName := "") {
     RefreshActionTargetDropdown()
     RefreshUpgradeEditForSelectedEntity()
     ClearUpgradeCoordinateInputs()
+    ClearTargetCoordinateInputs()
 }
 
 OnActionEntityChanged(*) {
     RefreshActionTargetDropdown()
     RefreshUpgradeEditForSelectedEntity()
     ClearUpgradeCoordinateInputs()
+    ClearTargetCoordinateInputs()
 }
 
 GetRememberedUpgradeForEntity(entityName) {
@@ -397,6 +415,71 @@ CaptureUpgradeCoordinates(*) {
     }
 }
 
+
+ClearTargetCoordinateInputs() {
+    global ActionTargetXEdit, ActionTargetYEdit
+
+    if ActionTargetXEdit
+        ActionTargetXEdit.Value := ""
+
+    if ActionTargetYEdit
+        ActionTargetYEdit.Value := ""
+}
+
+CaptureTargetCoordinatesInstant(*) {
+    global ActionTargetXEdit, ActionTargetYEdit, StatusText
+
+    if !ActionTargetXEdit.Enabled || !ActionTargetYEdit.Enabled
+        return
+
+    MouseGetPos(&mx, &my)
+    ActionTargetXEdit.Value := mx
+    ActionTargetYEdit.Value := my
+    StatusText.Text := "Captured targeting coordinates: " mx ", " my
+    ToolTip("Captured targeting coordinates: " mx ", " my)
+    SetTimer(() => ToolTip(), -800)
+}
+
+CaptureTargetCoordinates(*) {
+    global MainGui, ActionTargetXEdit, ActionTargetYEdit, StatusText
+
+    if !ActionTargetXEdit.Enabled || !ActionTargetYEdit.Enabled {
+        MsgBox("Select a targeting action that supports coordinates first.", "Strategy Builder", "Icon!")
+        return
+    }
+
+    StatusText.Text := "Move cursor and press F5..."
+    MainGui.Hide()
+    Sleep(150)
+    ToolTip("Move the mouse to the targeting coordinate.`nPress F5 to capture SCREEN coordinates.`nPress Esc to cancel.")
+
+    Loop {
+        if GetKeyState("Escape", "P") {
+            KeyWait("Escape")
+            ToolTip()
+            MainGui.Show()
+            StatusText.Text := "Targeting coordinate capture cancelled"
+            return
+        }
+
+        if GetKeyState("F5", "P") {
+            MouseGetPos(&mx, &my)
+            KeyWait("F5")
+            ToolTip()
+            ActionTargetXEdit.Value := mx
+            ActionTargetYEdit.Value := my
+            MainGui.Show()
+            MainGui.Opt("+AlwaysOnTop")
+            WinActivate("ahk_id " MainGui.Hwnd)
+            SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+            StatusText.Text := "Captured targeting coordinates: " mx ", " my
+            return
+        }
+
+        Sleep(20)
+    }
+}
+
 OnActionTargetChanged(*) {
     RefreshActionTargetCoordinateState()
 }
@@ -407,12 +490,19 @@ RefreshActionTargetCoordinateState() {
     enabled := false
     selectedEntity := FindEntityByName(ActionEntityDDL.Text)
 
-    if (
-        selectedEntity
-        && selectedEntity.type = "SpikeFactory"
-        && ActionTargetDDL.Text = "Set Target"
-    )
-        enabled := true
+    if selectedEntity {
+        if selectedEntity.type = "SpikeFactory" {
+            ; Spike Factory Set Target uses these as the actual spike target point.
+            enabled := ActionTargetDDL.Text = "Set Target"
+        } else if (
+            selectedEntity.type != "Dartling"
+            && selectedEntity.type != "Heli"
+            && selectedEntity.type != "Mortar"
+        ) {
+            ; Normal targeting can optionally use a moving-map click override.
+            enabled := true
+        }
+    }
 
     ActionTargetXEdit.Enabled := enabled
     ActionTargetYEdit.Enabled := enabled

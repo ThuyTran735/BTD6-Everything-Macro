@@ -129,14 +129,45 @@ GetDefaultTargeting(tower) {
 }
 
 
-SetTargeting(tower, targetMode) {
+SetTargeting(tower, targetMode, overrideX := "", overrideY := "") {
     global TargetingProfiles
 
-    LogStrategyAction(
+    hasCoordinateOverride :=
+        overrideX != ""
+        || overrideY != ""
+
+
+    if (
+        hasCoordinateOverride
+        && (
+            overrideX = ""
+            || overrideY = ""
+        )
+    ) {
+        throw Error(
+            "Targeting coordinate override requires both X and Y."
+        )
+    }
+
+
+    logMessage :=
         "Target "
         . GetTowerLogName(tower)
         . " -> "
         . targetMode
+
+
+    if hasCoordinateOverride {
+        logMessage .=
+            " @ "
+            . overrideX
+            . ","
+            . overrideY
+    }
+
+
+    LogStrategyAction(
+        logMessage
     )
 
     if !HasProp(tower, "placed") || !tower.placed
@@ -227,7 +258,19 @@ SetTargeting(tower, targetMode) {
         return true
 
 
-    Click(tower.x, tower.y)
+    clickX :=
+        hasCoordinateOverride
+            ? overrideX
+            : tower.x
+
+
+    clickY :=
+        hasCoordinateOverride
+            ? overrideY
+            : tower.y
+
+
+    Click(clickX, clickY)
     Sleep(250)
 
 

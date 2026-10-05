@@ -214,14 +214,17 @@ BuildGui() {
     ActionTargetDDL.OnEvent("Change", OnActionTargetChanged)
 
     MainGui.AddText("x790 y294 w12 h20", "X")
-    ActionTargetXEdit := MainGui.AddEdit("x805 y290 w60 h26 Number", "0")
+    ActionTargetXEdit := MainGui.AddEdit("x805 y290 w60 h26 Number", "")
     SetEditTextBlack(ActionTargetXEdit)
     ActionTargetXEdit.Enabled := false
 
     MainGui.AddText("x875 y294 w12 h20", "Y")
-    ActionTargetYEdit := MainGui.AddEdit("x890 y290 w60 h26 Number", "0")
+    ActionTargetYEdit := MainGui.AddEdit("x890 y290 w60 h26 Number", "")
     SetEditTextBlack(ActionTargetYEdit)
     ActionTargetYEdit.Enabled := false
+
+    CaptureTargetBtn := MainGui.AddButton("x958 y289 w47 h28", "F5")
+    CaptureTargetBtn.OnEvent("Click", CaptureTargetCoordinates)
 
     MainGui.AddText("x560 y330 w60 h20", "Ability")
     AbilityEdit := MainGui.AddEdit("x620 y326 w90 h26", "1")
@@ -273,11 +276,12 @@ BuildGui() {
     SetEditTextBlack(OutputEdit)
 
     MainGui.SetFont("s8 c7F91A6")
-    MainGui.AddText("x20 y760 w1000 h18", "F2 = placement coords. F3 = moving upgrade coords. REMAP ALL X/Y uses F4 for each new tower position.")
+    MainGui.AddText("x20 y760 w1000 h18", "F2 = placement. F3 = moving upgrade. F4 = remap. F5 = targeting coords / moving target click override.")
 
     MainGui.Show("w1040 h790")
     Hotkey("F2", CaptureCoordinatesInstant, "On")
     Hotkey("F3", CaptureUpgradeCoordinatesInstant, "On")
+    Hotkey("F5", CaptureTargetCoordinatesInstant, "On")
 }
 SetEditTextBlack(control) {
     control.SetFont("c000000", "Segoe UI")

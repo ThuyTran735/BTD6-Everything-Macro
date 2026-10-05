@@ -188,6 +188,10 @@ BuildTemplateText() {
                 item.targetX := action.targetX
                 item.targetY := action.targetY
             }
+            if HasProp(action, "overrideX") {
+                item.overrideX := action.overrideX
+                item.overrideY := action.overrideY
+            }
             allActions.Push(item)
         } else if kind = "sell" {
             item := {
@@ -257,7 +261,10 @@ BuildTemplateText() {
                         out .= "        [" action.round ", " action.delay ", () => SetSpikeFactoryTargeting(TowerSetup[" q entityName q "], " q targetMode q ")]"
                     }
                 } else {
-                    out .= "        [" action.round ", " action.delay ", () => SetTargeting(TowerSetup[" q entityName q "], " q targetMode q ")]"
+                    out .= "        [" action.round ", " action.delay ", () => SetTargeting(TowerSetup[" q entityName q "], " q targetMode q
+                    if HasProp(action, "overrideX")
+                        out .= ", " action.overrideX ", " action.overrideY
+                    out .= ")]"
                 }
             } else if action.kind = "sell" {
                 out .= "        [" action.round ", " action.delay ", () => SellTower(TowerSetup[" q entityName q "]"

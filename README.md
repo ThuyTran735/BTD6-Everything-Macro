@@ -1,18 +1,12 @@
 # BTD6 Everything Macro
-**Current version: v3.2.1**
+**Current version: v3.2.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Fixed README GitHub Markdown formatting so headings, bold text, links, lists, tables, and code blocks render correctly.
-- Added 24 new Beginner strategies across Tree Stump, Town Center, Middle Of The Road, and One Two Tree.
-- Each of those four maps now includes Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse strategies.
-- Added Strategy Builder REMAP ALL X/Y support so an imported strategy can keep its rounds, upgrades, delays, targeting, sells, abilities, and speed actions while placement coordinates are recaptured for another map.
-- Added Strategy Builder upgrade-coordinate overrides for moving maps such as Geared, plus F3 coordinate capture and per-monkey remembered upgrade values.
-- Made the Strategy Builder window more compact so it stays clear of the Windows taskbar while keeping the current editing controls.
-- Simplified Daily Chest handling to repeatedly click the chest spot and scan for the home Play button until the chest flow is finished.
-- Added scheduled game-speed control so strategies can switch between normal and fast speed at a specific round and in-round delay.
+- Added optional X/Y click overrides to `SetTargeting()` and Strategy Builder so targeting actions can select moving towers on maps such as Geared.
+- Added Sanctuary Impoppable at `Maps/Expert/Sanctuary/Hard/SanctuaryImpoppable.ahk`.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -170,6 +164,17 @@ The launcher uses its full **CLOSE** button to exit the macro. Secondary windows
 By default, the launcher also remembers where you left off. Default mode restores the last category and map, Monkey EXP Grind restores the last monkey category and EXP script, and **Select Script** restores the last Default-mode `.ahk` strategy that successfully started running, including its difficulty when that strategy is still available for the selected map. You can disable this from **Settings -> REMEMBER LAST STATE**. Disabling it clears the saved launcher / strategy state. These values are stored only in `UserData` and are not tracked by Git.
 
 To move your setup to another macro version, open **Settings -> BACKUP / RESTORE USER DATA**. **EXPORT USER DATA** creates a dated backup containing the full `UserData` folder. **IMPORT USER DATA** merges a backup into the current copy and overwrites matching files while keeping files that only exist in the newer version. Restart the macro after importing so all restored values are reloaded.
+
+
+## Moving-map targeting coordinates
+
+Normal targeting actions can optionally include the tower's current X/Y position. This is useful on maps where the tower itself moves after placement.
+
+```ahk
+[34, 750, () => SetTargeting(TowerSetup["Sniper A"], "First", 763, 1029)],
+```
+
+The extra coordinates only override where the macro clicks to select the tower for that targeting action. If X/Y are omitted, `SetTargeting()` continues using the tower's original placement coordinates. Strategy Builder can capture these targeting coordinates with **F5**.
 
 ## Scheduled game speed
 Strategies can switch BTD6 between normal and fast speed with `SetGameSpeed()`. The normal strategy delay field still works, so speed changes can happen partway through a round.

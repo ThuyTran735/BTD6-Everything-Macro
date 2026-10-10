@@ -1,12 +1,13 @@
 # BTD6 Everything Macro
-**Current version: v3.2.2**
+**Current version: v3.2.3**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added optional X/Y click overrides to `SetTargeting()` and Strategy Builder so targeting actions can select moving towers on maps such as Geared.
-- Added Sanctuary Impoppable at `Maps/Expert/Sanctuary/Hard/SanctuaryImpoppable.ahk`.
+- Fixed Apopalypse startup so the macro presses Space once to switch the automatically running match to fast speed instead of pressing Space twice.
+- Added the Apopalypse Play-button confirmation step after selecting the game mode, using its dedicated FindText pattern before waiting for the map to load.
+
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -184,7 +185,7 @@ Strategies can switch BTD6 between normal and fast speed with `SetGameSpeed()`. 
 [41, 0, () => SetGameSpeed("Fast")],
 ```
 
-The example slows the game down 10 seconds into round 39, then returns to fast speed as soon as round 41 is detected. `StartGame()` still presses Space twice at the beginning, so normal map runs begin at fast speed. Strategy Builder can add and import these speed actions too.
+The example slows the game down 10 seconds into round 39, then returns to fast speed as soon as round 41 is detected. `StartGame()` presses Space twice for normal modes (start the round, then enable fast speed). Apopalypse starts automatically, so it presses Space once to switch the running match to fast speed. Strategy Builder can add and import these speed actions too.
 
 ## Folder layout
 ```text

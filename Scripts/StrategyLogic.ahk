@@ -309,13 +309,43 @@ WaitForRoundTime(targetMs) {
 
 
 StartGame() {
+    global RunConfig
 
-    ; Before the first Space the game has not started yet, so there is no
-    ; speed state worth trusting. The first press starts the round at normal
-    ; speed and the second press switches BTD6 to fast speed.
+    ; Apopalypse starts its rounds automatically, so Space only needs to be
+    ; pressed once to switch the already-running game from normal to fast.
     ResetGameSpeedState()
 
 
+    if (
+        IsSet(RunConfig)
+        && RunConfig.gameMode = "Apopalypse"
+    ) {
+        SetTrackedGameSpeed(
+            "Normal"
+        )
+
+
+        Send(
+            "{Space}"
+        )
+
+
+        Sleep(
+            100
+        )
+
+
+        SetTrackedGameSpeed(
+            "Fast"
+        )
+
+
+        return true
+    }
+
+
+    ; Normal modes still need the first Space to start the round and the
+    ; second Space to switch BTD6 from normal to fast speed.
     Send(
         "{Space}"
     )

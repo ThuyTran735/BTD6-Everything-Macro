@@ -82,15 +82,17 @@ HandleModePrompt(gameMode) {
         gameMode != "CHIMPS"
         && gameMode != "Deflation"
         && gameMode != "Impoppable"
+        && gameMode != "Apopalypse"
     ) {
         return true
     }
 
-    patternName := (
-        gameMode = "Impoppable"
-            ? "Impoppable OK"
-            : "CHIMPS OK"
-    )
+    if gameMode = "Apopalypse"
+        patternName := "Apopalypse Play"
+    else if gameMode = "Impoppable"
+        patternName := "Impoppable OK"
+    else
+        patternName := "CHIMPS OK"
 
     if !NavigationPatterns.Has(
         patternName
@@ -134,7 +136,7 @@ HandleModePrompt(gameMode) {
     }
 
     ToolTip(
-        "Could not find mode confirmation OK."
+        "Could not find mode confirmation button."
         . "`nMode: "
         . gameMode
     )
@@ -145,4 +147,3 @@ HandleModePrompt(gameMode) {
 
     return false
 }
-

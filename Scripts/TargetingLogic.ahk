@@ -270,7 +270,7 @@ SetTargeting(tower, targetMode, overrideX := "", overrideY := "") {
             : tower.y
 
 
-    Click(clickX, clickY)
+    ClickMapPoint(clickX, clickY)
     Sleep(250)
 
 

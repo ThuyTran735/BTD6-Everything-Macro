@@ -12,11 +12,11 @@ global CycleStatusLastX := ""
 global CycleStatusLastY := ""
 global CycleStatusRightPanelOpen := false
 global CycleStatusRightPanelMisses := 0
+global CycleStatusHudEnabled := false
+global CycleStatusSuppressedForMapClick := false
 
 global CycleInputGui := ""
 global CycleInputEdit := ""
 global CycleInputErrorText := ""
 global CycleInputResult := 0
 global CycleInputFinished := false
-
-

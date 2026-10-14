@@ -134,4 +134,69 @@ UpdateCycleStatusPosition() {
     CycleStatusLastY := hudY
 }
 
+MonitorCycleStatusClickGuard() {
+    global CycleStatusGui
+    global CycleStatusHudEnabled
+    global CycleStatusSuppressedForMapClick
+    global CycleStatusLastX
+    global CycleStatusLastY
 
+    if !CycleStatusHudEnabled || !CycleStatusGui
+        return
+
+    shouldHide := IsCycleStatusClickGuardRequested()
+
+    if shouldHide {
+        ; Keep enforcing the hide while a strategy interaction is active.
+        ; This also covers a rare case where another UI update makes the HUD
+        ; visible again before the hold request has expired.
+        if DllCall(
+            "IsWindowVisible",
+            "Ptr",
+            CycleStatusGui.Hwnd
+        ) {
+            try CycleStatusGui.Hide()
+        }
+
+        CycleStatusSuppressedForMapClick := true
+        return
+    }
+
+    ; The child strategy can hide the HUD window directly now, so do not rely
+    ; only on the local suppression flag. If the HUD is enabled but currently
+    ; hidden after the request ends, restore it here.
+    hudVisible := DllCall(
+        "IsWindowVisible",
+        "Ptr",
+        CycleStatusGui.Hwnd
+    )
+
+    if !CycleStatusSuppressedForMapClick && hudVisible
+        return
+
+    CycleStatusSuppressedForMapClick := false
+
+    if !CycleStatusHudEnabled
+        return
+
+    hudWidth := 420
+    hudHeight := 98
+    hudX := GetCycleStatusTargetX(hudWidth)
+    hudY := 8
+
+    try {
+        CycleStatusGui.Show(
+            "NA x"
+            . hudX
+            . " y"
+            . hudY
+            . " w"
+            . hudWidth
+            . " h"
+            . hudHeight
+        )
+    }
+
+    CycleStatusLastX := hudX
+    CycleStatusLastY := hudY
+}

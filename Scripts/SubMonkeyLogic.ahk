@@ -42,7 +42,7 @@ SetSubmerge(tower, shouldSubmerge := true) {
         ; Remember the normal targeting mode.
         tower.targetingBeforeSubmerge := tower.targeting
 
-        Click(tower.x, tower.y)
+        ClickMapPoint(tower.x, tower.y)
         Sleep(250)
 
         ; Page Down toggles Submerge.
@@ -59,7 +59,7 @@ SetSubmerge(tower, shouldSubmerge := true) {
 
 
     ; Going from submerged -> surfaced.
-    Click(tower.x, tower.y)
+    ClickMapPoint(tower.x, tower.y)
     Sleep(250)
 
     ; Page Down toggles back to surfaced.

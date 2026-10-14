@@ -217,7 +217,7 @@ global MapData := Map(
     "Ravine", {
         category: "Expert",
         page: 15,
-        pattern: "|<>*97$23.zT01yo0HTc0Dbk0Tz00tw01wQ07z00Tzk1ryw1gwD6E03sU01l001W002000000000000A000E0000002020007U000000G001j007z60CDD0zmTzzUzzz3zzzDzzzzzzzzzzzzzzzzzzz"
+        pattern: "|<>*84$37.zU000zzs000Tzy000Dzz000DzzU007zzk007zxk003zz0003zyk001zy0E01zzU800zzk000Tzs000Tzs0008zs0300Tw00A87y00043z00061n00030Q00010Dk00003s00000w00000C000003000000U0000000000000000000000000000000000000030001U1000Uy1bU0QTtzk0CDzzsAD7zzwTbXzzzTvlzzzzzw"
     },
 
     "Flooded Valley", {

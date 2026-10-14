@@ -4,7 +4,7 @@
 ; v3 file note: Handles the Mortar part of the macro. Keep this focused so run bugs are easier to trace later.
 
 EnsureMortarSelected(tower) {
-    Click(tower.x, tower.y)
+    ClickMapPoint(tower.x, tower.y)
     Sleep(35)
 
     return true

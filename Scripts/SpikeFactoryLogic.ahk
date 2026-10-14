@@ -48,7 +48,7 @@ NormalizeSpikeFactoryTargetingState(tower) {
 
 
 EnsureSpikeFactorySelected(tower) {
-    Click(tower.x, tower.y)
+    ClickMapPoint(tower.x, tower.y)
     Sleep(35)
 
     return true

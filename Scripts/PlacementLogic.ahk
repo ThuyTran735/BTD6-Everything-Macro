@@ -34,6 +34,16 @@ PlaceTower(tower) {
     )
 
 
+    ; If the placement point is under or close to the Cycle HUD, hide the
+    ; HUD before moving the cursor or sending the tower hotkey. Waiting until
+    ; the final click was too late for some placements.
+    RequestCycleStatusHideForPoint(
+        tower.x,
+        tower.y,
+        1100
+    )
+
+
     ; Move to the intended empty placement point before sending the
     ; tower hotkey so placement starts from the requested coordinate.
     MouseMove(
@@ -71,7 +81,7 @@ PlaceTower(tower) {
     Sleep(50)
 
 
-    Click(
+    ClickMapPoint(
         tower.x,
         tower.y
     )

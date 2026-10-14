@@ -57,7 +57,7 @@ SellTower(
             : tower.y
 
 
-    Click(
+    ClickMapPoint(
         clickX,
         clickY
     )

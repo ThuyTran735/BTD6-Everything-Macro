@@ -4,7 +4,7 @@
 ; v3 file note: Handles the Heli part of the macro. Keep this focused so run bugs are easier to trace later.
 
 EnsureHeliSelected(tower) {
-    Click(tower.x, tower.y)
+    ClickMapPoint(tower.x, tower.y)
     Sleep(35)
 
     return true

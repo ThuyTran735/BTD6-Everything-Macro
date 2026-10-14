@@ -176,6 +176,8 @@ ShowCycleStatusUI() {
     global CycleStatusLastY
     global CycleStatusRightPanelOpen
     global CycleStatusRightPanelMisses
+    global CycleStatusHudEnabled
+    global CycleStatusSuppressedForMapClick
 
 
     if !CycleStatusGui {
@@ -186,10 +188,21 @@ ShowCycleStatusUI() {
 
     CycleStatusRightPanelOpen := false
     CycleStatusRightPanelMisses := 0
+    CycleStatusHudEnabled := true
+    CycleStatusSuppressedForMapClick := false
+
+    ClearCycleStatusClickGuardRequest()
+    SetCycleStatusClickGuardActive(true, CycleStatusGui.Hwnd)
 
 
     SetTimer(
         UpdateCycleStatusPosition,
+        0
+    )
+
+
+    SetTimer(
+        MonitorCycleStatusClickGuard,
         0
     )
 
@@ -232,6 +245,13 @@ ShowCycleStatusUI() {
         100,
         -10
     )
+
+
+    ; Map scripts run in a child AHK process. Check their tiny hide request
+    ; file often enough that the HUD is gone before a guarded tower click.
+    SetTimer(
+        MonitorCycleStatusClickGuard,
+        20,
+        -5
+    )
 }
-
-

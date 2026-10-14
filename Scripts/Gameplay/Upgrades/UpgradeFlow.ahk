@@ -126,7 +126,7 @@ UpgradeTower(
     panelSide := false
 
 
-    Click(
+    ClickMapPoint(
         clickX,
         clickY
     )

@@ -9,7 +9,7 @@ ClickSpecialTargetPoint(targetX, targetY) {
     Send("{PgDn}")
     Sleep(300)
 
-    Click(targetX, targetY)
+    ClickMapPoint(targetX, targetY)
     Sleep(250)
 
     ; This action selected the tower itself, so close that known panel once.

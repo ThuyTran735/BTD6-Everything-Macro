@@ -69,12 +69,28 @@ HideCycleStatusUI() {
     global CycleStatusLastY
     global CycleStatusRightPanelOpen
     global CycleStatusRightPanelMisses
+    global CycleStatusHudEnabled
+    global CycleStatusSuppressedForMapClick
+
+
+    CycleStatusHudEnabled := false
 
 
     SetTimer(
         UpdateCycleStatusPosition,
         0
     )
+
+
+    SetTimer(
+        MonitorCycleStatusClickGuard,
+        0
+    )
+
+
+    SetCycleStatusClickGuardActive(false)
+    ClearCycleStatusClickGuardRequest()
+    CycleStatusSuppressedForMapClick := false
 
 
     CycleStatusLastX :=
@@ -270,5 +286,3 @@ CancelMacroCycles(*) {
         true
     )
 }
-
-

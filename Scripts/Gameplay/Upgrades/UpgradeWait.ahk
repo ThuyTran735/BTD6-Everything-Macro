@@ -241,7 +241,7 @@ EnsureUpgradePanelOpen(
             WaitForLevelUpAfterNewBloon(0)
         }
 
-        Click(
+        ClickMapPoint(
             tower.x,
             tower.y
         )
@@ -342,7 +342,7 @@ EnsureUpgradePanelOpen(
             ; 1598,1043 five times.
             ;
             ; Re-select the monkey immediately.
-            Click(
+            ClickMapPoint(
                 tower.x,
                 tower.y
             )
@@ -385,7 +385,7 @@ EnsureUpgradePanelOpen(
                     A_TickCount
 
 
-                Click(
+                ClickMapPoint(
                     tower.x,
                     tower.y
                 )

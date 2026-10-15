@@ -32,11 +32,6 @@ StartMacroQueue(*) {
     }
 
 
-    SetRunHistoryCurrentSource(
-        QueueHistorySource
-    )
-
-
     totalRuns := 0
 
 
@@ -64,6 +59,21 @@ StartMacroQueue(*) {
         totalRuns +=
             job.runs
     }
+
+
+    ; Show the Monkey Knowledge warning before an unattended queue begins.
+    ; One warning covers every Expert Impoppable job in this queue.
+    if (
+        QueueContainsExpertImpoppableScript(MacroJobQueue)
+        && !ShowExpertImpoppableWarningIfNeeded()
+    ) {
+        return false
+    }
+
+
+    SetRunHistoryCurrentSource(
+        QueueHistorySource
+    )
 
 
     CloseQueueManager()
@@ -127,5 +137,3 @@ StartMacroQueue(*) {
 
     return StartNextQueuedRun()
 }
-
-

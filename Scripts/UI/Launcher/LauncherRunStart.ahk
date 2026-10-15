@@ -54,6 +54,21 @@ LaunchMapScript(
     }
 
 
+    ; Expert Impoppable strategies were built around full Monkey Knowledge.
+    ; Warn before asking for a run count so the user can back out cleanly.
+    if (
+        IsExpertImpoppableScript(scriptPath)
+        && !ShowExpertImpoppableWarningIfNeeded()
+    ) {
+
+        ClearLauncherReturnPending()
+        SetLauncherRunSuppressed(false)
+        ShowLauncher(true)
+
+        return false
+    }
+
+
     ; Keep the main launcher visible while the user chooses the run count.
     ; It is only hidden after a valid run is confirmed and startup begins.
     ClearLauncherReturnPending()
@@ -137,5 +152,3 @@ LaunchMapScript(
 
     return StartNextQueuedRun()
 }
-
-

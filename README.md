@@ -1,13 +1,15 @@
 # BTD6 Everything Macro
-**Current version: v3.3.4**
+**Current version: v3.3.5**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Improved the **UserData Backup / Restore** folder picker.
-     - The picker still opens at the BTD6 Everything Macro folder for convenience.
-     - You can now navigate to parent folders, Desktop, Documents, other drives, or any other accessible folder when exporting or importing UserData.
+- Added an **Expert Impoppable Monkey Knowledge warning** before affected strategies start.
+     - All Expert Impoppable strategies were created and tested with all Monkey Knowledge researched/unlocked.
+     - The warning explains that running without full Monkey Knowledge may cause the strategy to fail or lose.
+     - **Don't show this warning again** can permanently hide the prompt for future Expert Impoppable runs.
+     - Queues containing an Expert Impoppable job show the warning once before the queue begins.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -110,6 +112,8 @@ BTD6 can also get into a bad keyboard/focus state after **Alt+Tab** or **Tab**.
 The launcher shows this setup/warning screen before continuing. It appears on each startup unless you check **Never show this warning again** before pressing **I AGREE - CONTINUE**. Leaving the box unchecked lets you continue normally but keeps the reminder for the next launch.
 
 The warning preference is versioned. Existing installs that hid an older warning will see this updated version once so they can choose whether to hide it again.
+
+Expert Impoppable strategies have a separate Monkey Knowledge warning. These strategies were built and tested with all Monkey Knowledge researched/unlocked, so running them without full Monkey Knowledge may change the expected cash, costs, cooldowns, or bonuses and can cause a loss. The warning appears before an Expert Impoppable run (or before a queue containing one) unless you check **Don't show this warning again** and continue.
 
 ## Special targeting towers
 Some towers use a map coordinate instead of normal First / Last / Close / Strong targeting. The macro has dedicated helpers for these towers.

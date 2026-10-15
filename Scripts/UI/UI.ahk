@@ -108,6 +108,7 @@ global CategoryData := Map()
 #Include ConfirmUI.ahk
 #Include UIHelpers.ahk
 #Include FirstRunWarningUI.ahk
+#Include ExpertImpoppableWarningUI.ahk
 #Include FavoritesProfilesData.ahk
 #Include FavoritesUI.ahk
 #Include LauncherState.ahk

@@ -1,15 +1,16 @@
 # BTD6 Everything Macro
-**Current version: v3.3.2**
+**Current version: v3.3.3**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added In The Loop Hard Standard, Magic Monkeys Only, and Alternate Bloons Rounds strategies.
-- Added Skull Tweak Hard Standard, Magic Monkeys Only, and Alternate Bloons Rounds strategies.
-- Added Scrapyard Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse strategies.
-- Added The Cabin Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse strategies.
-- Updated several map patterns in `Scripts/MapData.ahk` to improve map detection reliability.
+- Added a global **Ctrl + Shift + X** emergency-stop hotkey that immediately stops the active run or queue without a confirmation dialog.
+- Added the emergency-stop shortcut directly to the Cycle HUD so it stays visible while automation is running.
+- Improved emergency-stop reliability during multi-cycle runs.
+     - Prevented the Cycle HUD from briefly reappearing or updating after cancellation.
+     - Prevented stale cycle transitions from continuing after a stop.
+
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -160,9 +161,15 @@ All four special-target systems use the same input timing: **Page Down -> 300 ms
 Ctrl + Shift + P
 ```
 
-Once a run starts, avoid moving the mouse or pressing game hotkeys unless you are stopping the macro.
+Once a run starts, avoid moving the mouse or pressing game hotkeys unless you are stopping the macro. To stop the active run or queue immediately, press:
 
-The launcher uses its full **CLOSE** button to exit the macro. Secondary windows intentionally do not have an extra X; use their **BACK**, **CANCEL**, or **GOT IT** action instead. **CLOSE RUN** remains available only while a run is active because it stops automation rather than simply closing a window. All custom windows use the same dark four-sided frame instead of a bright top-only stripe.
+```text
+Ctrl + Shift + X
+```
+
+The emergency-stop hotkey skips the normal confirmation dialog so automation stops immediately. The shortcut is also shown on the Cycle HUD while a run is active.
+
+The launcher uses its full **CLOSE** button to exit the macro. Secondary windows intentionally do not have an extra X; use their **BACK**, **CANCEL**, or **GOT IT** action instead. **CLOSE RUN** remains available only while a run is active and asks for confirmation before stopping automation. All custom windows use the same dark four-sided frame instead of a bright top-only stripe.
 
 By default, the launcher also remembers where you left off. Default mode restores the last category and map, Monkey EXP Grind restores the last monkey category and EXP script, and **Select Script** restores the last Default-mode `.ahk` strategy that successfully started running, including its difficulty when that strategy is still available for the selected map. You can disable this from **Settings -> REMEMBER LAST STATE**. Disabling it clears the saved launcher / strategy state. These values are stored only in `UserData` and are not tracked by Git.
 

@@ -14,6 +14,12 @@ CompleteCycleStatusUI() {
 
     global QueueRunning
     global QueueTotalRuns
+    global CycleStatusClosing
+
+
+    if CycleStatusClosing {
+        return
+    }
 
 
     if !CycleStatusGui {
@@ -116,6 +122,61 @@ HideCycleStatusUI() {
 }
 
 
+DestroyCycleStatusUI() {
+    global CycleStatusGui
+    global CycleStatusText
+    global CycleCancelButton
+    global CycleProgressText
+    global CycleProgressBar
+    global CycleProgressBackground
+    global CycleStatusClosing
+
+
+    ; Block every HUD timer/update before hiding or destroying the window.
+    ; This is important between repeated cycles, where continuation timers can
+    ; otherwise overlap the cancellation for a moment.
+    CycleStatusClosing := true
+
+
+    ; A cancelled run should remove the HUD completely. Destroying it avoids
+    ; any pending UI/timer work making a previously hidden HUD visible again.
+    HideCycleStatusUI()
+
+
+    if CycleStatusGui {
+        try CycleStatusGui.Destroy()
+    }
+
+
+    CycleStatusGui := ""
+    CycleStatusText := ""
+    CycleCancelButton := ""
+    CycleProgressText := ""
+    CycleProgressBar := ""
+    CycleProgressBackground := ""
+}
+
+
+EmergencyStopMacro(*) {
+    global MacroRunning
+    global RunningPid
+    global QueueRunning
+
+
+    if !MacroRunning && !QueueRunning && !RunningPid {
+        return
+    }
+
+
+    ; The emergency hotkey intentionally skips the normal CLOSE RUN
+    ; confirmation so the active strategy/queue can be stopped at once.
+    try CloseThemedConfirmation()
+
+
+    CancelMacroCycles()
+}
+
+
 RequestCancelMacroCyclesIfStillActive(*) {
     global MacroRunning
     global RunningPid
@@ -173,8 +234,15 @@ CancelMacroCycles(*) {
     global ForceLauncherVisible
 
     global QueueRunning
+    global CycleStatusClosing
 
     global UIColorWarning
+
+
+    ; Freeze the HUD first. A multi-cycle run can be between child processes
+    ; when the stop hotkey is pressed, so stale position/click-guard timers
+    ; must be prevented from drawing it again during cancellation.
+    CycleStatusClosing := true
 
 
     ; Cancel any queued next cycle.
@@ -236,25 +304,9 @@ CancelMacroCycles(*) {
     ActiveRunToken := ""
 
 
-    if CycleStatusGui {
-
-        CycleStatusText.Text :=
-            queueWasRunning
-            ? "QUEUE CANCELLED"
-            : "CYCLES CANCELLED"
-
-
-        CycleProgressText.Text :=
-            "STOPPED"
-    }
-
-
-    Sleep(
-        250
-    )
-
-
-    HideCycleStatusUI()
+    ; Remove the cancelled HUD immediately. The launcher already shows the
+    ; cancellation status, so the run HUD does not need to linger.
+    DestroyCycleStatusUI()
 
 
     ClearRepeatRunState()

@@ -90,7 +90,11 @@ UpdateCycleStatusPosition() {
     global CycleStatusGui
     global CycleStatusLastX
     global CycleStatusLastY
-    if !CycleStatusGui {
+    global CycleStatusHudEnabled
+    global CycleStatusClosing
+
+
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
         return
     }
 
@@ -106,8 +110,25 @@ UpdateCycleStatusPosition() {
     hudWidth := 420
 
 
+    ; FindText inside GetCycleStatusTargetX() can take long enough for an
+    ; emergency-stop hotkey to interrupt this timer. Re-check the HUD state
+    ; afterward so an older timer thread cannot move a GUI that was just
+    ; cancelled/destroyed.
     hudX := GetCycleStatusTargetX(hudWidth)
     hudY := 8
+
+
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
+        return
+    }
+
+
+    if !WinExist(
+        "ahk_id "
+        . CycleStatusGui.Hwnd
+    ) {
+        return
+    }
 
 
     if (
@@ -140,11 +161,23 @@ MonitorCycleStatusClickGuard() {
     global CycleStatusSuppressedForMapClick
     global CycleStatusLastX
     global CycleStatusLastY
+    global CycleStatusClosing
 
-    if !CycleStatusHudEnabled || !CycleStatusGui
+
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
         return
+    }
+
 
     shouldHide := IsCycleStatusClickGuardRequested()
+
+
+    ; The hotkey can interrupt while the request file is being checked.
+    ; Never continue with hide/show work after cancellation has begun.
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
+        return
+    }
+
 
     if shouldHide {
         ; Keep enforcing the hide while a strategy interaction is active.
@@ -162,6 +195,7 @@ MonitorCycleStatusClickGuard() {
         return
     }
 
+
     ; The child strategy can hide the HUD window directly now, so do not rely
     ; only on the local suppression flag. If the HUD is enabled but currently
     ; hidden after the request ends, restore it here.
@@ -171,18 +205,34 @@ MonitorCycleStatusClickGuard() {
         CycleStatusGui.Hwnd
     )
 
-    if !CycleStatusSuppressedForMapClick && hudVisible
+
+    if !CycleStatusSuppressedForMapClick && hudVisible {
         return
+    }
+
 
     CycleStatusSuppressedForMapClick := false
 
-    if !CycleStatusHudEnabled
+
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
         return
+    }
+
 
     hudWidth := 420
     hudHeight := 98
     hudX := GetCycleStatusTargetX(hudWidth)
     hudY := 8
+
+
+    ; GetCycleStatusTargetX() performs panel detection. A stop can happen
+    ; during that scan, especially while one cycle is returning Home and the
+    ; next cycle is queued. This final guard prevents the stale timer thread
+    ; from resurrecting the HUD after DestroyCycleStatusUI().
+    if CycleStatusClosing || !CycleStatusHudEnabled || !CycleStatusGui {
+        return
+    }
+
 
     try {
         CycleStatusGui.Show(
@@ -196,6 +246,13 @@ MonitorCycleStatusClickGuard() {
             . hudHeight
         )
     }
+
+
+    if CycleStatusClosing || !CycleStatusHudEnabled {
+        try CycleStatusGui.Hide()
+        return
+    }
+
 
     CycleStatusLastX := hudX
     CycleStatusLastY := hudY

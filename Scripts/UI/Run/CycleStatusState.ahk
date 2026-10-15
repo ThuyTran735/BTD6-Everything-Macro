@@ -14,6 +14,7 @@ global CycleStatusRightPanelOpen := false
 global CycleStatusRightPanelMisses := 0
 global CycleStatusHudEnabled := false
 global CycleStatusSuppressedForMapClick := false
+global CycleStatusClosing := false
 
 global CycleInputGui := ""
 global CycleInputEdit := ""

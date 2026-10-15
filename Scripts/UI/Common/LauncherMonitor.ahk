@@ -25,6 +25,7 @@ MonitorLauncherState() {
     global LauncherReturnPendingTick
 
     global LauncherGui
+    global CycleStatusClosing
 
     global UIColorSuccess
     global UIColorError
@@ -82,6 +83,14 @@ MonitorLauncherState() {
                 0
 
 
+            ; A stop hotkey can interrupt this monitor thread right after it
+            ; notices a child process ending. Do not let the older thread keep
+            ; processing a completed cycle after cancellation has taken over.
+            if CycleStatusClosing || !MacroRunning {
+                return
+            }
+
+
             if ConsumeCycleStopRequest() {
 
                 childResult := ReadChildRunResult(ActiveRunToken)
@@ -136,6 +145,11 @@ MonitorLauncherState() {
 
             childResult := ReadChildRunResult(ActiveRunToken)
             ActiveRunToken := ""
+
+
+            if CycleStatusClosing || !MacroRunning {
+                return
+            }
 
 
             if childResult.status != "Success" {
@@ -234,7 +248,19 @@ MonitorLauncherState() {
             UpdateCycleStatusUI()
 
 
+            ; Emergency stop may have interrupted UpdateCycleStatusUI(). If it
+            ; did, the cancellation path now owns all cleanup and launcher UI.
+            if CycleStatusClosing || !MacroRunning {
+                return
+            }
+
+
             if RepeatRunRemaining > 0 {
+
+                if CycleStatusClosing || !MacroRunning {
+                    return
+                }
+
 
                 nextRun :=
                     RepeatRunCompleted
@@ -268,6 +294,11 @@ MonitorLauncherState() {
                 && QueueActiveJobIndex < QueueTotalJobs
             ) {
 
+                if CycleStatusClosing || !MacroRunning {
+                    return
+                }
+
+
                 UpdateStatus(
                     "JOB "
                     . QueueActiveJobIndex
@@ -286,6 +317,14 @@ MonitorLauncherState() {
                 )
 
 
+                return
+            }
+
+
+            ; If cancellation happened during the transition checks above,
+            ; never fall through and overwrite CYCLES CANCELLED with a stale
+            ; completion message.
+            if CycleStatusClosing || !MacroRunning {
                 return
             }
 
@@ -319,6 +358,11 @@ MonitorLauncherState() {
             Sleep(
                 400
             )
+
+
+            if CycleStatusClosing {
+                return
+            }
 
 
             HideCycleStatusUI()

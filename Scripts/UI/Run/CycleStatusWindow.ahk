@@ -94,10 +94,28 @@ CreateCycleStatusUI() {
         )
 
 
+    ; Keep the emergency shortcut with the status text instead of
+    ; leaving it floating below the progress bar.
+    SetUIBodyFont(
+        CycleStatusGui,
+        7,
+        UIColorSecondaryText
+    )
+
+
+    CycleStatusGui.Add(
+        "Text",
+        "x20 y58 w248 h12 Center +0x200 c"
+        . UIColorSecondaryText
+        . " BackgroundTrans",
+        "Emergency Stop: Ctrl + Shift + X"
+    )
+
+
     CycleProgressBackground :=
         CycleStatusGui.Add(
             "Progress",
-            "x20 y68 w248 h8 c"
+            "x20 y76 w248 h8 c"
             . UIColorControlBorder
             . " Background"
             . UIColorControlBorder
@@ -109,7 +127,7 @@ CreateCycleStatusUI() {
     CycleProgressBar :=
         CycleStatusGui.Add(
             "Progress",
-            "x20 y68 w248 h8 Range0-100 c"
+            "x20 y76 w248 h8 Range0-100 c"
             . UIColorAccent
             . " Background"
             . UIColorControlBorder
@@ -146,7 +164,7 @@ CreateCycleStatusUI() {
         CycleStatusGui,
         CycleCancelButton,
         "CLOSE RUN",
-        "Stops the active run.`n`nIf a queue is running, the entire queue stops and later jobs will not start."
+        "Stops the active run after confirmation.`n`nIf a queue is running, the entire queue stops and later jobs will not start.`n`nFor an immediate stop without confirmation, press Ctrl + Shift + X."
     )
 
 
@@ -178,6 +196,12 @@ ShowCycleStatusUI() {
     global CycleStatusRightPanelMisses
     global CycleStatusHudEnabled
     global CycleStatusSuppressedForMapClick
+    global CycleStatusClosing
+
+
+    ; A new run owns the HUD again. Clear the shutdown guard before the GUI
+    ; is created/shown so normal multi-cycle runs can continue using it.
+    CycleStatusClosing := false
 
 
     if !CycleStatusGui {

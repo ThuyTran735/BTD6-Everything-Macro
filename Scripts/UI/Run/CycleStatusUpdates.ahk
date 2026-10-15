@@ -19,6 +19,14 @@ UpdateCycleStatusUI() {
     global QueueTotalRuns
     global QueueCompletedRuns
     global QueueCurrentRetryCount
+    global CycleStatusClosing
+
+
+    ; Once cancellation starts, stale monitor/timer work must not redraw the
+    ; HUD while it is being removed.
+    if CycleStatusClosing {
+        return
+    }
 
 
     if !CycleStatusGui {
@@ -182,5 +190,3 @@ UpdateCycleStatusUI() {
     CycleProgressBar.Value :=
         progress
 }
-
-

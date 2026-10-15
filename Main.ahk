@@ -26,6 +26,7 @@ SetTimer(
 
 
 ^+p::RunCurrentMode()
+^+x::EmergencyStopMacro()
 
 
 return

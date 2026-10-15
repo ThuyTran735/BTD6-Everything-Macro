@@ -79,7 +79,9 @@ PickUserDataFolder(prompt) {
 
     selectedFolder := ""
 
-    try selectedFolder := DirSelect(A_ScriptDir, 0, prompt)
+    ; Prefix the starting folder with * so it is only the initial selection,
+    ; not the root of the picker. This lets the user browse anywhere on the PC.
+    try selectedFolder := DirSelect("*" . A_ScriptDir, 0, prompt)
     finally {
         if IsObject(UserDataTransferGui) {
             try UserDataTransferGui.Opt("+AlwaysOnTop")
@@ -337,13 +339,13 @@ ShowUserDataTransferUI(*) {
         UserDataTransferGui,
         exportButton,
         "EXPORT USER DATA",
-        "Choose a folder and the macro creates a dated backup containing a full copy of UserData."
+        "Choose any folder on your PC and the macro creates a dated backup containing a full copy of UserData."
     )
     CreateHelpBadgeForButton(
         UserDataTransferGui,
         importButton,
         "IMPORT USER DATA",
-        "Select an exported backup folder. Matching files are restored over this version while new files that are not in the backup are left alone."
+        "Browse anywhere on your PC and select an exported backup folder. Matching files are restored over this version while new files that are not in the backup are left alone."
     )
     CreateHelpBadgeForButton(
         UserDataTransferGui,

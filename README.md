@@ -1,15 +1,13 @@
 # BTD6 Everything Macro
-**Current version: v3.3.3**
+**Current version: v3.3.4**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added a global **Ctrl + Shift + X** emergency-stop hotkey that immediately stops the active run or queue without a confirmation dialog.
-- Added the emergency-stop shortcut directly to the Cycle HUD so it stays visible while automation is running.
-- Improved emergency-stop reliability during multi-cycle runs.
-     - Prevented the Cycle HUD from briefly reappearing or updating after cancellation.
-     - Prevented stale cycle transitions from continuing after a stop.
+- Improved the **UserData Backup / Restore** folder picker.
+     - The picker still opens at the BTD6 Everything Macro folder for convenience.
+     - You can now navigate to parent folders, Desktop, Documents, other drives, or any other accessible folder when exporting or importing UserData.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.

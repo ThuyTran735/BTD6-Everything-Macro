@@ -1,15 +1,22 @@
 # BTD6 Everything Macro
-**Current version: v3.3.5**
+**Current version: v3.4.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added an **Expert Impoppable Monkey Knowledge warning** before affected strategies start.
-     - All Expert Impoppable strategies were created and tested with all Monkey Knowledge researched/unlocked.
-     - The warning explains that running without full Monkey Knowledge may cause the strategy to fail or lose.
-     - **Don't show this warning again** can permanently hide the prompt for future Expert Impoppable runs.
-     - Queues containing an Expert Impoppable job show the warning once before the queue begins.
+- Added **automatic Banana Farm collection** for farm-based strategies.
+     - Strategies can enable collection at any scheduled round and delay with `EnableBananaCollection()`.
+     - Collection only runs while the strategy is idle and waiting for a future round, so placements, upgrades, abilities, targeting, navigation, and recovery keep priority.
+     - Each eligible Banana Farm is collected by briefly hovering the mouse over the Farm itself; no pickup grid or collection box is needed.
+     - Eligible Farms are visited one at a time for about **300 ms each**, with round and strategy-action checks between Farms so collection stops immediately when real work is due.
+     - If a Farm is near the Cycle HUD, the HUD is hidden before the collection hover using the same protection as tower placement/clicking.
+     - Monkey Bank and higher (`middle path >= 3`) and Marketplace and higher (`bottom path >= 3`) automatically stop being visited because they no longer need normal banana pickup.
+     - `DisableBananaCollection()` can stop collection later in a strategy when desired.
+     - Strategy Builder can add, import, and export banana-collection enable/disable actions using the normal round and delay fields.
+- Reorganized monkey-specific runtime logic into `Scripts/Monkey Logic/`.
+     - Banana Farm, Sub, Dartling, Heli, Mermonkey, Mortar, and Spike Factory logic now live together in the dedicated folder.
+- Renamed `Scripts/Gameplay/GameState/` to `Scripts/Gameplay/Game State/` and updated internal includes to match.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -25,6 +32,7 @@ You can see which maps and modes are finished here:
 - Finds strategy files inside the `Maps` folder
 - Lets you choose a category, map, and mode from the launcher
 - Places towers and buys upgrades
+- Supports automatic Banana Farm collection while strategies are idle and waiting for rounds
 - Handles normal targeting plus coordinate-based Dartling, Heli, Mermonkey, and Mortar special targeting
 - Handles tower abilities
 - Reads the current round
@@ -39,13 +47,15 @@ You can see which maps and modes are finished here:
 
 This project is still being worked on, so not every map or mode has a strategy yet. Check the tracker above for the current list.
 
-## v3.0.0 code layout
-v3.0.0 reorganizes the large script files without changing the public include paths used by map scripts. Files such as `RoundLogic.ahk`, `UpgradeLogic.ahk`, and the larger UI files are now small entry files that include focused pieces from subfolders.
+## Current code layout
+The v3 code layout keeps the public include paths used by map scripts stable while grouping internal logic into focused folders. Files such as `RoundLogic.ahk`, `UpgradeLogic.ahk`, `GameStateLogic.ahk`, and the larger UI files are small entry files that include the focused pieces from those folders.
 
 The main folders are now easier to follow:
 
 ```text
 Scripts/Gameplay/          Round, upgrade, and game-state internals
+Scripts/Gameplay/Game State/  Popup, victory/defeat, home-screen, and run-state logic
+Scripts/Monkey Logic/      Monkey/tower-specific behavior such as Farm collection and special targeting
 Scripts/Navigation/        Map/mode/hero navigation pieces
 Scripts/UI/Common/         Shared window/launcher helpers
 Scripts/UI/Controls/       Custom buttons, lists, and dropdowns
@@ -188,6 +198,50 @@ Normal targeting actions can optionally include the tower's current X/Y position
 
 The extra coordinates only override where the macro clicks to select the tower for that targeting action. If X/Y are omitted, `SetTargeting()` continues using the tower's original placement coordinates. Strategy Builder can capture these targeting coordinates with **F5**.
 
+## Banana Farm collection
+Banana Farm collection is opt-in per strategy. Enable it with a normal scheduled strategy action, so the existing round and delay fields control exactly when automatic collection begins.
+
+```ahk
+[20, 0, () => EnableBananaCollection()],
+```
+
+A delayed start works the same way:
+
+```ahk
+[20, 1500, () => EnableBananaCollection()],
+```
+
+That enables Banana Farm collection 1.5 seconds into round 20. After it is enabled, the macro only moves the mouse for bananas while it is otherwise waiting for a future strategy round. It does not run a separate background timer, so tower placement, upgrades, abilities, targeting, navigation, and recovery keep priority.
+
+You do **not** schedule collection for individual Farms. Keep Banana Farms in `TowerSetup` like normal and place them with `PlaceTower()`. Any placed tower with `type: "Farm"` or `type: "Banana Farm"` is picked up automatically, including Farms placed after collection has already been enabled.
+
+```ahk
+[10, 0, () => PlaceTower(TowerSetup["Farm A"])],
+[10, 500, () => EnableBananaCollection()],
+[20, 0, () => PlaceTower(TowerSetup["Farm B"])],
+```
+
+BTD6 collects loose bananas when the mouse hovers over the Banana Farm itself, so the macro only needs the Farm's center coordinate. Collection rotates through eligible Farms **one at a time**. Each idle collection step moves to one Farm, stays there for about **300 ms**, then returns to `WaitForRound()` before visiting the next Farm. This lets the macro re-read the round and run any due placement, upgrade, ability, targeting, or other scheduled action before banana collection continues. When the strategy becomes idle again, collection resumes with the next eligible Farm.
+
+If a Farm is under or close to the Cycle HUD, the HUD is hidden before the mouse moves to the Farm using the same protection used for tower placement and map clicks.
+
+With multiple eligible Farms, the idle rotation is effectively:
+
+```text
+Farm A (300 ms) -> round/action check -> Farm B (300 ms) -> round/action check -> Farm C -> repeat
+```
+
+A Farm is removed from automatic collection as soon as its tracked upgrades show a path that no longer needs normal banana pickup:
+
+- **Monkey Bank or higher** (`middle path >= 3`)
+- **Marketplace or higher** (`bottom path >= 3`)
+
+The check uses the Farm's live `upgrades` array, so no extra strategy action is needed after those upgrades are purchased. Strategy Builder includes **ENABLE BANANA COLLECTION** and **DISABLE BANANA COLLECTION** actions that use the same Round and Delay fields. You can also write the action manually:
+
+```ahk
+[60, 0, () => DisableBananaCollection()],
+```
+
 ## Scheduled game speed
 Strategies can switch BTD6 between normal and fast speed with `SetGameSpeed()`. The normal strategy delay field still works, so speed changes can happen partway through a round.
 
@@ -202,6 +256,8 @@ The example slows the game down 10 seconds into round 39, then returns to fast s
 ```text
 Main.ahk        Starts the launcher
 Scripts/        Navigation, placement, upgrades, rounds, UI, and recovery
+Scripts/Monkey Logic/  Monkey/tower-specific behavior and Banana Farm collection
+Scripts/Gameplay/Game State/  Popup, victory/defeat, home-screen, and run-state logic
 Maps/           Map strategy files
 Lib/            FindText and OCR libraries
 Docs/           Strategy-writing notes

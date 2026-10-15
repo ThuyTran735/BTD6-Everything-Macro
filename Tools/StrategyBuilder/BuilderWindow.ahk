@@ -84,7 +84,7 @@ BuildGui() {
 
     MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
     MainGui.SetFont("s9 w400 cB8C6D6")
-    MainGui.AddText("x20 y45 w1000 h20", "Build, import, edit, label, and export map strategies with placements, upgrades, targeting, sells, abilities, and speed changes.")
+    MainGui.AddText("x20 y45 w1000 h20", "Build, import, edit, label, and export map strategies with placements, upgrades, targeting, sells, abilities, speed changes, and banana collection.")
 
     ; Map / strategy metadata
     MainGui.SetFont("s10 w400 cD9E3EE")
@@ -245,10 +245,15 @@ BuildGui() {
     AddAbilityBtn := MainGui.AddButton("x856 y363 w119 h30", "ADD ABILITY")
     AddAbilityBtn.OnEvent("Click", AddAbilityAction)
 
-    DeleteActionBtn := MainGui.AddButton("x560 y399 w415 h28", "DELETE SELECTED ACTION")
+    FarmOnBtn := MainGui.AddButton("x560 y399 w202 h28", "ENABLE BANANA COLLECTION")
+    FarmOnBtn.OnEvent("Click", AddBananaCollectionEnableAction)
+    FarmOffBtn := MainGui.AddButton("x773 y399 w202 h28", "DISABLE BANANA COLLECTION")
+    FarmOffBtn.OnEvent("Click", AddBananaCollectionDisableAction)
+
+    DeleteActionBtn := MainGui.AddButton("x560 y435 w415 h28", "DELETE SELECTED ACTION")
     DeleteActionBtn.OnEvent("Click", DeleteSelectedUpgrade)
 
-    ActionLV := MainGui.AddListView("x560 y436 w415 h125 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
+    ActionLV := MainGui.AddListView("x560 y472 w415 h89 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
     ActionLV.ModifyCol(1, 66)
     ActionLV.ModifyCol(2, 100)
     ActionLV.ModifyCol(3, 90)

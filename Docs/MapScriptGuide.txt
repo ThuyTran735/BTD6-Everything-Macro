@@ -838,3 +838,71 @@ Meaning:
      - At the start of round 41, press Space once to return to fast speed.
 
 Do not schedule a speed action on round 0 because the game has not started yet.
+
+BANANA FARM COLLECTION
+----------------------
+
+Internal collection code lives in Scripts\Monkey Logic\FarmLogic.ahk. Map scripts
+should still include only Scripts\IncludeAll.ahk; do not include FarmLogic directly.
+
+Banana Farm collection is opt-in. Use a normal strategy action to decide the
+round and optional delay where automatic collection should begin.
+
+Example:
+
+[20, 0, () => EnableBananaCollection()],
+
+With a delay:
+
+[20, 1500, () => EnableBananaCollection()],
+
+The delayed example enables collection 1500 ms into round 20. Once enabled,
+the macro only collects while it is otherwise waiting for a future round.
+Placement, upgrades, targeting, abilities, navigation, and recovery keep
+priority.
+
+You do not need a collection action for every Farm. Define Farms in TowerSetup
+and place them normally. Any placed tower whose type is "Farm" or
+"Banana Farm" is included automatically, even if that Farm is placed after
+EnableBananaCollection() has already run.
+
+Example:
+
+[10, 0, () => PlaceTower(TowerSetup["Farm A"])],
+[10, 500, () => EnableBananaCollection()],
+[20, 0, () => PlaceTower(TowerSetup["Farm B"])],
+
+Collection behavior:
+
+     - The mouse hovers over the center of one eligible Banana Farm at a time.
+     - Hovering the Farm itself collects all loose bananas, so no pickup grid
+       or collection box is needed.
+     - Each Farm is held for about 300 ms, then control returns to WaitForRound()
+       before the next Farm is visited.
+     - The round is checked between Farms. If a scheduled placement, upgrade,
+       ability, targeting action, or other strategy action is due, that action
+       takes priority and collection resumes only when the strategy is idle again.
+     - Multiple eligible Farms rotate automatically: Farm A -> check -> Farm B
+       -> check -> Farm C -> check -> repeat.
+     - If a popup blocks the round display, the existing missing-round recovery
+       handles it before collection can continue.
+     - If a Farm is near the Cycle HUD, the HUD is hidden before the hover using
+       the same protection used for tower placement and map clicks.
+
+The macro reads each Farm's live upgrades array before every collection step.
+It automatically stops visiting a Farm when that Farm reaches:
+
+     - Monkey Bank or higher: middle path >= 3
+     - Marketplace or higher: bottom path >= 3
+
+No extra action is needed when a Farm reaches one of those upgrades.
+
+To stop all Banana Farm collection manually:
+
+[60, 0, () => DisableBananaCollection()],
+
+Strategy Builder has ENABLE BANANA COLLECTION and DISABLE BANANA COLLECTION
+buttons in the action schedule. They use the same Round and Delay fields as
+other actions, and imported scripts keep these actions editable.
+
+Use type: "Farm" in TowerSetup, matching the normal Farm hotkey entry.

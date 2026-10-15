@@ -219,6 +219,13 @@ BuildTemplateText() {
                 delay: action.delay,
                 speed: action.speed
             })
+        } else if kind = "bananaCollection" {
+            allActions.Push({
+                kind: "bananaCollection",
+                round: action.round,
+                delay: action.delay,
+                enabled: action.enabled
+            })
         } else {
             item := {
                 kind: "upgrade",
@@ -245,6 +252,9 @@ BuildTemplateText() {
         } else if action.kind = "speed" {
             speedMode := EscapeAhkString(action.speed)
             out .= "        [" action.round ", " action.delay ", () => SetGameSpeed(" q speedMode q ")]"
+        } else if action.kind = "bananaCollection" {
+            helper := action.enabled ? "EnableBananaCollection" : "DisableBananaCollection"
+            out .= "        [" action.round ", " action.delay ", () => " helper "()]"
         } else {
             entityName := EscapeAhkString(action.entity)
 
@@ -322,6 +332,9 @@ ValidateDeflationRounds() {
             } else if kind = "speed" {
                 value := action.speed
                 actionLabel := "game speed"
+            } else if kind = "bananaCollection" {
+                value := action.enabled ? "enable" : "disable"
+                actionLabel := "banana collection"
             } else {
                 value := action.upgrade
                 actionLabel := "upgrade"

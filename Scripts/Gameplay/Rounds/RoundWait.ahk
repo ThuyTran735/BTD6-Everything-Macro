@@ -78,6 +78,22 @@ WaitForRound(
             }
 
 
+            ; Banana Farm collection is lowest priority. Only collect when a
+            ; valid round is visible and the strategy is otherwise just
+            ; waiting for a future round. The collector hovers one eligible Farm
+            ; for 300 ms, then control returns here before the next Farm.
+            ;
+            ; Do NOT run CheckGameState() after every Farm. Its full-screen
+            ; FindText scans are much slower than round OCR and used to turn a
+            ; 300 ms Farm rotation into several seconds. If a popup covers the
+            ; round counter, GetCurrentRound() will fail on the next pass and the
+            ; existing missing-round recovery below will handle that popup.
+            if CollectBananasWhileIdle() {
+                Sleep(5)
+                continue
+            }
+
+
             Sleep(
                 20
             )

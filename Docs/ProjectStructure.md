@@ -1,4 +1,4 @@
-# Project structure (v3.0.0)
+# Project structure (v3.4.0)
 
 The big v2 files were split in v3 so debugging does not mean scrolling through 1,500-2,000 lines every time.
 
@@ -10,7 +10,8 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 
 - `Scripts/Gameplay/Rounds/` - round OCR, Glacial Trail cleanup, validation, recovery, and waiting.
 - `Scripts/Gameplay/Upgrades/` - upgrade timing, panel state/detection, buying, waiting, and locked-upgrade handling.
-- `Scripts/Gameplay/GameState/` - popups, victory/defeat, home-screen checks, and run reset.
+- `Scripts/Monkey Logic/` - monkey/tower-specific behavior for Banana Farms, Subs, Dartling, Heli, Mermonkey, Mortar, and Spike Factory.
+- `Scripts/Gameplay/Game State/` - popups, victory/defeat, home-screen checks, and run reset.
 - `Scripts/GameSpeedLogic.ahk` - tracked normal/fast game-speed changes used by scheduled strategy actions.
 - `Scripts/Navigation/` - map/mode navigation plus hero selection.
 - `Scripts/UI/Common/` - shared window chrome, launcher visibility, child-run IPC, and launcher monitoring.

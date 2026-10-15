@@ -199,6 +199,38 @@ AddAbilityAction(*) {
 }
 
 
+AddBananaCollectionEnableAction(*) {
+    AddBananaCollectionAction(true)
+}
+
+
+AddBananaCollectionDisableAction(*) {
+    AddBananaCollectionAction(false)
+}
+
+
+AddBananaCollectionAction(enabled) {
+    global UpgradeActions, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+
+    round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
+    delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
+
+    UpgradeActions.Push({
+        kind: "bananaCollection",
+        enabled: enabled,
+        round: round,
+        delay: delay
+    })
+
+    RefreshActionList()
+
+    StatusText.Text :=
+        (enabled ? "Enable" : "Disable")
+        . " banana collection on round "
+        . round
+}
+
+
 AddGameSpeedAction(*) {
     global UpgradeActions, GameSpeedDDL, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
 
@@ -270,6 +302,8 @@ RefreshActionList() {
             ActionLV.Add("", "Ability", "-", action.hotkey, action.round, action.delay)
         } else if kind = "speed" {
             ActionLV.Add("", "Speed", "-", action.speed, action.round, action.delay)
+        } else if kind = "bananaCollection" {
+            ActionLV.Add("", "Farm", "-", action.enabled ? "Enable" : "Disable", action.round, action.delay)
         } else {
             value := action.upgrade
             if HasProp(action, "overrideX")

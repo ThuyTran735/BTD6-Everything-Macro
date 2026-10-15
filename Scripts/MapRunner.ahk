@@ -139,6 +139,7 @@ RunMapStrategyCore(strategy) {
     ; internal tower and round tracking state.
     ResetRoundTracking()
     ResetTowerSetup()
+    ResetBananaCollection()
     ResetGameSpeedState()
 
     LogMessage("INFO", "Preparing BTD6 fullscreen state")
@@ -255,6 +256,7 @@ RunMapStrategyCore(strategy) {
 
     ResetRoundTracking()
     ResetTowerSetup()
+    ResetBananaCollection()
     ResetGameSpeedState()
 
 

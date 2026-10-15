@@ -22,6 +22,7 @@ global TowerSetup := Map()
 
 
 #Include TowerData.ahk
+#Include Monkey Logic\FarmLogic.ahk
 #Include MapData.ahk
 #Include InputHelpers.ahk
 #Include CycleStatusClickGuard.ahk
@@ -31,13 +32,13 @@ global TowerSetup := Map()
 #Include UpgradeLogic.ahk
 #Include SellLogic.ahk
 #Include TargetingLogic.ahk
-#Include SubMonkeyLogic.ahk
+#Include Monkey Logic\SubMonkeyLogic.ahk
 #Include SpecialTargetingLogic.ahk
-#Include DartlingLogic.ahk
-#Include HeliLogic.ahk
-#Include MermonkeyLogic.ahk
-#Include MortarLogic.ahk
-#Include SpikeFactoryLogic.ahk
+#Include Monkey Logic\DartlingLogic.ahk
+#Include Monkey Logic\HeliLogic.ahk
+#Include Monkey Logic\MermonkeyLogic.ahk
+#Include Monkey Logic\MortarLogic.ahk
+#Include Monkey Logic\SpikeFactoryLogic.ahk
 
 
 #Include HeroSelection.ahk

@@ -229,6 +229,20 @@ ParseImportedStrategyActions(text) {
         actions
     )
 
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*EnableBananaCollection\(\s*\)\s*\]",
+        "bananaCollectionOn",
+        actions
+    )
+
+    CollectImportedActions(
+        text,
+        "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*DisableBananaCollection\(\s*\)\s*\]",
+        "bananaCollectionOff",
+        actions
+    )
+
     SortImportedActionsByPosition(actions)
     return actions
 }
@@ -284,6 +298,12 @@ CollectImportedActions(text, pattern, kind, actions) {
             action.hotkey := m[3]
         } else if kind = "speed" {
             action.speed := m[3]
+        } else if kind = "bananaCollectionOn" {
+            action.kind := "bananaCollection"
+            action.enabled := true
+        } else if kind = "bananaCollectionOff" {
+            action.kind := "bananaCollection"
+            action.enabled := false
         }
 
         actions.Push(action)

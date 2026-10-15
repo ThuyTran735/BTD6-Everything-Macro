@@ -1,13 +1,11 @@
 # BTD6 Everything Macro
-**Current version: v3.3.0**
+**Current version: v3.3.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added a more reliable Cycle HUD click guard that temporarily hides the run HUD whenever a tower placement, tower selection, upgrade interaction, sell, targeting action, or special map-target click is within 75 pixels of the HUD.
-- The guard uses the HUD's actual current window position, including its shifted-left position while a right-side upgrade panel is open, and restores the HUD after the interaction is finished.
-- Added Ravine Impoppable script.
+- Added Flooded Valley Impoppable script.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

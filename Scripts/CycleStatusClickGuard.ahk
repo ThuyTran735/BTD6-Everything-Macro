@@ -243,21 +243,18 @@ HideCycleStatusHudWindow(hudHwnd) {
     return !DllCall("IsWindowVisible", "Ptr", hudHwnd)
 }
 
-RequestCycleStatusHideForPoint(x, y, holdMs := 500) {
+RequestCycleStatusHide(holdMs := 500) {
     launcherPid := 0
     hudHwnd := 0
 
     if !GetCycleStatusClickGuardInfo(&launcherPid, &hudHwnd)
         return false
 
-    if !IsPointNearCycleStatusArea(x, y, 75, hudHwnd)
-        return false
-
     hideUntil := A_TickCount + Max(holdMs, 300)
 
     try {
-        ; Write the hold request first. If the launcher timer runs while the
-        ; child process is hiding the window, it will keep the HUD hidden.
+        ; Keep the launcher timer from showing the HUD again while the child
+        ; process is doing a screen scan or click that needs a clean view.
         WriteCycleStatusClickGuardFile(
             GetCycleStatusClickGuardRequestPath(),
             hideUntil
@@ -277,6 +274,19 @@ RequestCycleStatusHideForPoint(x, y, holdMs := 500) {
     }
 
     return true
+}
+
+RequestCycleStatusHideForPoint(x, y, holdMs := 500) {
+    launcherPid := 0
+    hudHwnd := 0
+
+    if !GetCycleStatusClickGuardInfo(&launcherPid, &hudHwnd)
+        return false
+
+    if !IsPointNearCycleStatusArea(x, y, 75, hudHwnd)
+        return false
+
+    return RequestCycleStatusHide(holdMs)
 }
 
 ClickMapPoint(x, y, holdMs := 500) {

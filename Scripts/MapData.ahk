@@ -19,7 +19,7 @@ global MapData := Map(
     "In The Loop", {
         category: "Beginner",
         page: 1,
-        pattern: "|<>*153$36.TsTzzzDzTzzz7zzzzz3zzzzz7zzzzzLzzzzzrzzzyT7ztzyT3zUzk74Dkzs7s3tzwD01zzxT00zzzzs03zzzy01zzyw0kDzkw0E3z0w001w0y00080zU0000yk0000w00000k3U000k3s001s3y007lTzy6DzzzzzzTzzwzzzXzzjzT3zwlkzUTsjkw0TtzUy0zzzkDVXTzU3bVDzs3zUDzs3zmTz0DzqTz0DyDbzozzzrzyzzzzzzzzzzzzjzjvzzzzzzznU"
+        pattern: "|<>*151$37.y00E3zy00A3zzU7W0zzk0k0Tzk700Dzs3w03zw3z01zw7zU0Ty3zk0Tz0zw07y0Dy03y83z00zA0zk0DXUzw07zkTw01zwDz01zk7zk0zk1zs1zk1tw0Dk6wT03s3yDUE03zzwA03znz000ztTk00TsDzk0DwDzy01yzzw00SSzz007wDzU02Dzzs007zzw002zzyk00Pzw00sTzw2"
     },
 
     "Skull Tweak", {
@@ -49,13 +49,13 @@ global MapData := Map(
     "Tree Stump", {
         category: "Beginner",
         page: 2,
-        pattern: "|<>*159$17.3y07s0TU0y03w0Ds0zk1zk3zs71sA1zk0zU1x01s03k07U0DS1kz30Tg07s03k03U0701s1zk3z04"
+        pattern: "|<>*166$30.0001s0000s0000s0000s0000s0000w0000w0000w0000w0000Q0000Q0000Q0000C0000C0000C0000C0000D0000D0000D0003z0003z000Dv000DX000Tx000zx003tz007kT00D0D00D0D01y0D03w0D03s0D03s0D03U0DU"
     },
 
     "Town Center", {
         category: "Beginner",
         page: 2,
-        pattern: "|<>*155$25.3sDw1yy7kzy3sTw0wDw0S7s0C3s0C1s070w03UT02M3k240Q320D3303xUU0zsE0Tzw01zy001z00000000000000002"
+        pattern: "|<>*157$26.zU000y000Dzzs3zzzkS7jw70073U01ks00AS0U17kA0HA305V0k1kkA0QA307V0M0zs60Tzzzxzzzz00000000000000000000000000000000002"
     },
 
     "Middle Of The Road", {
@@ -67,7 +67,7 @@ global MapData := Map(
     "One Two Tree", {
         category: "Beginner",
         page: 2,
-        pattern: "|<>*208$27.zzw07zzU0zzw07zzU0zzw07zzU0zzw07zzU0w7w070TU0U1k003zw03zzztzzzzTz1zzzk03Tw00Pz007TU00vw007T001vs00DD003tw01zD0C7ts10TD0k3tsy1zD7UTtss3zA7UztUA7zA1Uzw"
+        pattern: "|<>*150$25.Xs00Fw00Dy007z003zU017k00zs00Tw00Dy000S000700000000000U000E000M000w000S000D0007U007k003s001w003y007z003zU01zk00zs00Tw00Tz"
     },
 
     "Scrapyard", {
@@ -79,7 +79,7 @@ global MapData := Map(
     "The Cabin", {
         category: "Beginner",
         page: 2,
-        pattern: "|<>*34$28.D3500wAw03szk0zny03zDk0Dxk00zb003yQ0EDvk0kzi037zs03zzU0Czz00vzzs3jzzkAyzzUnnzz7Djzzszzzz3zzzsDzzzszzzznzzzyDzzzkzzzy3zzzUDzzy0zzzs3zzzkDzzzkzzzznzzzzjzzzzzzz0Tzzw0Dszk0z1y03w7s0DkTU0zkS02"
+        pattern: "|<>*45$41.zsTDk01zkzT003zVyy007zzxs00Dzzvk0UTzzbU10zzzz021zzzz07nzzzz00bzzzzs0Dzzzxk0Tzzzz00zzzzw01zzzzs03zzzzs07zzzzs0DzzzzkATzzzzzkzzzzzw1zzzzzs3zzzzy07zzzzw0Dzzzzs0TzzzzU0zzzzw01zzzzs03zzzzU07zzzzU0Dzzzz00Tzzzw00zzzzs01zzzz003zzzz007zzzs00Dzzk000Tzw0000zzk0001wC00003x000004"
     },
 
     "Resort", {

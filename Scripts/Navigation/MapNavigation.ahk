@@ -193,6 +193,54 @@ OpenHeroSelection() {
     return true
 }
 
+PrepareMapPatternScan() {
+    ; A normal launcher run has the Cycle HUD visible, while the standalone
+    ; map-pattern tester does not. Hide it briefly so the runtime scan sees
+    ; the same clean BTD6 screen as the tester.
+    RequestCycleStatusHide(2500)
+
+    gameWindow := WinExist(
+        "ahk_exe BloonsTD6.exe"
+    )
+
+    if !gameWindow {
+        return false
+    }
+
+    ; SwitchToFullscreen can return immediately when the game is already
+    ; fullscreen. Make sure BTD6 is also the active window before scanning.
+    WinActivate(
+        "ahk_id "
+        . gameWindow
+    )
+
+    if !WinWaitActive(
+        "ahk_id "
+        . gameWindow,
+        ,
+        1
+    ) {
+        return false
+    }
+
+    Sleep(100)
+    return true
+}
+
+ClickMapPatternMatch(x, y) {
+    previousMouseCoordMode := A_CoordModeMouse
+
+    try {
+        ; FindText gives us screen coordinates. Use the same coordinate system
+        ; for the click instead of depending on whichever window had focus.
+        CoordMode("Mouse", "Screen")
+        Click(x, y)
+    }
+    finally {
+        CoordMode("Mouse", previousMouseCoordMode)
+    }
+}
+
 TryClickCurrentMap(mapName) {
     global MapData
 
@@ -212,6 +260,12 @@ TryClickCurrentMap(mapName) {
             mapName
         ].pattern
 
+    ; Keep the live navigation scan in the same state as MapPatternTest.ahk:
+    ; BTD6 focused and the launcher HUD out of the captured screen.
+    if !PrepareMapPatternScan() {
+        return false
+    }
+
     Loop 4 {
         if FindText(
             &X,
@@ -224,7 +278,17 @@ TryClickCurrentMap(mapName) {
             0,
             mapPattern
         ) {
-            Click(X, Y)
+            LogMessage(
+                "INFO",
+                "Map pattern found: "
+                . mapName
+                . " at X="
+                . X
+                . " Y="
+                . Y
+            )
+
+            ClickMapPatternMatch(X, Y)
 
             Sleep(600)
 

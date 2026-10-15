@@ -1,11 +1,15 @@
 # BTD6 Everything Macro
-**Current version: v3.3.1**
+**Current version: v3.3.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added Flooded Valley Impoppable script.
+- Added In The Loop Hard Standard, Magic Monkeys Only, and Alternate Bloons Rounds strategies.
+- Added Skull Tweak Hard Standard, Magic Monkeys Only, and Alternate Bloons Rounds strategies.
+- Added Scrapyard Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse strategies.
+- Added The Cabin Easy Standard, Primary Only, Deflation, Medium Standard, Military Only, and Reverse strategies.
+- Updated several map patterns in `Scripts/MapData.ahk` to improve map detection reliability.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

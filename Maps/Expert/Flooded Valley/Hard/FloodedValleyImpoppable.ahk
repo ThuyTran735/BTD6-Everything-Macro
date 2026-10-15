@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
-
+; Credits to sYnce on YT for the help on rounds 6-84.
 FloodedValleyImpoppable() {
     global RunConfig := {
         category: "Expert",

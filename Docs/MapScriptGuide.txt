@@ -30,6 +30,15 @@ gameMode
      - Hard modes: Standard / Magic Monkeys Only / Double HP MOABs / Half Cash / Alternate Bloons Rounds / Impoppable / CHIMPS
      - Impoppable and CHIMPS use difficulty: "Hard".
 
+startRound / endRound
+     - These belong inside RunConfig, using a colon, such as startRound: 6.
+     - Easy: 1-40, except Deflation: 31-60.
+     - Medium: 1-60.
+     - Hard: 3-80, except Impoppable and CHIMPS: 6-100.
+     - Round 0 in the action schedule still means pregame setup.
+     - Strategy Builder exports both limits automatically. Explicit imported
+       limits are preserved until the difficulty or mode is changed.
+
 hero
      - Use a hero name when needed, for example: hero: "Quincy"
      - Use hero: false when no hero is needed.
@@ -415,12 +424,35 @@ Meaning:
 
 STRATEGY BUILDER
 
-The Strategy Builder can now:
-     - Import existing .ahk strategy scripts.
-     - Edit monkey/hero definitions after they are added.
-     - Set a separate placement delay in milliseconds.
-     - Add Upgrade, Target, Sell, and Ability actions.
-     - Draw click-through screen labels at configured monkey coordinates.
+For step-by-step builder instructions and a practice example, read
+StrategyBuilderHowTo.txt in this Docs folder.
+
+Open Tools\StrategyBuilder.ahk. Use IMPORT to load an existing strategy, or
+enter the map details and build one using these three views:
+
+     - MONKEYS: add placements with their coordinates, round, and delay.
+       Double-click a row to edit it. NEW starts another placement.
+     - ACTIONS: choose an action type, then fill in its relevant fields.
+       Supports Upgrade, Targeting, Sell, Ability, Game speed, and banana
+       collection toggles. Double-click to edit an action in the same row.
+       Actions with the same round and delay keep their original order.
+     - EXPORT: generate a preview, copy the code, or save an .ahk file.
+       Copy and Save always rebuild the code from the current strategy.
+
+ROW OPTIONS contains edit and delete. TOOLS contains click-through monkey
+labels, coordinate remapping, and Clear. The ? button opens a short guide.
+Capture coordinates with F2 for placements, F3 for a tower's current position,
+and F5 for targeting points.
+
+Before exporting, the builder checks whole-number rounds and delays,
+1920x1080 coordinate bounds, upgrade paths, missing monkey references,
+actions before placement, and actions after selling. It also checks that
+each action uses round 0 or a round within the exported starting/ending
+limits. Fix the reported issue and export again.
+
+Imports warn when unsupported actions are skipped. The builder does not
+execute imported scripts, and that warning should be reviewed before saving
+a replacement for the original file.
 
 
 14. HERO USAGE
@@ -901,8 +933,8 @@ To stop all Banana Farm collection manually:
 
 [60, 0, () => DisableBananaCollection()],
 
-Strategy Builder has ENABLE BANANA COLLECTION and DISABLE BANANA COLLECTION
-buttons in the action schedule. They use the same Round and Delay fields as
+Strategy Builder has Enable banana collection and Disable banana collection
+choices in the action-type list. They use the same Round and Delay fields as
 other actions, and imported scripts keep these actions editable.
 
 Use type: "Farm" in TowerSetup, matching the normal Farm hotkey entry.

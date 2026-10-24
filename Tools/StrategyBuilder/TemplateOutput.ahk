@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 ; Turns editor state into a strategy script, with placements sorted before other tied actions.
 ; Generation, copy, and save share the same output so the preview matches the saved file.
@@ -17,26 +17,23 @@ GenerateTemplate(*) {
 CopyTemplate(*) {
     global OutputEdit, StatusText
 
-    if Trim(OutputEdit.Value) = "" {
-        template := BuildTemplateText()
-        if template = ""
-            return
-        OutputEdit.Value := template
-    }
+    ; The preview may predate the latest tower or action edit.
+    template := BuildTemplateText()
+    if template = ""
+        return
+    OutputEdit.Value := template
 
-    A_Clipboard := OutputEdit.Value
+    A_Clipboard := template
     StatusText.Text := "Copied to clipboard"
 }
 
 SaveTemplate(*) {
     global OutputEdit, FunctionNameEdit, StatusText, MainGui
 
-    if Trim(OutputEdit.Value) = "" {
-        template := BuildTemplateText()
-        if template = ""
-            return
-        OutputEdit.Value := template
-    }
+    template := BuildTemplateText()
+    if template = ""
+        return
+    OutputEdit.Value := template
 
     defaultName := SanitizeFileName(FunctionNameEdit.Value) ".ahk"
     projectRoot := RegExReplace(A_ScriptDir, "i)\\Tools$")
@@ -53,7 +50,7 @@ SaveTemplate(*) {
     try {
         if FileExist(path)
             FileDelete(path)
-        FileAppend(OutputEdit.Value, path, "UTF-8")
+        FileAppend(template, path, "UTF-8")
         StatusText.Text := "Saved: " path
         MsgBox("Strategy template saved to:`n" path, "Strategy Builder", "Iconi")
     } catch as err {
@@ -104,10 +101,8 @@ BuildTemplateText() {
     global ImportedStartRound, ImportedEndRound
     global WingmonkeyMKCheckbox
 
-    if Entities.Length = 0 {
-        MsgBox("Add at least one monkey or hero before generating the template.", "Strategy Builder", "Icon!")
+    if !ValidateBuilderModel()
         return ""
-    }
 
     q := Chr(34)
     functionName := SanitizeFunctionName(FunctionNameEdit.Value)
@@ -116,12 +111,15 @@ BuildTemplateText() {
     difficulty := EscapeAhkString(DifficultyDDL.Text)
     gameMode := EscapeAhkString(ModeDDL.Text)
     isDeflation := gameMode = "Deflation"
-
-    if isDeflation {
-        difficulty := "Easy"
-        if !ValidateDeflationRounds()
-            return ""
+    roundBounds := GetBuilderRoundBounds(DifficultyDDL.Text, ModeDDL.Text, ImportedStartRound, ImportedEndRound)
+    roundError := GetBuilderRoundValidationError(Entities, UpgradeActions, roundBounds)
+    if roundError != "" {
+        MsgBox(roundError, "Strategy Builder - Check rounds", "Icon!")
+        return ""
     }
+
+    if isDeflation
+        difficulty := "Easy"
 
     heroValue := "false"
     for entity in Entities {
@@ -140,22 +138,10 @@ BuildTemplateText() {
     out .= "        difficulty: " q difficulty q ",`r`n"
     out .= "        gameMode: " q gameMode q ",`r`n"
     out .= "        hero: " heroValue ",`r`n"
-    out .= "        wingmonkeyMK: " (WingmonkeyMKCheckbox.Value ? "true" : "false")
-
-    if isDeflation {
-        out .= ",`r`n"
-        out .= "        startRound: 31,`r`n"
-        out .= "        endRound: 60`r`n"
-    ; Keep imported custom round bounds unless the user changed the mode.
-    } else if ImportedStartRound != "" || ImportedEndRound != "" {
-        out .= ",`r`n"
-        if ImportedStartRound != ""
-            out .= "        startRound: " ImportedStartRound ",`r`n"
-        if ImportedEndRound != ""
-            out .= "        endRound: " ImportedEndRound "`r`n"
-    } else {
-        out .= "`r`n"
-    }
+    out .= "        wingmonkeyMK: " (WingmonkeyMKCheckbox.Value ? "true" : "false") ",`r`n"
+    ; Round 0 belongs to pregame actions; the tracker starts at the mode's first live round.
+    out .= "        startRound: " roundBounds.startRound ",`r`n"
+    out .= "        endRound: " roundBounds.endRound "`r`n"
 
     out .= "    }`r`n`r`n"
 
@@ -304,63 +290,6 @@ BuildTemplateText() {
     return out
 }
 
-ValidateDeflationRounds() {
-    global Entities, UpgradeActions
-
-    for entity in Entities {
-        if !IsValidDeflationActionRound(entity.placeRound) {
-            MsgBox(
-                entity.name " has placement round " entity.placeRound ".`n`n"
-                . "Deflation actions must use round 0 for pregame setup or rounds 31-60.",
-                "Strategy Builder - Deflation",
-                "Icon!"
-            )
-            return false
-        }
-    }
-
-    for action in UpgradeActions {
-        if !IsValidDeflationActionRound(action.round) {
-            kind := HasProp(action, "kind") ? action.kind : "upgrade"
-
-            if kind = "target" {
-                value := action.target
-                actionLabel := "targeting"
-            } else if kind = "sell" {
-                value := "sell"
-                actionLabel := "sell"
-            } else if kind = "ability" {
-                value := action.hotkey
-                actionLabel := "ability"
-            } else if kind = "speed" {
-                value := action.speed
-                actionLabel := "game speed"
-            } else if kind = "bananaCollection" {
-                value := action.enabled ? "enable" : "disable"
-                actionLabel := "banana collection"
-            } else {
-                value := action.upgrade
-                actionLabel := "upgrade"
-            }
-
-            entityLabel := HasProp(action, "entity") ? action.entity " " : ""
-            MsgBox(
-                entityLabel actionLabel " -> " value " uses round " action.round ".`n`n"
-                . "Deflation actions must use round 0 for pregame setup or rounds 31-60.",
-                "Strategy Builder - Deflation",
-                "Icon!"
-            )
-            return false
-        }
-    }
-
-    return true
-}
-
-IsValidDeflationActionRound(round) {
-    return round = 0 || (round >= 31 && round <= 60)
-}
-
 BuildEntityBlock(entity) {
     q := Chr(34)
     name := EscapeAhkString(entity.name)
@@ -462,12 +391,14 @@ NumberToLetters(number) {
 }
 
 ChooseDropdownText(control, wanted) {
-    ; CB_FINDSTRINGEXACT returns a zero-based combo-box item index.
-    ; Avoid unsupported Gui.DDL.GetCount() calls in AutoHotkey v2.
-    itemIndex := DllCall("SendMessage", "Ptr", control.Hwnd, "UInt", 0x0158, "Ptr", -1, "Str", wanted, "Ptr")
-    if itemIndex = -1
-        return false
-
-    control.Choose(itemIndex + 1)
-    return true
+    ; Match a whole item, preserving the current selection if it is absent.
+    ; Shared dark dropdowns expose their items instead of a native combo HWND.
+    for index, item in control.Items {
+        if item = wanted {
+            control.Choose(index)
+            return true
+        }
+    }
+    return false
 }
+

@@ -2,11 +2,11 @@
 
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
-ScrapyardDeflation() {
+TheCabinDeflation() {
     ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Beginner",
-        map: "Scrapyard",
+        map: "The Cabin",
         difficulty: "Easy",
         gameMode: "Deflation",
         hero: "Psi",
@@ -77,4 +77,4 @@ ScrapyardDeflation() {
     return RunMapStrategy(strategy)
 }
 
-ScrapyardDeflation()
+TheCabinDeflation()

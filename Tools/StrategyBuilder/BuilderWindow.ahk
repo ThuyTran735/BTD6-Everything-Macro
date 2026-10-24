@@ -1,15 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
-; Keeps the builder form and shared editor state together.
-; Both editor panels use the same row spacing so related fields line up.
-
+; The three workspaces share the same editor data. Hidden controls keep their
+; values, so switching views never changes a strategy or its action order.
 CoordMode("Mouse", "Screen")
-
-; BTD6 Everything Macro - Strategy Builder / Coordinate Tool
-; ---------------------------------------------------------
-; Build TowerSetup + strategy actions without hand-writing coordinates.
-; Press F2 at any time while this tool is open to instantly capture the current
-; mouse position as the placement coordinates. The button is an alternate capture mode.
 
 global Entities := []
 global UpgradeActions := []
@@ -23,6 +16,25 @@ global MonkeyOverlayVisible := false
 global ImportedStartRound := ""
 global ImportedEndRound := ""
 global IsImportingStrategy := false
+global BuilderEditingActionIndex := 0
+global BuilderEditingAction := false
+global BuilderEditingEntity := false
+global BuilderView := "Monkeys"
+global BuilderGroups := Map("Monkeys", [], "Actions", [], "Export", [])
+global BuilderActionFields := Map()
+global BuilderLayoutItems := []
+global BuilderButtons := Map()
+global BuilderEditFrames := Map()
+global BuilderHelpBadges := Map()
+global BuilderHeaders := Map()
+global BuilderTabs := Map()
+global BuilderHeadingFont := LoadBuilderHeadingFont()
+global BuilderBuildGroup := ""
+global BuilderLayoutDepth := 0
+global BuilderRedrawPaused := false
+global BuilderActionTypeDDL, BuilderActionSaveButton, BuilderEntitySaveButton
+global BuilderActionHint, BuilderRowMenuButton, BuilderHelpGui := false
+global BuilderRoundHint
 
 global TowerTypes := [
     "Dart", "Boomerang", "Bomb", "Tack", "Ice", "Glue", "Desperado",
@@ -30,13 +42,11 @@ global TowerTypes := [
     "Wizard", "Super", "Ninja", "Alchemist", "Druid", "Mermonkey", "Skywarden",
     "Farm", "SpikeFactory", "Village", "Engineer", "Beast Handler", "Hero"
 ]
-
 global HeroNames := [
     "Quincy", "Gwendolin", "Striker Jones", "Obyn Greenfoot", "Dan D'Monke",
     "Benjamin", "Pat Fusty", "Captain Churchill", "Ezili", "Silas", "Etienne",
     "Sauda", "Rosalia", "Adora", "Admiral Brickell", "Psi", "Geraldo", "Corvus"
 ]
-
 global CategoryChoices := ["Beginner", "Intermediate", "Advanced", "Expert"]
 global DifficultyChoices := ["Easy", "Medium", "Hard"]
 global ModeChoicesByDifficulty := Map(
@@ -44,253 +54,401 @@ global ModeChoicesByDifficulty := Map(
     "Medium", ["Standard", "Military Only", "Apopalypse", "Reverse"],
     "Hard", ["Standard", "Magic Monkeys Only", "Double HP MOABs", "Half Cash", "Alternate Bloons Rounds", "Impoppable", "CHIMPS"]
 )
-
 global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
 global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
 global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
 
+; Tray Exit and Reload need the same cleanup as the window's close button.
+OnExit(CleanupStrategyBuilder)
 BuildGui()
 
 BuildGui() {
-    global MainGui
-    global BuilderMinimizeControl, BuilderCloseControl, BuilderChromeMessageReady, BuilderWindowBorder
-    global EntityNameEdit, EntityTypeDDL, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit, TargetingDDL
-    global EntityLV, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, ActionLV
-    global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL, WingmonkeyMKCheckbox, OutputEdit, StatusText
-    global TowerTypes, HeroNames, CategoryChoices, DifficultyChoices, ModeChoicesByDifficulty
-
-    MainGui := Gui("+Resize +MinSize1040x790 -Caption +Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
+    global
+    MainGui := Gui("+Resize +MinSize1040x744 -Caption -Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "0D1117"
-    MainGui.SetFont("s10 Norm cF4F7FB", "Segoe UI")
-    MainGui.OnEvent("Close", (*) => ExitApp())
-
+    MainGui.SetFont("s9 Norm cF4F7FB", "Segoe UI")
+    MainGui.OnEvent("Close", CloseStrategyBuilder)
     if !BuilderChromeMessageReady {
         OnMessage(0x84, StrategyBuilderChromeHitTest)
+        OnMessage(0x83, StrategyBuilderClientArea)
+        OnMessage(0x85, StrategyBuilderFramePaint)
+        OnMessage(0x86, StrategyBuilderFramePaint)
+        OnMessage(0x138, StrategyBuilderCheckboxColor)
+        OnMessage(0x135, StrategyBuilderCheckboxColor)
+        OnMessage(0x231, CloseBuilderDropdowns)
         BuilderChromeMessageReady := true
     }
-
-    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 790)
-
-    MainGui.SetFont("s16 Norm cF4F7FB")
-    MainGui.AddText("x24 y16 w900 h28", "Strategy Builder")
-
-    MainGui.SetFont("s12 Norm c7D8B9C")
-    BuilderMinimizeControl := MainGui.AddText("x954 y12 w30 h28 Center +0x200", "-")
-    BuilderMinimizeControl.OnEvent("Click", MinimizeStrategyBuilder)
-
-    MainGui.SetFont("s11 Norm cFF6B7A")
-    BuilderCloseControl := MainGui.AddText("x994 y12 w30 h28 Center +0x200", "X")
-    BuilderCloseControl.OnEvent("Click", (*) => ExitApp())
-
+    ; Recalculate the native frame now that our client-area handler is active.
+    DisableBuilderNativeFrame(MainGui)
+    DllCall("SetWindowPos", "Ptr", MainGui.Hwnd, "Ptr", 0,
+        "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x27)
+    BuilderWindowBorder := CreateStrategyBuilderBorder(MainGui, 1040, 744)
     MainGui.OnEvent("Size", ResizeStrategyBuilderChrome)
-    MainGui.SetFont("s9 Norm cB3BFCC")
-    MainGui.AddText("x24 y48 w992 h20", "Create, import, and export strategies. Capture coordinates and schedule placements, upgrades, targeting, abilities, and banana collection.")
 
-    ; Metadata applies to every exported placement and action.
-    MainGui.SetFont("s10 Norm cD8E0E8")
-    MainGui.AddGroupBox("x24 y80 w992 h96", " Strategy details ")
-    MainGui.SetFont("s9 Norm cD8E0E8")
+    BuilderHeading("STRATEGY BUILDER", 24, 18, 570, 30, 18)
+    BuilderLabel("Create a strategy, one step at a time.  |  " . GetAppVersionLabel(), 24, 51, 570, 20, "93A1B2")
+    BuilderButton("TOOLS", 784, 22, 100, 34, ShowBuilderTools, false, 1)
+    BuilderButton("?", 894, 22, 34, 34, ShowBuilderHelp, false, 1)
+    BuilderMinimizeControl := BuilderButton("-", 940, 22, 34, 34, MinimizeStrategyBuilder, false, 1)
+    BuilderCloseControl := BuilderButton("X", 984, 22, 32, 34, CloseStrategyBuilder, false, 1)
 
-    MainGui.AddText("x44 y108 w68 h20", "Map Name")
-    MapNameEdit := MainGui.AddEdit("x112 y104 w208 h26", "MAP NAME")
-    StyleBuilderEdit(MapNameEdit)
-
-    MainGui.AddText("x340 y108 w68 h20", "Function")
-    FunctionNameEdit := MainGui.AddEdit("x408 y104 w208 h26", "GeneratedMapStrategy")
-    StyleBuilderEdit(FunctionNameEdit)
-
-    MainGui.AddText("x636 y108 w68 h20", "Category")
-    CategoryDDL := MainGui.AddDropDownList("x704 y104 w160 Choose1", CategoryChoices)
-
-    MainGui.AddText("x44 y144 w68 h20", "Difficulty")
-    DifficultyDDL := MainGui.AddDropDownList("x112 y140 w208 Choose1", DifficultyChoices)
-
-    MainGui.AddText("x340 y144 w68 h20", "Mode")
-    ModeDDL := MainGui.AddDropDownList("x408 y140 w208 Choose1", ModeChoicesByDifficulty["Easy"])
+    BuilderPanel(24, 82, 992, 114, 1)
+    BuilderLabel("MAP NAME", 40, 94, 240, 18)
+    MapNameEdit := BuilderEdit(40, 114, 240, "MAP NAME")
+    BuilderLabel("CATEGORY", 296, 94, 160, 18)
+    CategoryDDL := BuilderDDL(296, 114, 160, CategoryChoices)
+    BuilderLabel("DIFFICULTY", 472, 94, 144, 18)
+    DifficultyDDL := BuilderDDL(472, 114, 144, DifficultyChoices)
     DifficultyDDL.OnEvent("Change", OnDifficultyChanged)
+    BuilderLabel("GAME MODE", 632, 94, 368, 18)
+    ModeDDL := BuilderDDL(632, 114, 368, ModeChoicesByDifficulty["Easy"])
+    BuilderAnchor(ModeDDL, 632, 114, 368, 32, 0, 0, 1)
     ModeDDL.OnEvent("Change", OnModeChanged)
+    BuilderLabel("Function", 40, 161, 96, 18, "93A1B2")
+    FunctionNameEdit := BuilderEdit(140, 156, 316, "GeneratedMapStrategy")
+    MainGui.SetFont("s9 Norm cD8E0E8", "Segoe UI")
+    WingmonkeyMKCheckbox := BuilderControl(MainGui.AddCheckBox("x472 y156 w210 h26 cD8E0E8", "Wingmonkey knowledge"))
+    AddBuilderHelpBadge(WingmonkeyMKCheckbox, "Wingmonkey knowledge", 682, 161)
+    BuilderRoundHint := BuilderLabel("Round 0 = pregame setup", 728, 161, 272, 18, "93A1B2")
+    BuilderRoundHint.Text := "Rounds 1-40 | 0 = setup"
 
-    WingmonkeyMKCheckbox := MainGui.AddCheckBox("x636 y140 w180 h26", "Wingmonkey MK")
+    ; Share the full content width, keeping the same gaps when the window grows.
+    for index, viewName in ["Monkeys", "Actions", "Import", "Export"] {
+        tabX := 24 + (index - 1) * 252
+        callback := viewName = "Import" ? ImportBuilderStrategy : ShowBuilderView.Bind(viewName)
+        tab := BuilderButton(StrUpper(viewName), tabX, 212, 236, 36, callback, false, (index - 1) / 4, 0, 0.25)
+        if viewName != "Import"
+            BuilderTabs[viewName] := tab
+    }
 
-    ; The placement list keeps selection for update/delete.
-    MainGui.SetFont("s10 Norm cD8E0E8")
-    MainGui.AddGroupBox("x24 y188 w488 h376", " Monkeys and heroes ")
-    MainGui.SetFont("s9 Norm cD8E0E8")
-
-    MainGui.AddText("x44 y214 w68 h20", "Name")
-    EntityNameEdit := MainGui.AddEdit("x112 y210 w148 h26", "Dart A")
-    StyleBuilderEdit(EntityNameEdit)
-
-    MainGui.AddText("x280 y214 w40 h20", "Type")
-    EntityTypeDDL := MainGui.AddDropDownList("x320 y210 w172 Choose1", TowerTypes)
+    BuilderBuildGroup := "Monkeys"
+    BuilderPanel(24, 264, 328, 398, 0, 1)
+    BuilderPanel(368, 264, 648, 398, 1, 1)
+    BuilderHeading("MONKEY DETAILS", 40, 280, 296, 24)
+    BuilderLabel("Name", 40, 312, 296, 18)
+    EntityNameEdit := BuilderEdit(40, 332, 296, "Dart A")
+    BuilderLabel("Type", 40, 372, 140, 18)
+    EntityTypeDDL := BuilderDDL(40, 392, 140, TowerTypes)
     EntityTypeDDL.OnEvent("Change", OnEntityTypeChanged)
-
-    MainGui.AddText("x44 y250 w68 h20", "Hero")
-    HeroDDL := MainGui.AddDropDownList("x112 y246 w148 Choose1", HeroNames)
+    BuilderLabel("Hero", 196, 372, 140, 18)
+    HeroDDL := BuilderDDL(196, 392, 140, HeroNames)
     HeroDDL.Enabled := false
+    BuilderLabel("Starting targeting", 40, 432, 296, 18)
+    TargetingDDL := BuilderDDL(40, 452, 296, ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite", "Normal", "Smart", "Set Target", "Automatic", "Locked", "Target Independent", "Follow Mouse", "Lock in Place", "Patrol Points", "Pursuit", "Target"])
+    BuilderLabel("Place X", 40, 492, 72, 18)
+    XEdit := BuilderEdit(40, 512, 72, "0", "Number")
+    BuilderLabel("Y", 128, 492, 68, 18)
+    YEdit := BuilderEdit(128, 512, 68, "0", "Number")
+    BuilderButton("F2 CAPTURE", 212, 510, 124, 30, CaptureCoordinates)
+    BuilderLabel("Place round", 40, 552, 136, 18)
+    PlaceRoundEdit := BuilderEdit(40, 572, 136, "0", "Number")
+    BuilderLabel("Delay (ms)", 200, 552, 136, 18)
+    PlaceDelayEdit := BuilderEdit(200, 572, 136, "0", "Number")
+    BuilderEntitySaveButton := BuilderButton("ADD MONKEY", 40, 616, 184, 32, SaveBuilderEntity, true, 0, 1)
+    BuilderButton("NEW", 236, 616, 100, 32, NewBuilderEntity, false, 0, 1)
+    BuilderHeading("PLACEMENTS", 384, 280, 380, 24)
+    BuilderButton("ROW OPTIONS", 864, 278, 136, 28, ShowBuilderEntityMenu, false, 1)
+    EntityLV := BuilderControl(MainGui.AddListView("x384 y316 w616 h296 -Multi NoSortHdr", ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"]))
+    SendMessage(0x1036, 0x10000, 0x10000, EntityLV)
+    BuilderAnchor(EntityLV, 384, 316, 616, 296, 0, 0, 1, 1)
+    for index, width in [104, 86, 80, 46, 46, 54, 60, 110]
+        EntityLV.ModifyCol(index, width)
+    RegisterBuilderListHeader(EntityLV, ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"])
+    EntityLV.OnEvent("DoubleClick", EditBuilderEntity)
+    EntityLV.OnEvent("ContextMenu", ShowBuilderEntityMenu)
+    BuilderLabel("Double-click a row to edit. Row options contains edit and delete.", 384, 632, 616, 18, "93A1B2", 0, 1, 1)
 
-    MainGui.AddText("x280 y250 w40 h20", "Target")
-    TargetingDDL := MainGui.AddDropDownList("x320 y246 w172", ["First", "Last", "Close", "Strong", "Circle", "Figure Infinite", "Figure Eight", "Elite", "Normal", "Smart", "Set Target", "Automatic", "Locked", "Target Independent", "Follow Mouse", "Lock in Place", "Patrol Points", "Pursuit", "Target"])
-    TargetingDDL.Choose(1)
-
-    MainGui.AddText("x44 y286 w68 h20", "X")
-    XEdit := MainGui.AddEdit("x112 y282 w68 h26 Number", "0")
-    StyleBuilderEdit(XEdit)
-    MainGui.AddText("x192 y286 w16 h20", "Y")
-    YEdit := MainGui.AddEdit("x212 y282 w68 h26 Number", "0")
-    StyleBuilderEdit(YEdit)
-
-    CaptureBtn := MainGui.AddButton("x296 y280 w196 h30", "Capture coordinates (F2)")
-    CaptureBtn.OnEvent("Click", CaptureCoordinates)
-
-    MainGui.AddText("x44 y322 w78 h20", "Place Round")
-    PlaceRoundEdit := MainGui.AddEdit("x122 y318 w58 h26 Number", "0")
-    StyleBuilderEdit(PlaceRoundEdit)
-
-    MainGui.AddText("x192 y322 w64 h20", "Delay ms")
-    PlaceDelayEdit := MainGui.AddEdit("x256 y318 w72 h26 Number", "0")
-    StyleBuilderEdit(PlaceDelayEdit)
-    MainGui.AddText("x340 y322 w152 h20 c7D8B9C", "Round 0 = pregame")
-
-    AddEntityBtn := MainGui.AddButton("x44 y354 w136 h32", "Add monkey")
-    AddEntityBtn.OnEvent("Click", AddEntity)
-    UpdateEntityBtn := MainGui.AddButton("x192 y354 w144 h32", "Update selected")
-    UpdateEntityBtn.OnEvent("Click", UpdateSelectedEntity)
-    DeleteEntityBtn := MainGui.AddButton("x348 y354 w144 h32", "Delete selected")
-    DeleteEntityBtn.OnEvent("Click", DeleteSelectedEntity)
-
-    EntityLV := MainGui.AddListView("x44 y398 w448 h116 -Multi", ["Name", "Type", "Hero", "X", "Y", "Round", "Delay", "Target"])
-    EntityLV.ModifyCol(1, 88)
-    EntityLV.ModifyCol(2, 64)
-    EntityLV.ModifyCol(3, 70)
-    EntityLV.ModifyCol(4, 40)
-    EntityLV.ModifyCol(5, 40)
-    EntityLV.ModifyCol(6, 45)
-    EntityLV.ModifyCol(7, 48)
-    EntityLV.ModifyCol(8, 58)
-    EntityLV.OnEvent("DoubleClick", LoadSelectedEntityForEdit)
-
-    OverlayBtn := MainGui.AddButton("x44 y526 w218 h28", "Toggle monkey labels")
-    OverlayBtn.OnEvent("Click", ToggleMonkeyOverlay)
-
-    RemapCoordsBtn := MainGui.AddButton("x274 y526 w218 h28", "Remap all coordinates")
-    RemapCoordsBtn.OnEvent("Click", RemapAllPlacementCoordinates)
-
-    ; All action types read the same round and delay fields.
-    MainGui.SetFont("s10 Norm cD8E0E8")
-    MainGui.AddGroupBox("x528 y188 w488 h376", " Action schedule ")
-    MainGui.SetFont("s9 Norm cD8E0E8")
-
-    MainGui.AddText("x548 y214 w64 h20", "Monkey")
-    ActionEntityDDL := MainGui.AddDropDownList("x612 y210 w172", ["Add a monkey first"])
+    BuilderBuildGroup := "Actions"
+    BuilderPanel(24, 264, 328, 398, 0, 1)
+    BuilderPanel(368, 264, 648, 398, 1, 1)
+    BuilderHeading("ACTION DETAILS", 40, 280, 296, 24)
+    BuilderLabel("Action type", 40, 312, 296, 18)
+    BuilderActionTypeDDL := BuilderDDL(40, 332, 296, ["Upgrade", "Targeting", "Sell", "Ability", "Game speed", "Enable banana collection", "Disable banana collection"])
+    BuilderActionTypeDDL.OnEvent("Change", RefreshBuilderActionForm)
+    entityLabel := BuilderLabel("Monkey", 40, 372, 296, 18)
+    ActionEntityDDL := BuilderDDL(40, 392, 296, ["Add a monkey first"])
     ActionEntityDDL.OnEvent("Change", OnActionEntityChanged)
-
-    MainGui.AddText("x800 y214 w44 h20", "Round")
-    UpgradeRoundEdit := MainGui.AddEdit("x844 y210 w52 h26 Number", "0")
-    StyleBuilderEdit(UpgradeRoundEdit)
-
-    MainGui.AddText("x908 y214 w40 h20", "Delay")
-    UpgradeDelayEdit := MainGui.AddEdit("x948 y210 w48 h26 Number", "0")
-    StyleBuilderEdit(UpgradeDelayEdit)
-
-    MainGui.AddText("x548 y250 w64 h20", "Upgrade")
-    UpgradeEdit := MainGui.AddEdit("x612 y246 w68 h26", "000")
-    StyleBuilderEdit(UpgradeEdit)
-
-    MainGui.AddText("x692 y250 w40 h20", "Upg X")
-    UpgradeXEdit := MainGui.AddEdit("x732 y246 w56 h26 Number", "")
-    StyleBuilderEdit(UpgradeXEdit)
-
-    MainGui.AddText("x800 y250 w16 h20", "Y")
-    UpgradeYEdit := MainGui.AddEdit("x820 y246 w56 h26 Number", "")
-    StyleBuilderEdit(UpgradeYEdit)
-
-    CaptureUpgradeBtn := MainGui.AddButton("x888 y244 w108 h30", "Capture (F3)")
-    CaptureUpgradeBtn.OnEvent("Click", CaptureUpgradeCoordinates)
-
-    MainGui.AddText("x548 y286 w64 h20", "Target")
-    ActionTargetDDL := MainGui.AddDropDownList("x612 y282 w156", ["First", "Last", "Close", "Strong"])
-    ActionTargetDDL.Choose(1)
+    BuilderActionFields["entity"] := [entityLabel, ActionEntityDDL]
+    BuilderLabel("Round", 40, 432, 136, 18)
+    UpgradeRoundEdit := BuilderEdit(40, 452, 136, "0", "Number")
+    BuilderLabel("Delay (ms)", 200, 432, 136, 18)
+    UpgradeDelayEdit := BuilderEdit(200, 452, 136, "0", "Number")
+    upLabel := BuilderLabel("Upgrade path (for example, 024)", 40, 492, 296, 18)
+    UpgradeEdit := BuilderEdit(40, 512, 296, "000")
+    BuilderActionFields["upgrade"] := [upLabel, UpgradeEdit]
+    uxLabel := BuilderLabel("Tower X", 40, 552, 72, 18)
+    UpgradeXEdit := BuilderEdit(40, 572, 72, "", "Number")
+    uyLabel := BuilderLabel("Y", 128, 552, 68, 18)
+    UpgradeYEdit := BuilderEdit(128, 572, 68, "", "Number")
+    upCapture := BuilderButton("F3 CAPTURE", 212, 570, 124, 30, CaptureUpgradeCoordinates)
+    BuilderActionFields["override"] := [uxLabel, UpgradeXEdit, uyLabel, UpgradeYEdit, upCapture]
+    tLabel := BuilderLabel("Targeting mode", 40, 492, 296, 18)
+    ActionTargetDDL := BuilderDDL(40, 512, 296, ["First", "Last", "Close", "Strong"])
     ActionTargetDDL.OnEvent("Change", OnActionTargetChanged)
+    txLabel := BuilderLabel("Target X", 40, 552, 72, 18)
+    ActionTargetXEdit := BuilderEdit(40, 572, 72, "", "Number")
+    tyLabel := BuilderLabel("Y", 128, 552, 68, 18)
+    ActionTargetYEdit := BuilderEdit(128, 572, 68, "", "Number")
+    targetCapture := BuilderButton("F5 CAPTURE", 212, 570, 124, 30, CaptureTargetCoordinates)
+    BuilderActionFields["target"] := [tLabel, ActionTargetDDL, txLabel, ActionTargetXEdit, tyLabel, ActionTargetYEdit, targetCapture]
+    abilityLabel := BuilderLabel("Ability hotkey", 40, 492, 296, 18)
+    AbilityEdit := BuilderEdit(40, 512, 296, "1")
+    BuilderActionFields["ability"] := [abilityLabel, AbilityEdit]
+    speedLabel := BuilderLabel("Game speed", 40, 492, 296, 18)
+    GameSpeedDDL := BuilderDDL(40, 512, 296, ["Normal", "Fast"])
+    BuilderActionFields["speed"] := [speedLabel, GameSpeedDDL]
+    BuilderActionHint := BuilderLabel("", 40, 552, 296, 46, "93A1B2")
+    BuilderActionFields["hint"] := [BuilderActionHint]
+    BuilderActionSaveButton := BuilderButton("ADD ACTION", 40, 616, 184, 32, SaveBuilderAction, true, 0, 1)
+    BuilderButton("NEW", 236, 616, 100, 32, NewBuilderAction, false, 0, 1)
+    BuilderHeading("SCHEDULED ACTIONS", 384, 280, 400, 24)
+    BuilderButton("ROW OPTIONS", 864, 278, 136, 28, ShowBuilderActionMenu, false, 1)
+    ActionLV := BuilderControl(MainGui.AddListView("x384 y316 w616 h296 -Multi NoSortHdr", ["Type", "Monkey", "Value", "Round", "Delay"]))
+    SendMessage(0x1036, 0x10000, 0x10000, ActionLV)
+    BuilderAnchor(ActionLV, 384, 316, 616, 296, 0, 0, 1, 1)
+    for index, width in [90, 146, 206, 76, 76]
+        ActionLV.ModifyCol(index, width)
+    RegisterBuilderListHeader(ActionLV, ["Type", "Monkey", "Value", "Round", "Delay"])
+    ActionLV.OnEvent("DoubleClick", LoadSelectedActionForEdit)
+    ActionLV.OnEvent("ContextMenu", ShowBuilderActionMenu)
+    BuilderLabel("Double-click to edit. Actions at the same round and delay keep their order.", 384, 632, 616, 18, "93A1B2", 0, 1, 1)
 
-    MainGui.AddText("x780 y286 w16 h20", "X")
-    ActionTargetXEdit := MainGui.AddEdit("x800 y282 w56 h26 Number", "")
-    StyleBuilderEdit(ActionTargetXEdit)
-    ActionTargetXEdit.Enabled := false
-
-    MainGui.AddText("x868 y286 w16 h20", "Y")
-    ActionTargetYEdit := MainGui.AddEdit("x888 y282 w56 h26 Number", "")
-    StyleBuilderEdit(ActionTargetYEdit)
-    ActionTargetYEdit.Enabled := false
-
-    CaptureTargetBtn := MainGui.AddButton("x956 y280 w40 h30", "F5")
-    CaptureTargetBtn.OnEvent("Click", CaptureTargetCoordinates)
-
-    MainGui.AddText("x548 y322 w64 h20", "Ability")
-    AbilityEdit := MainGui.AddEdit("x612 y318 w84 h26", "1")
-    StyleBuilderEdit(AbilityEdit)
-
-    MainGui.AddText("x712 y322 w48 h20", "Speed")
-    GameSpeedDDL := MainGui.AddDropDownList("x760 y318 w116", ["Normal", "Fast"])
-    GameSpeedDDL.Choose(1)
-    AddSpeedBtn := MainGui.AddButton("x888 y316 w108 h30", "Add speed")
-    AddSpeedBtn.OnEvent("Click", AddGameSpeedAction)
-
-    AddUpgradeBtn := MainGui.AddButton("x548 y354 w106 h32", "Add upgrade")
-    AddUpgradeBtn.OnEvent("Click", AddUpgradeAction)
-    AddTargetBtn := MainGui.AddButton("x662 y354 w106 h32", "Add target")
-    AddTargetBtn.OnEvent("Click", AddTargetingAction)
-    AddSellBtn := MainGui.AddButton("x776 y354 w106 h32", "Add sell")
-    AddSellBtn.OnEvent("Click", AddSellAction)
-    AddAbilityBtn := MainGui.AddButton("x890 y354 w106 h32", "Add ability")
-    AddAbilityBtn.OnEvent("Click", AddAbilityAction)
-
-    FarmOnBtn := MainGui.AddButton("x548 y394 w218 h28", "Enable banana collection")
-    FarmOnBtn.OnEvent("Click", AddBananaCollectionEnableAction)
-    FarmOffBtn := MainGui.AddButton("x778 y394 w218 h28", "Disable banana collection")
-    FarmOffBtn.OnEvent("Click", AddBananaCollectionDisableAction)
-
-    DeleteActionBtn := MainGui.AddButton("x548 y430 w448 h28", "Delete selected action")
-    DeleteActionBtn.OnEvent("Click", DeleteSelectedUpgrade)
-
-    ActionLV := MainGui.AddListView("x548 y470 w448 h84 -Multi", ["Type", "Monkey", "Value", "Round", "Delay"])
-    ActionLV.ModifyCol(1, 66)
-    ActionLV.ModifyCol(2, 100)
-    ActionLV.ModifyCol(3, 90)
-    ActionLV.ModifyCol(4, 65)
-    ActionLV.ModifyCol(5, 65)
-
-    ; Leave status a full line so import and validation messages remain readable.
-    MainGui.SetFont("s10 Norm cD8E0E8")
-    MainGui.AddGroupBox("x24 y576 w992 h174", " Generated template ")
-    MainGui.SetFont("s9 Norm cD8E0E8")
-
-    GenerateBtn := MainGui.AddButton("x44 y602 w152 h32", "Generate template")
-    GenerateBtn.OnEvent("Click", GenerateTemplate)
-    ImportBtn := MainGui.AddButton("x208 y602 w136 h32", "Import .AHK")
-    ImportBtn.OnEvent("Click", ImportStrategyScript)
-    CopyBtn := MainGui.AddButton("x356 y602 w136 h32", "Copy")
-    CopyBtn.OnEvent("Click", CopyTemplate)
-    SaveBtn := MainGui.AddButton("x504 y602 w136 h32", "Save .AHK")
-    SaveBtn.OnEvent("Click", SaveTemplate)
-    ClearBtn := MainGui.AddButton("x652 y602 w136 h32", "Clear all")
-    ClearBtn.OnEvent("Click", ClearAll)
-
-    StatusText := MainGui.AddText("x44 y724 w952 h20 cB3BFCC", "Ready")
-    OutputEdit := MainGui.AddEdit("x44 y646 w952 h68 ReadOnly -Wrap VScroll", "")
+    BuilderBuildGroup := "Export"
+    BuilderPanel(24, 264, 992, 398, 1, 1)
+    BuilderHeading("STRATEGY PREVIEW", 40, 280, 600, 24)
+    BuilderButton("GENERATE", 584, 278, 132, 32, GenerateTemplate, false, 1)
+    BuilderButton("COPY", 728, 278, 108, 32, CopyTemplate, false, 1)
+    BuilderButton("SAVE .AHK", 848, 278, 152, 32, SaveTemplate, true, 1)
+    BuilderPanel(39, 325, 962, 286, 1, 1)
+    OutputEdit := BuilderControl(MainGui.AddEdit("x40 y326 w960 h284 ReadOnly -Wrap HScroll VScroll -Border -E0x200", ""))
     StyleBuilderEdit(OutputEdit)
     OutputEdit.SetFont("s9 Norm", "Consolas")
-
-    MainGui.SetFont("s8 c7D8B9C")
-    MainGui.AddText("x24 y760 w992 h18", "F2 = placement. F3 = moving upgrade. F4 = remap. F5 = targeting coords / moving target click override.")
+    BuilderAnchor(OutputEdit, 40, 326, 960, 284, 0, 0, 1, 1)
+    BuilderLabel("Copy and Save always regenerate from your current strategy. Nothing runs from this preview.", 40, 632, 960, 18, "93A1B2", 0, 1, 1)
+    BuilderBuildGroup := ""
+    StatusText := BuilderLabel("Ready - add a monkey or import an existing strategy.", 24, 682, 992, 20, "B3BFCC", 0, 1, 1)
+    BuilderLabel("F2  Placement     F3  Moving tower     F5  Target point     Tools  Labels / remap / clear", 24, 716, 992, 18, "93A1B2", 0, 1, 1)
 
     StyleBuilderNativeControls(MainGui)
-    MainGui.Show("w1040 h790")
+    ShowBuilderView("Monkeys")
+    MainGui.Show("w1040 h744")
     Hotkey("F2", CaptureCoordinatesInstant, "On")
     Hotkey("F3", CaptureUpgradeCoordinatesInstant, "On")
     Hotkey("F5", CaptureTargetCoordinatesInstant, "On")
 }
-; Keep typed values readable against the dark input surface, including the read-only preview.
+
+ShowBuilderView(view, *) {
+    global BuilderView, BuilderGroups, BuilderTabs, MainGui, UIDarkActiveDropdown
+    if IsObject(UIDarkActiveDropdown)
+        UIDarkActiveDropdown.Close()
+    BeginBuilderLayout()
+    try {
+    BuilderView := view
+    for name, controls in BuilderGroups
+        for control in controls
+            control.Visible := name = view
+    for name, tab in BuilderTabs {
+        tab.Style := name = view ? "ToggleOn" : "Normal"
+        tab.ShowRestState()
+    }
+    if view = "Actions"
+        RefreshBuilderActionForm()
+    } finally EndBuilderLayout()
+}
+
+RefreshBuilderActionForm(*) {
+    global BuilderView, BuilderActionFields, BuilderActionTypeDDL, BuilderActionHint
+    global ActionEntityDDL, Entities
+    if !IsSet(BuilderActionTypeDDL)
+        return
+    BeginBuilderLayout()
+    try {
+    kind := BuilderActionTypeDDL.Text
+    fields := ["entity"]
+    if kind = "Upgrade"
+        fields.Push("upgrade", "override")
+    else if kind = "Targeting"
+        fields.Push("target")
+    else if kind = "Sell"
+        fields.Push("override")
+    else {
+        fields := ["hint"]
+        if kind = "Ability" {
+            fields.Push("ability")
+            BuilderActionHint.Text := "Uses the ability hotkey from BTD6. No monkey selection is needed."
+        } else if kind = "Game speed" {
+            fields.Push("speed")
+            BuilderActionHint.Text := "Use a live round within this mode's range. Round 0 is pregame setup."
+        } else
+            BuilderActionHint.Text := "Applies to all eligible Banana Farms during idle strategy time."
+    }
+    for key, controls in BuilderActionFields {
+        shown := false
+        for wanted in fields
+            if wanted = key
+                shown := true
+        for control in controls
+            SetBuilderFieldVisible(control, BuilderView = "Actions" && shown)
+    }
+    ActionEntityDDL.Enabled := Entities.Length > 0
+    RefreshActionTargetCoordinateState()
+    } finally EndBuilderLayout()
+}
+
+SaveBuilderEntity(*) {
+    global BuilderEditingEntity, Entities, EntityLV, BuilderEntitySaveButton
+    if !ValidateBuilderEntityInputs()
+        return
+    if IsObject(BuilderEditingEntity) {
+        for index, entity in Entities {
+            if entity = BuilderEditingEntity {
+                EntityLV.Modify(0, "-Select")
+                EntityLV.Modify(index, "Select Focus")
+                UpdateSelectedEntity()
+                if Entities[index] != entity
+                    NewBuilderAction()
+                BuilderEditingEntity := Entities[index]
+                return
+            }
+        }
+    }
+    previousCount := Entities.Length
+    AddEntity()
+    if Entities.Length > previousCount
+        NewBuilderAction()
+}
+
+EditBuilderEntity(*) {
+    global EntityLV, Entities, BuilderEditingEntity, BuilderEntitySaveButton
+    row := EntityLV.GetNext()
+    if !row
+        return
+    BuilderEditingEntity := Entities[row]
+    LoadSelectedEntityForEdit()
+    BuilderEntitySaveButton.Text := "SAVE CHANGES"
+}
+
+NewBuilderEntity(*) {
+    global BuilderEditingEntity, BuilderEntitySaveButton, EntityLV
+    global EntityTypeDDL, EntityNameEdit, XEdit, YEdit, PlaceDelayEdit
+    BuilderEditingEntity := false
+    BuilderEntitySaveButton.Text := "ADD MONKEY"
+    EntityLV.Modify(0, "-Select")
+    EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
+    XEdit.Value := "0"
+    YEdit.Value := "0"
+    PlaceDelayEdit.Value := "0"
+    ApplyDefaultTargetingForType(EntityTypeDDL.Text)
+}
+
+ValidateBuilderEntityInputs() {
+    global XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit
+    for pair in [[XEdit, "Placement X", 1919], [YEdit, "Placement Y", 1079], [PlaceRoundEdit, "Place round", 2147483647], [PlaceDelayEdit, "Placement delay", 2147483647]] {
+        text := Trim(pair[1].Value)
+        if !RegExMatch(text, "^\d+$") || text + 0 > pair[3] {
+            MsgBox(pair[2] . " must be a whole number from 0 to " . pair[3] . ".", "Strategy Builder", "Icon!")
+            pair[1].Focus()
+            return false
+        }
+    }
+    return true
+}
+
+ShowBuilderEntityMenu(*) {
+    menu := Menu()
+    menu.Add("Edit selected monkey", EditBuilderEntity)
+    menu.Add("Delete selected monkey and its actions", DeleteBuilderEntity)
+    menu.Show()
+}
+
+DeleteBuilderEntity(*) {
+    global EntityLV
+    if !EntityLV.GetNext()
+        return
+    DeleteSelectedEntity()
+    NewBuilderAction()
+    NewBuilderEntity()
+}
+
+ShowBuilderActionMenu(*) {
+    menu := Menu()
+    menu.Add("Edit selected action", LoadSelectedActionForEdit)
+    menu.Add("Delete selected action", DeleteSelectedUpgrade)
+    menu.Show()
+}
+
+ShowBuilderTools(*) {
+    menu := Menu()
+    menu.Add("Show / hide monkey labels", ToggleMonkeyOverlay)
+    menu.Add("Remap all placement coordinates", RemapAllPlacementCoordinates)
+    menu.Add()
+    menu.Add("Clear strategy", ClearBuilderStrategy)
+    menu.Show()
+}
+
+ImportBuilderStrategy(*) {
+    global Entities
+    previousEntities := Entities
+    ImportStrategyScript()
+    if Entities != previousEntities
+        ResetBuilderEditors()
+}
+
+ClearBuilderStrategy(*) {
+    global Entities
+    previousEntities := Entities
+    ClearAll()
+    if Entities != previousEntities
+        ResetBuilderEditors()
+}
+
+ResetBuilderEditors() {
+    NewBuilderEntity()
+    NewBuilderAction()
+    RefreshBuilderRoundHint()
+}
+
+CloseStrategyBuilder(*) {
+    ExitApp()
+}
+
+CleanupStrategyBuilder(*) {
+    global BuilderChromeMessageReady, BuilderHeaders, UIDarkButtons
+    static cleanedUp := false
+    if cleanedUp
+        return 0
+    cleanedUp := true
+
+    ; ExitApp clears globals while Windows is still sending paint messages.
+    ; Detach our handlers first, while the GUI and its controls are still valid.
+    if BuilderChromeMessageReady {
+        OnMessage(0x84, StrategyBuilderChromeHitTest, 0)
+        OnMessage(0x83, StrategyBuilderClientArea, 0)
+        OnMessage(0x85, StrategyBuilderFramePaint, 0)
+        OnMessage(0x86, StrategyBuilderFramePaint, 0)
+        OnMessage(0x138, StrategyBuilderCheckboxColor, 0)
+        OnMessage(0x135, StrategyBuilderCheckboxColor, 0)
+        OnMessage(0x231, CloseBuilderDropdowns, 0)
+        BuilderChromeMessageReady := false
+    }
+
+    SetTimer(PollUICustomControls, 0)
+    SetTimer(PollDarkDropdowns, 0)
+    OnMessage(0x20A, UICustomControlMouseWheel, 0)
+    OnMessage(0x20A, DarkDropdownMouseWheel, 0)
+    for button in UIDarkButtons
+        button.ActionPending := false
+
+    ; Remove native header callbacks before their owning ListViews disappear.
+    for headerHwnd, header in BuilderHeaders {
+        try DllCall("comctl32\RemoveWindowSubclass", "Ptr", header.control.Hwnd,
+            "Ptr", GetBuilderHeaderSubclassCallback(), "UPtr", 0x42544436, "Int")
+    }
+    BuilderHeaders.Clear()
+    HideMonkeyOverlay()
+    return 0
+}
+
 StyleBuilderEdit(control) {
     control.SetFont("s9 Norm cF4F7FB", "Segoe UI")
     control.Opt("Background10161D")
@@ -298,53 +456,29 @@ StyleBuilderEdit(control) {
 
 OnDifficultyChanged(*) {
     global DifficultyDDL, ModeDDL
-
-    difficulty := DifficultyDDL.Text
-    previousMode := ModeDDL.Text
-
-    RefreshModeChoicesForDifficulty(
-        difficulty,
-        previousMode
-    )
-
+    RefreshModeChoicesForDifficulty(DifficultyDDL.Text, ModeDDL.Text)
     OnModeChanged()
 }
 
-RefreshModeChoicesForDifficulty(
-    difficulty,
-    preferredMode := "Standard"
-) {
-    global ModeDDL
-    global ModeChoicesByDifficulty
-
+RefreshModeChoicesForDifficulty(difficulty, preferredMode := "Standard") {
+    global ModeDDL, ModeChoicesByDifficulty
     if !ModeChoicesByDifficulty.Has(difficulty)
         return false
-
     ModeDDL.Delete()
-    ModeDDL.Add(
-        ModeChoicesByDifficulty[difficulty]
-    )
-
-    if !ChooseDropdownText(
-        ModeDDL,
-        preferredMode
-    ) {
+    ModeDDL.Add(ModeChoicesByDifficulty[difficulty])
+    if !ChooseDropdownText(ModeDDL, preferredMode)
         ModeDDL.Choose(1)
-    }
-
     return true
 }
 
 OnModeChanged(*) {
     global ModeDDL, DifficultyDDL, StatusText
     global ImportedStartRound, ImportedEndRound, IsImportingStrategy
-
-    ; A manual mode change starts fresh; loading an import keeps its explicit round bounds.
+    global BuilderRoundHint
     if !IsImportingStrategy {
         ImportedStartRound := ""
         ImportedEndRound := ""
     }
-
     if ModeDDL.Text = "Deflation" {
         ChooseDropdownText(DifficultyDDL, "Easy")
         DifficultyDDL.Enabled := false
@@ -353,32 +487,25 @@ OnModeChanged(*) {
         DifficultyDDL.Enabled := true
         StatusText.Text := "Ready"
     }
+    RefreshBuilderRoundHint()
+}
+
+RefreshBuilderRoundHint() {
+    global DifficultyDDL, ModeDDL, ImportedStartRound, ImportedEndRound, BuilderRoundHint
+    bounds := GetBuilderRoundBounds(DifficultyDDL.Text, ModeDDL.Text, ImportedStartRound, ImportedEndRound)
+    BuilderRoundHint.Text := "Rounds " . bounds.startRound . "-" . bounds.endRound . " | 0 = setup"
 }
 
 OnEntityTypeChanged(*) {
-    global EntityTypeDDL, HeroDDL, TargetingDDL, EntityNameEdit
-
+    global EntityTypeDDL, HeroDDL, EntityNameEdit
     type := EntityTypeDDL.Text
-    isHero := type = "Hero"
-    HeroDDL.Enabled := isHero
+    HeroDDL.Enabled := type = "Hero"
     EntityNameEdit.Value := GetNextEntityName(type)
-
     ApplyDefaultTargetingForType(type)
 }
 
 ApplyDefaultTargetingForType(type) {
     global TargetingDDL
-
-    if type = "Ace"
-        ChooseDropdownText(TargetingDDL, "Circle")
-    else if type = "Dartling"
-        ChooseDropdownText(TargetingDDL, "Normal")
-    else if type = "Heli"
-        ChooseDropdownText(TargetingDDL, "Follow Mouse")
-    else if type = "Mortar"
-        ChooseDropdownText(TargetingDDL, "Target")
-    else if type = "SpikeFactory"
-        ChooseDropdownText(TargetingDDL, "Normal")
-    else
-        ChooseDropdownText(TargetingDDL, "First")
+    defaults := Map("Ace", "Circle", "Dartling", "Normal", "Heli", "Follow Mouse", "Mortar", "Target", "SpikeFactory", "Normal")
+    ChooseDropdownText(TargetingDDL, defaults.Has(type) ? defaults[type] : "First")
 }

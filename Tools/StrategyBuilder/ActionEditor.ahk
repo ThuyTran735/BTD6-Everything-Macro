@@ -3,6 +3,215 @@
 ; Builds scheduled actions from the current form and keeps their list in insertion order.
 ; Coordinate overrides select a moved tower; Spike Factory target points have a separate meaning.
 
+SaveBuilderAction(*) {
+    global BuilderActionTypeDDL, BuilderEditingActionIndex, BuilderEditingAction
+    global UpgradeActions, ActionLV, StatusText
+
+    problem := ValidateBuilderActionInput()
+    if problem != "" {
+        MsgBox(problem, "Strategy Builder", "Icon!")
+        return false
+    }
+
+    ; The original row stays in place until the existing add helper succeeds.
+    ; A rejected edit therefore cannot delete an action or change its position.
+    editIndex := FindBuilderEditingActionIndex()
+    beforeCount := UpgradeActions.Length
+    switch BuilderActionTypeDDL.Text {
+        case "Upgrade": AddUpgradeAction()
+        case "Targeting": AddTargetingAction()
+        case "Sell": AddSellAction()
+        case "Ability": AddAbilityAction()
+        case "Game speed": AddGameSpeedAction()
+        case "Enable banana collection": AddBananaCollectionEnableAction()
+        case "Disable banana collection": AddBananaCollectionDisableAction()
+        default:
+            MsgBox("Choose an action type first.", "Strategy Builder", "Icon!")
+            return false
+    }
+
+    if UpgradeActions.Length != beforeCount + 1
+        return false
+
+    if editIndex {
+        replacement := UpgradeActions.Pop()
+        UpgradeActions[editIndex] := replacement
+        savedRow := editIndex
+    } else {
+        savedRow := UpgradeActions.Length
+    }
+
+    BuilderEditingActionIndex := 0
+    BuilderEditingAction := false
+    RefreshActionList()
+    NewBuilderAction()
+    ActionLV.Modify(savedRow, "Select Focus Vis")
+    StatusText.Text := editIndex ? "Saved changes to action " savedRow : "Added action " savedRow
+    return true
+}
+
+LoadSelectedActionForEdit(*) {
+    global UpgradeActions, ActionLV, BuilderActionTypeDDL, BuilderActionSaveButton
+    global BuilderEditingActionIndex, BuilderEditingAction, ActionEntityDDL
+    global UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit
+    global ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, StatusText
+
+    row := ActionLV.GetNext(0)
+    if row < 1 || row > UpgradeActions.Length
+        return false
+
+    action := UpgradeActions[row]
+    kind := HasProp(action, "kind") ? action.kind : "upgrade"
+    typeNames := Map("upgrade", "Upgrade", "target", "Targeting", "sell", "Sell",
+        "ability", "Ability", "speed", "Game speed", "bananaCollection", "Enable banana collection")
+    if !typeNames.Has(kind)
+        return false
+
+    if HasProp(action, "entity") {
+        if !ChooseDropdownText(ActionEntityDDL, action.entity) {
+            MsgBox("This action refers to a monkey that is no longer in the strategy.", "Strategy Builder", "Icon!")
+            return false
+        }
+    }
+
+    ; Choosing a monkey clears old overrides, so restore the row's values afterwards.
+    OnActionEntityChanged()
+    typeName := kind = "bananaCollection" && !action.enabled ? "Disable banana collection" : typeNames[kind]
+    ChooseDropdownText(BuilderActionTypeDDL, typeName)
+    UpgradeRoundEdit.Value := action.round
+    UpgradeDelayEdit.Value := action.delay
+
+    switch kind {
+        case "upgrade":
+            UpgradeEdit.Value := action.upgrade
+            if HasProp(action, "overrideX") {
+                UpgradeXEdit.Value := action.overrideX
+                UpgradeYEdit.Value := action.overrideY
+            }
+        case "sell":
+            if HasProp(action, "overrideX") {
+                UpgradeXEdit.Value := action.overrideX
+                UpgradeYEdit.Value := action.overrideY
+            }
+        case "target":
+            if !ChooseDropdownText(ActionTargetDDL, action.target) {
+                NewBuilderAction()
+                MsgBox("This targeting mode is not supported by the action editor.", "Strategy Builder", "Icon!")
+                return false
+            }
+            if HasProp(action, "targetX") {
+                ActionTargetXEdit.Value := action.targetX
+                ActionTargetYEdit.Value := action.targetY
+            } else if HasProp(action, "overrideX") {
+                ActionTargetXEdit.Value := action.overrideX
+                ActionTargetYEdit.Value := action.overrideY
+            }
+        case "ability": AbilityEdit.Value := action.hotkey
+        case "speed": ChooseDropdownText(GameSpeedDDL, action.speed)
+    }
+
+    BuilderEditingActionIndex := row
+    BuilderEditingAction := action
+    BuilderActionSaveButton.Text := "Save changes"
+    RefreshBuilderActionForm()
+    StatusText.Text := "Editing action " row " — choose New action to leave this row unchanged"
+    return true
+}
+
+NewBuilderAction(*) {
+    global BuilderEditingActionIndex, BuilderEditingAction, BuilderActionSaveButton
+    global UpgradeDelayEdit, AbilityEdit, GameSpeedDDL, ActionLV, StatusText
+
+    BuilderEditingActionIndex := 0
+    BuilderEditingAction := false
+    BuilderActionSaveButton.Text := "Add action"
+    ActionLV.Modify(0, "-Select")
+    UpgradeDelayEdit.Value := "0"
+    AbilityEdit.Value := "1"
+    GameSpeedDDL.Choose(1)
+    OnActionEntityChanged()
+    RefreshBuilderActionForm()
+    StatusText.Text := "New action — the last round is kept for the next entry"
+}
+
+FindBuilderEditingActionIndex() {
+    global BuilderEditingActionIndex, BuilderEditingAction, UpgradeActions
+
+    ; An object reference survives a rename or an earlier row being removed.
+    ; Imports and Clear replace the objects, so an old edit cannot affect a new row.
+    if IsObject(BuilderEditingAction) {
+        for index, action in UpgradeActions {
+            if action == BuilderEditingAction {
+                BuilderEditingActionIndex := index
+                return index
+            }
+        }
+    }
+    BuilderEditingActionIndex := 0
+    BuilderEditingAction := false
+    return 0
+}
+
+ValidateBuilderActionInput() {
+    global BuilderActionTypeDDL, UpgradeRoundEdit, UpgradeDelayEdit, UpgradeEdit
+    global UpgradeXEdit, UpgradeYEdit, ActionTargetXEdit, ActionTargetYEdit
+    global ActionEntityDDL, ActionTargetDDL
+
+    if !IsBuilderInputInteger(UpgradeRoundEdit.Value)
+        return "Round must be a whole number from 0 to 2147483647. Round 0 means pregame."
+    if !IsBuilderInputInteger(UpgradeDelayEdit.Value)
+        return "Delay must be a whole number from 0 to 2147483647 milliseconds."
+
+    actionType := BuilderActionTypeDDL.Text
+    if actionType = "Upgrade" {
+        upgrade := Trim(UpgradeEdit.Value)
+        if !RegExMatch(upgrade, "^[0-5]{3}$")
+            return "Use three upgrade tiers from 0 to 5, such as 002, 024, or 520."
+        activePaths := 0
+        highPaths := 0
+        Loop Parse upgrade {
+            tier := Integer(A_LoopField)
+            activePaths += tier > 0 ? 1 : 0
+            highPaths += tier > 2 ? 1 : 0
+        }
+        if activePaths > 2 || highPaths > 1
+            return "Use at most two upgrade paths. Only one path can go above tier 2."
+    }
+
+    if actionType = "Upgrade" || actionType = "Sell"
+        return ValidateBuilderCoordinatePair(UpgradeXEdit.Value, UpgradeYEdit.Value, "Tower selection")
+
+    if actionType = "Targeting" {
+        entity := FindEntityByName(ActionEntityDDL.Text)
+        if entity && (entity.type != "SpikeFactory" || ActionTargetDDL.Text = "Set Target")
+            return ValidateBuilderCoordinatePair(ActionTargetXEdit.Value, ActionTargetYEdit.Value, "Targeting")
+    }
+    return ""
+}
+
+IsBuilderInputInteger(value) {
+    value := Trim(value)
+    if !RegExMatch(value, "^\d+$")
+        return false
+    ; Bound the text before conversion so a pasted huge number cannot overflow.
+    value := LTrim(value, "0")
+    return value = "" || (StrLen(value) <= 10 && value + 0 <= 2147483647)
+}
+
+ValidateBuilderCoordinatePair(xText, yText, label) {
+    xText := Trim(xText)
+    yText := Trim(yText)
+    if xText = "" && yText = ""
+        return ""
+    if xText = "" || yText = ""
+        return label " coordinates need both X and Y. Leave both blank to use the placement point."
+    if !IsBuilderInputInteger(xText) || !IsBuilderInputInteger(yText)
+        return label " coordinates must be whole numbers."
+    if xText + 0 > 1919 || yText + 0 > 1079
+        return label " coordinates must be inside the 1920 × 1080 game screen (X 0–1919, Y 0–1079)."
+    return ""
+}
+
 AddUpgradeAction(*) {
     global Entities, UpgradeActions, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
 
@@ -158,6 +367,7 @@ AddTargetingAction(*) {
 
 AddSellAction(*) {
     global Entities, UpgradeActions, ActionEntityDDL, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
+    global UpgradeXEdit, UpgradeYEdit
 
     if Entities.Length = 0 {
         MsgBox("Add at least one monkey or hero first.", "Strategy Builder", "Icon!")
@@ -178,7 +388,19 @@ AddSellAction(*) {
     round := IntegerOrDefault(UpgradeRoundEdit.Value, 0)
     delay := IntegerOrDefault(UpgradeDelayEdit.Value, 0)
 
-    UpgradeActions.Push({kind: "sell", entity: entityName, round: round, delay: delay})
+    action := {kind: "sell", entity: entityName, round: round, delay: delay}
+    overrideXText := Trim(UpgradeXEdit.Value)
+    overrideYText := Trim(UpgradeYEdit.Value)
+    if overrideXText != "" || overrideYText != "" {
+        problem := ValidateBuilderCoordinatePair(overrideXText, overrideYText, "Tower selection")
+        if problem != "" {
+            MsgBox(problem, "Strategy Builder", "Icon!")
+            return
+        }
+        action.overrideX := Integer(overrideXText)
+        action.overrideY := Integer(overrideYText)
+    }
+    UpgradeActions.Push(action)
     RefreshActionList()
     StatusText.Text := "Added sell for " entityName " on round " round
 }
@@ -269,7 +491,9 @@ DeleteSelectedUpgrade(*) {
 
     UpgradeActions.RemoveAt(row)
     RefreshActionList()
-    RefreshUpgradeEditForSelectedEntity()
+    ; Deleting a different row must not replace the upgrade text being edited.
+    if !FindBuilderEditingActionIndex()
+        RefreshUpgradeEditForSelectedEntity()
     StatusText.Text := "Scheduled action deleted"
 }
 
@@ -286,6 +510,7 @@ RefreshEntityList() {
 
 RefreshActionList() {
     global ActionLV, UpgradeActions
+    global BuilderActionSaveButton
 
     ActionLV.Delete()
     for action in UpgradeActions {
@@ -314,6 +539,10 @@ RefreshActionList() {
             ActionLV.Add("", "Upgrade", action.entity, value, action.round, action.delay)
         }
     }
+    editIndex := FindBuilderEditingActionIndex()
+    BuilderActionSaveButton.Text := editIndex ? "Save changes" : "Add action"
+    if editIndex
+        ActionLV.Modify(editIndex, "Select Focus")
 }
 
 RefreshActionEntityDropdown(preferredName := "") {
@@ -323,8 +552,7 @@ RefreshActionEntityDropdown(preferredName := "") {
     for entity in Entities
         names.Push(entity.name)
 
-    ; CB_RESETCONTENT clears all items from a DropDownList/ComboBox.
-    DllCall("SendMessage", "Ptr", ActionEntityDDL.Hwnd, "UInt", 0x014B, "Ptr", 0, "Ptr", 0)
+    ActionEntityDDL.Delete()
 
     if names.Length = 0 {
         ActionEntityDDL.Add(["Add a monkey first"])
@@ -553,7 +781,7 @@ RefreshActionTargetDropdown() {
     if !ActionTargetDDL
         return
 
-    DllCall("SendMessage", "Ptr", ActionTargetDDL.Hwnd, "UInt", 0x014B, "Ptr", 0, "Ptr", 0)
+    ActionTargetDDL.Delete()
 
     entityName := ActionEntityDDL.Text
     selectedEntity := FindEntityByName(entityName)

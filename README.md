@@ -1,14 +1,14 @@
 # BTD6 Everything Macro
-**Current version: v3.5.1**
+**Current version: v3.5.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Sped up collection reward reveals with a 200 ms pause between clicks, trying the two-card layout before the three-card layout.
-- Added **Infinite** to the run-count prompt for manual runs, Monkey EXP, and queued jobs. Runs continue until stopped, subject to the normal failure and retry rules. An infinite queue job keeps later jobs waiting.
-- Added missing **? help buttons** to the event-start and warning dialogs, and updated launcher help for Auto Collection Event.
-- Matched the **continuous run HUD** to the launcher's dark cards and original font, with completed-run counts instead of a percentage for infinite runs.
+- Rebuilt **Strategy Builder** around Monkeys, Actions, and Export views, with a cleaner dark layout and fewer buttons on each screen.
+- Added direct editing for scheduled actions. One action-type form shows the fields you need and keeps edited actions in their original order.
+- Added checks for placement coordinates, timing, upgrade paths, and actions scheduled before placement or after selling. Copy and Save always generate fresh code from the current strategy.
+- Strategy Builder now writes the correct starting and ending rounds for each mode, including **6-100 for Impoppable and CHIMPS**, while keeping round 0 for pregame setup.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -60,6 +60,22 @@ Tools/StrategyBuilder/     Strategy Builder editor/import/export pieces
 ```
 
 The old top-level files are intentionally kept as compatibility wrappers, so existing map strategies can continue using `Scripts\IncludeAll.ahk` without path changes.
+
+## Strategy Builder
+
+Open `Tools\StrategyBuilder.ahk` to create a strategy or use **IMPORT** to load an existing `.ahk` file.
+
+For step-by-step instructions and a practice example, read [StrategyBuilderHowTo.txt](Docs/StrategyBuilderHowTo.txt).
+
+- **Monkeys:** add each monkey or hero, its placement coordinates, round, and delay. Double-click a placement to edit it; **NEW** starts another entry.
+- **Actions:** choose Upgrade, Targeting, Sell, Ability, Game speed, or a banana collection toggle. The form shows the relevant fields. Double-click an action to edit it without moving its row; actions with the same round and delay keep their order.
+- **Export:** generate a preview, copy the code, or save an `.ahk` file. Copy and Save rebuild the code from your current strategy and check it before exporting.
+
+**ROW OPTIONS** contains edit and delete. **TOOLS** contains monkey labels, coordinate remapping, and Clear. The **?** button opens a short guide. Use **F2** to capture a placement, **F3** for a tower's current position, or **F5** for a targeting point.
+
+The builder checks whole-number rounds and delays, coordinates within the 1920×1080 screen, legal upgrade paths, and whether an action runs before placement or after selling. Imports still warn when a script contains actions the builder cannot edit; review that warning before saving a replacement.
+
+Exports include the selected mode's round limits: Easy **1-40**, Medium **1-60**, Hard **3-80**, Impoppable/CHIMPS **6-100**, and Deflation **31-60**. Round **0** remains pregame setup. Explicit imported limits are kept until you change the difficulty or mode.
 
 ## Installation
 ### 1. Install AutoHotkey v2

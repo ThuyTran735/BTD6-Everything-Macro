@@ -1,0 +1,262 @@
+BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
+v3.5.2
+
+Strategy Builder turns placements and scheduled actions into a map script.
+Start with the map details, add your monkeys, then add what they should do.
+The builder does not run the strategy when you generate or preview it.
+
+
+1. OPEN THE BUILDER
+
+Double-click Tools\StrategyBuilder.ahk inside your extracted macro folder.
+AutoHotkey v2 must be installed. Keep the tool inside the project so its
+helper files and font can be found.
+
+The three views are:
+  MONKEYS - where each monkey or hero goes, and when it is placed.
+  ACTIONS - upgrades, targeting, selling, abilities, speed, and farm collection.
+  EXPORT  - preview, copy, and save the generated script.
+
+Switching views keeps your entries. The small ? buttons explain the nearby
+control. The ? in the header opens the general builder guide.
+
+
+2. ENTER THE MAP DETAILS
+
+Map name: use the exact map name, such as Monkey Meadow or Dark Castle.
+Category: choose Beginner, Intermediate, Advanced, or Expert.
+Difficulty: choose Easy, Medium, or Hard.
+Game mode: choose a mode from that difficulty's list.
+Function name: give the strategy a clear name, such as MonkeyMeadowPractice.
+               Use letters, numbers, and underscores; start with a letter.
+Wingmonkey knowledge: check this if Wingmonkey Monkey Knowledge is enabled
+                      in the setup this strategy is written for.
+
+Impoppable and CHIMPS are under Hard. The builder automatically writes these
+starting and ending rounds into the exported script:
+
+  Easy modes except Deflation:       1-40
+  Medium modes:                     1-60
+  Hard modes except the two below:   3-80
+  Impoppable and CHIMPS:             6-100
+  Deflation:                       31-60
+
+Round 0 always means pregame setup, even when the first live round is 3, 6,
+or 31. For example, place a starting Impoppable monkey on round 0, then use
+round 6 for its first action after the game starts.
+
+If an imported script specifies its own startRound or endRound, those values
+are kept. Changing the difficulty or mode restores that selection's defaults.
+
+
+3. ADD A MONKEY OR HERO
+
+Open MONKEYS and fill in the details on the left:
+
+  1. Give the placement a unique name, such as Dart A or Sniper B.
+  2. Choose its Type. For a hero, choose Hero, then the hero's name.
+  3. Choose its starting targeting mode.
+  4. Enter Placement X and Y, or capture them as described below.
+  5. Enter Place round and Delay (ms).
+  6. Click ADD MONKEY. The placement appears in the list on the right.
+
+Round 0 means before the match starts. For example, a starting Dart Monkey
+usually uses Place round 0 and Delay 0.
+
+You can have one hero placement. Heroes do not use the tower Upgrade action.
+Each monkey name must be unique, including capitalization differences.
+
+After adding a monkey, the last placement round stays in the form, while
+coordinates and delay reset. Check the next entry before adding it.
+
+
+4. CAPTURE COORDINATES
+
+Use the same 1920x1080 Windows display and BTD6 fullscreen setup that the
+macro uses. Coordinates are screen positions: X is 0-1919 and Y is 0-1079.
+
+For a placement:
+  1. Open the map in BTD6 so you can see the intended placement spot.
+  2. In MONKEYS, click F2 CAPTURE. The builder hides.
+  3. Move the pointer to the spot and press F2.
+  4. The builder returns with X and Y filled in.
+  5. Click ADD MONKEY or SAVE CHANGES to store the coordinates.
+
+Press Esc during a capture to return without accepting that capture.
+Capturing records the pointer position; it does not place a monkey.
+
+Other capture keys:
+  F3 - a tower's current position for an Upgrade or Sell coordinate override.
+  F5 - coordinates for a Targeting action that supports them.
+  F4 - used only during Tools > Remap all placement coordinates.
+
+F2, F3, and F5 also capture directly at the pointer while the builder is open.
+The capture buttons are useful when the builder is covering the game.
+
+
+5. ADD SCHEDULED ACTIONS
+
+Open ACTIONS. Choose an Action type, enter the round and delay, complete the
+fields shown for that action, then click ADD ACTION.
+
+Upgrade
+  Choose a monkey and enter the desired top/middle/bottom upgrade tiers.
+  Examples: 002, 024, 050, or 520. These are target tiers, not a number of
+  additional upgrades. Use at most two paths; only one can exceed tier 2.
+  Leave the optional Tower X and Y blank unless the tower has moved. If it has,
+  enter both coordinates or use F3 CAPTURE.
+
+Targeting
+  Choose the monkey and its targeting mode. For normal targeting, optional
+  X/Y selects the tower at its current position on a moving map.
+  For Spike Factory > Set Target, X/Y is the destination for its spikes,
+  and both coordinates are required. Use F5 CAPTURE for this point.
+  Dartling, Heli, and Mortar aiming need their dedicated script helpers;
+  they are not normal targeting changes in this form.
+
+Sell
+  Choose the monkey or hero to sell. Optional X/Y works like the Upgrade
+  override when the tower has moved. Do not schedule later actions for it.
+
+Ability
+  Enter the BTD6 ability hotkey, such as 1, 2, or 3. This action does not
+  select a monkey; it presses the specified ability key.
+
+Game speed
+  Choose Normal or Fast. Use a live round within the mode's shown range,
+  such as round 6 or later for Impoppable. Do not use round 0.
+
+Enable banana collection / Disable banana collection
+  These apply to eligible Banana Farms during idle strategy time. You do
+  not select a farm for this action. Add and place your farms normally.
+
+The last action round is kept for the next entry. Delay resets to 0 after
+an action is saved, so check it before adding another action.
+
+
+6. UNDERSTAND ROUND AND DELAY
+
+Delay is in milliseconds: 1000 ms = 1 second; 2500 ms = 2.5 seconds.
+
+For rounds 1 and later, Delay is measured from when the macro's round tracker
+detects that round. It is not an extra pause after the previous action.
+If a previous action has already taken longer, the next action runs when it
+can. A late action does not apply its old delay to a later round.
+
+Round 0 is different: each pregame action waits its own delay before running.
+Use Delay 0 for pregame actions unless you need a deliberate pause.
+
+Export sorts by round, then delay. A placement runs before an action at the
+same round and delay. Other actions tied at the same round and delay keep
+their order in the action list. Editing an action keeps it in its row.
+
+
+7. EDIT OR DELETE AN ENTRY
+
+Double-click a placement or action to load it into the form. Make your
+changes, then click SAVE CHANGES. Selecting a row alone does not load it.
+Click NEW to leave that edit and prepare another entry.
+
+ROW OPTIONS also contains Edit and Delete. Deleting a monkey removes its
+scheduled actions too. Renaming a monkey updates its action references.
+
+Commit the form with ADD MONKEY, ADD ACTION, or SAVE CHANGES before exporting.
+Text still sitting in a form is not a saved placement or action.
+
+
+8. IMPORT AND TOOLS
+
+IMPORT reads an existing .ahk strategy into the builder without running it.
+A successful import replaces the current entries, so save your current work
+first if you want to keep it. Cancelling the file picker keeps your entries.
+
+Read any unsupported-action warning. Some script helpers cannot be edited
+here and are skipped during import. Save a separate copy when you need to
+compare the generated result with the original script.
+
+TOOLS includes:
+
+  Show / hide monkey labels
+    Shows each saved name and position over the game. The labels let mouse
+    clicks pass through to the game beneath them.
+
+  Remap all placement coordinates
+    Keeps the strategy's monkeys and schedule, then asks for a new placement
+    for each entry. Point to the new spot and press F4 for each monkey.
+    Esc cancels the whole remap and restores all original placement points.
+    This changes placement X/Y only; separate action overrides and target
+    points are not remapped.
+
+  Clear strategy
+    Clears the placements, scheduled actions, and preview after confirmation.
+
+
+9. PREVIEW AND SAVE
+
+Open EXPORT:
+  GENERATE - creates the read-only code preview.
+  COPY     - regenerates the code and copies it to the clipboard.
+  SAVE .AHK - regenerates the code and opens the Save dialog.
+
+Copy and Save always use the current saved entries, even if you generated
+an older preview earlier. Fix any reported validation issue, then try again.
+
+Save into the matching map and difficulty folder:
+  Maps\Category\Map Name\Difficulty\YourStrategy.ahk
+
+For example:
+  Maps\Beginner\Monkey Meadow\Easy\MonkeyMeadowPractice.ahk
+
+The Save dialog initially points at Maps. Navigate into the appropriate
+category, map, and difficulty folders before saving. That folder depth is
+also what the generated script's include path expects. Use a new filename
+when keeping an existing strategy alongside your version.
+
+Export checks include:
+  - Whole-number rounds and delays, and coordinates inside 1920x1080.
+  - Both coordinates when an override or target point is supplied.
+  - Valid upgrade digits and compatible paths across earlier upgrades.
+  - One hero and valid monkey references, including capitalization.
+  - Actions before their monkey is placed or after it has been sold.
+  - Round 0 for pregame, or a round within the strategy's starting/ending
+    limits. For example, Impoppable allows round 0 and rounds 6-100;
+    Deflation normally allows round 0 and rounds 31-60.
+
+These checks cover the script structure. Test the saved strategy in the
+macro to check its placement spots, timing, cash requirements, and result.
+Save your work before closing the builder.
+
+
+10. A SMALL PRACTICE EXAMPLE
+
+This example practices the builder workflow. Extend it with the placements
+and upgrades needed for a complete winning strategy.
+
+  Map name: Monkey Meadow
+  Category: Beginner
+  Difficulty: Easy
+  Game mode: Standard
+  Function name: MonkeyMeadowPractice
+
+In MONKEYS:
+  Name: Dart A
+  Type: Dart
+  Starting targeting: First
+  Placement X/Y: capture a valid spot on your map with F2 CAPTURE
+  Place round: 0
+  Delay: 0
+  Click ADD MONKEY.
+
+In ACTIONS, add:
+  Upgrade | Dart A | 002   | Round 10 | Delay 0
+  Targeting | Dart A | Strong | Round 15 | Delay 500
+
+Double-click the targeting row, change Strong to First, and click SAVE
+CHANGES. There should still be two action rows, in the same order.
+
+Open EXPORT, click GENERATE, and check the placement and both actions.
+Save as Maps\Beginner\Monkey Meadow\Easy\MonkeyMeadowPractice.ahk.
+You can return with IMPORT to edit the saved strategy later.
+
+For hand-written helpers and the full strategy format, see MapScriptGuide.txt
+in this Docs folder.

@@ -6,7 +6,7 @@ AceEXP() {
     ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Expert",
-        map: "Inferno",
+        map: "Infernal",
         difficulty: "Easy",
         gameMode: "Deflation",
         hero: "Captain Churchill",

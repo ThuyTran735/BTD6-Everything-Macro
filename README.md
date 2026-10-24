@@ -1,9 +1,15 @@
 # BTD6 Everything Macro
-**Current version: v3.5.2**
+**Current version: v3.5.3**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
+
+- Added an Expert [Infernal - Impoppable](Maps/Expert/Infernal/Hard/InfernalImpoppable.ahk) strategy for rounds **6-100**.
+- Added Expert map-detection patterns for **Bloody Puddles, Workshop, Quad, and Muddy Puddles**.
+- Updated Infernal's map-detection pattern and corrected **Inferno** to **Infernal** in map data and the Ace EXP strategy.
+
+### Previous release highlights (v3.5.2)
 
 - Rebuilt **Strategy Builder** around Monkeys, Actions, and Export views, with a cleaner dark layout and fewer buttons on each screen.
 - Added direct editing for scheduled actions. One action-type form shows the fields you need and keeps edited actions in their original order.

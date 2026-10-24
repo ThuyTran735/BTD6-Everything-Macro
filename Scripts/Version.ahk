@@ -1,8 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 ; Single source of truth for the installed application's version.
 ; Change only this value when bumping the local/runtime version.
-global AppVersion := "3.5.2"
+global AppVersion := "3.5.3"
 
 GetAppVersion() {
     global AppVersion

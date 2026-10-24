@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 ; Map-card FindText samples and page numbers used by navigation. Pages follow the in-game browser, not the order of strategy folders.
 
@@ -226,16 +226,40 @@ global MapData := Map(
         pattern: "|<>*82$18.0zy1zz3zz7zzTzzTzzzzzzzzzzzzzzzzzzzzzzzzzzy03y03m03003003001001000000000000000000000000000000U"
     },
 
-    "Inferno", {
+    "Infernal", {
         category: "Expert",
         page: 16,
-        pattern: "|<>*78$29.zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzxzzzzXzzzz7zzzyDzzzwTzzzsTzzzkzzzzVzzzzDUzzyT0bzzy07zzs03zy007zi007z6007yzU07zzU0Dzz00Tzy00zzy03zzw0Dzzs0TzzU3zzz07zzy0DwTy0zUzzzz1zzzy3zzzw7zzzzzzzzzzzzzzzzzzzzzzUzzzz1zzzy3zzzU3k"
+        pattern: "|<>*98$25.z7zkzXsADlwy7tyT7wzDXyTblzDnszbtyTvwzDxyTbzzDXzzblzznszzxwTzyyDzzT7zzznzzzvzzzxzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzvzzzlzzzxyTzyzU"
+    },
+
+    "Bloody Puddles", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*49$29.0Tzzx4DzzwkTzzs0Tzzk0zzzU0Tzz00Tzy00zzw00Tzs00Tzk00TzU00Tz000Ty000Tw000Ts000Tk000TU000T0000y0000w0000s0001k0001U00030000200006"
+    },
+
+    "Workshop", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*66$27.07y000zk2bty07zvk0zzT07zls0zyDU7zkw0zy7U7zUQ0zk3s7s0DU000y0003v000Ds000z0003s00070000M00036000Mk00060000k00060000k00060000k000C0001k000z000Tw003zzwUTzzzzzzznzzzy1U"
+    },
+
+    "Quad", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*168$26.kC0Q8Q0DgTU1vTw067zbU9zxs0Tzy87zzXVzzs3TDP0TzqU0zwM04S000D001b000Ns0UCDk0X/U08ms1byY8Nzs37Dbrlzoy1Dw7zzz0bzzk1jzw6Tjz40zzkMzzy"
     },
 
     "Dark Castle", {
         category: "Expert",
         page: 16,
         pattern: "|<>*114$24.D0003U003k000s000Q000C00kC00sC00y7U0y7w0z3w0z0y0zkS0zkD0zs3Uzw3kzw4Mzy0Mzy0Mzz0szz0szzUwzzUQzzkyzzkzzzsTzzw7zzy7zzy3TzzUU"
+    },
+
+    "Muddy Puddles", {
+        category: "Expert",
+        page: 16,
+        pattern: "|<>*89$17.zzzzzzzzzzzzzzrtzj1za1yS1xy1zw0Ts0zw1zs3z01y0800M00s01s03k07k0Dk0TU0z01w03y07r0Dy0Tw0Ts0zs1zk4"
     },
 
     "#Ouch", {

@@ -439,8 +439,16 @@ enter the map details and build one using these three views:
      - EXPORT: generate a preview, copy the code, or save an .ahk file.
        Copy and Save always rebuild the code from the current strategy.
 
-ROW OPTIONS contains edit and delete. TOOLS contains click-through monkey
-labels, coordinate remapping, and Clear. The ? button opens a short guide.
+ROW OPTIONS contains edit and delete. TOOLS includes function naming from
+map + mode, click-through monkey labels, coordinate remapping, and Clear.
+The naming tool fills the Function field with names such as DarkCastleImpoppable.
+Standard uses the selected difficulty, such as MonkeyMeadowEasy. It removes
+spaces and punctuation, keeps mode acronyms such as CHIMPS, and adds a Map
+prefix if needed for a leading number. Choosing the tool replaces the field;
+changing map settings alone keeps custom and imported names. A changed name
+clears the old preview. Generate, Copy, and Save use the new name for the
+declaration and final function call. Existing files are not renamed.
+The ? button opens a short guide.
 Capture coordinates with F2 for placements, F3 for a tower's current position,
 F5 for targeting points, and F6 for Repeat clicks points.
 

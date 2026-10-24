@@ -1,5 +1,5 @@
 BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
-v3.5.4
+v3.5.5
 
 Strategy Builder turns placements and scheduled actions into a map script.
 Start with the map details, add your monkeys, then add what they should do.
@@ -30,6 +30,7 @@ Difficulty: choose Easy, Medium, or Hard.
 Game mode: choose a mode from that difficulty's list.
 Function name: give the strategy a clear name, such as MonkeyMeadowPractice.
                Use letters, numbers, and underscores; start with a letter.
+               Or choose TOOLS > Name function from map + mode to fill it.
 Wingmonkey knowledge: check this if Wingmonkey Monkey Knowledge is enabled
                       in the setup this strategy is written for.
 
@@ -207,6 +208,22 @@ here and are skipped during import. Save a separate copy when you need to
 compare the generated result with the original script.
 
 TOOLS includes:
+
+  Name function from map + mode
+    Fills the Function field using the current map and game mode, following
+    the project's existing strategy names. Examples:
+      Dark Castle + Impoppable         -> DarkCastleImpoppable
+      Monkey Meadow + Standard / Easy -> MonkeyMeadowEasy
+      In The Loop + Military Only     -> InTheLoopMilitaryOnly
+      Three Mines 'Round + Deflation   -> ThreeMinesRoundDeflation
+    Spaces and punctuation are removed, each map word is capitalized, and
+    mode acronyms such as CHIMPS are kept. Names starting with a number get
+    a Map prefix. Enter a map name first; the MAP NAME placeholder is skipped.
+    This replaces the Function field only when you choose the tool. Changing
+    the map or mode later does not overwrite a custom or imported name.
+    If the name changes, the old preview is cleared. Generate, Copy, and Save
+    use the new name in both the function declaration and its final call.
+    Save also suggests that name for the .ahk file; existing files are not renamed.
 
   Show / hide monkey labels
     Shows each saved name and position over the game. The labels let mouse

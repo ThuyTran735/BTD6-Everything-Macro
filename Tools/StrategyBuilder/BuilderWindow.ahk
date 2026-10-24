@@ -397,11 +397,33 @@ ShowBuilderActionMenu(*) {
 
 ShowBuilderTools(*) {
     builderMenu := Menu()
+    builderMenu.Add("Name function from map + mode", NameBuilderFunctionFromMap)
+    builderMenu.Add()
     builderMenu.Add("Show / hide monkey labels", ToggleMonkeyOverlay)
     builderMenu.Add("Remap all placement coordinates", RemapAllPlacementCoordinates)
     builderMenu.Add()
     builderMenu.Add("Clear strategy", ClearBuilderStrategy)
     builderMenu.Show()
+}
+
+NameBuilderFunctionFromMap(*) {
+    global MapNameEdit, DifficultyDDL, ModeDDL, FunctionNameEdit, OutputEdit, StatusText
+
+    name := GetBuilderSuggestedFunctionName(MapNameEdit.Value, DifficultyDDL.Text, ModeDDL.Text)
+    if name = "" {
+        StatusText.Text := "Enter a map name and choose a difficulty and game mode before naming the function."
+        MapNameEdit.Focus()
+        return false
+    }
+
+    if !(FunctionNameEdit.Value == name) {
+        FunctionNameEdit.Value := name
+        ; A generated preview still contains the old declaration and call.
+        ; Copy and Save rebuild it from the renamed function as usual.
+        OutputEdit.Value := ""
+    }
+    StatusText.Text := "Function named: " . name
+    return true
 }
 
 ImportBuilderStrategy(*) {

@@ -79,6 +79,24 @@ EscapeAhkString(text) {
     return StrReplace(text, q, q q)
 }
 
+GetBuilderSuggestedFunctionName(mapName, difficulty, gameMode) {
+    mapName := Trim(mapName)
+    if mapName = "" || mapName = "MAP NAME"
+        return ""
+
+    ; Keep possessives and names like Three Mines 'Round together before
+    ; capitalizing each word. Standard scripts use Easy, Medium, or Hard.
+    mapName := StrReplace(StrReplace(mapName, "'", ""), Chr(0x2019), "")
+    mapWords := Trim(RegExReplace(mapName, "[^A-Za-z0-9]+", " "))
+    suffix := Trim(gameMode) = "Standard" ? Trim(difficulty) : Trim(gameMode)
+    suffix := RegExReplace(suffix, "[^A-Za-z0-9]", "")
+    if mapWords = "" || suffix = ""
+        return ""
+
+    ; Mode choices already have the right spelling, including CHIMPS and HP.
+    return SanitizeFunctionName(StrReplace(StrTitle(mapWords), " ", "") . suffix)
+}
+
 SanitizeFunctionName(text) {
     text := Trim(text)
     if text = ""

@@ -1,9 +1,14 @@
 # BTD6 Everything Macro
-**Current version: v3.5.4**
+**Current version: v3.5.5**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.5.4)
+### Current release highlights (v3.5.5)
+
+- Fixed Strategy Builder growing wider and taller when closing **?** help popups. Help now returns focus without changing the window size or position.
+- Added **TOOLS → Name function from map + mode** in Strategy Builder. It follows existing names such as `DarkCastleImpoppable` and uses the difficulty for Standard modes, such as `MonkeyMeadowEasy`.
+
+### Previous release highlights (v3.5.4)
 
 - Fixed Strategy Builder's right-click menus, **ROW OPTIONS**, and **TOOLS** failing to open.
 - Restored the full clickable area of Builder buttons while keeping their animations and separate **?** help buttons.
@@ -12,7 +17,7 @@ The app version used by the macro and update checker is defined in `Scripts/Vers
 - Removed queue buttons from **Auto Collection Event** and expanded its remaining controls. Event runs ignore pending queue jobs; those jobs stay available when you switch back to another mode.
 - Fast-speed actions now verify the game's Fast icon with FindText, retrying Space with a 250 ms wait if the icon is missing.
 
-### Previous release highlights (v3.5.3)
+### v3.5.3 highlights
 
 - Added an Expert [Infernal - Impoppable](Maps/Expert/Infernal/Hard/InfernalImpoppable.ahk) strategy for rounds **6-100**.
 - Added Expert map-detection patterns for **Bloody Puddles, Workshop, Quad, and Muddy Puddles**.
@@ -86,7 +91,7 @@ For step-by-step instructions and a practice example, read [StrategyBuilderHowTo
 - **Actions:** choose Upgrade, Targeting, Sell, Ability, Game speed, Repeat clicks, or a banana collection toggle. The form shows the relevant fields. Double-click an action to edit it without moving its row; actions with the same round and delay keep their order.
 - **Export:** generate a preview, copy the code, or save an `.ahk` file. Copy and Save rebuild the code from your current strategy and check it before exporting.
 
-**ROW OPTIONS** contains edit and delete. **TOOLS** contains monkey labels, coordinate remapping, and Clear. The **?** button opens a short guide. Use **F2** to capture a placement, **F3** for a tower's current position, **F5** for a targeting point, or **F6** for a Repeat clicks point.
+**ROW OPTIONS** contains edit and delete. **TOOLS** contains **Name function from map + mode**, monkey labels, coordinate remapping, and Clear. The naming tool fills the Function field from your current map and mode, removes spaces and punctuation, and uses Easy/Medium/Hard for Standard. It runs only when selected, so custom and imported function names stay editable. If the name changes, the old preview is cleared; Generate, Copy, and Save use the new name for both the function and its final call. The **?** button opens a short guide. Use **F2** to capture a placement, **F3** for a tower's current position, **F5** for a targeting point, or **F6** for a Repeat clicks point.
 
 The builder checks whole-number rounds and delays, coordinates within the 1920×1080 screen, legal upgrade paths, and whether an action runs before placement or after selling. Imports still warn when a script contains actions the builder cannot edit; review that warning before saving a replacement.
 

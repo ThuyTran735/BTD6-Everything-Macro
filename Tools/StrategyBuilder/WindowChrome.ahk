@@ -391,7 +391,7 @@ ShowBuilderHelp(*) {
     help := "MONKEYS" . Chr(10) . "Add placements, or double-click a row to edit it. New starts another entry. Row options lets you edit or delete a selection."
     help .= Chr(10) . Chr(10) . "ACTIONS" . Chr(10) . "Choose an action type, set its round and delay, then add it. Double-click an action to save changes in the same row."
     help .= Chr(10) . Chr(10) . "EXPORT" . Chr(10) . "Generate a preview, copy the code, or save an .ahk file. Copy and Save check the schedule and use your latest changes."
-    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools contains labels, remapping and Clear. F2 captures placement; F3 a moved tower; F5 a target; F6 a Repeat clicks point."
+    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools names the function from map + mode, shows labels, remaps points, or clears the strategy. F2: placement; F3: moved tower; F5: target; F6: clicks."
     BuilderHelpGui.AddText("x24 y70 w492 h362", help)
     BuilderHelpGui.SetFont("s10 Norm", BuilderHeadingFont)
     close := BuilderDarkButton(BuilderHelpGui, 352, 448, 164, 32, "GOT IT", 8, "Success")
@@ -413,7 +413,9 @@ CloseBuilderHelp(*) {
         BuilderHelpGui.Destroy()
     }
     BuilderHelpGui := false
-    MainGui.Show()
+    ; Help only disables the builder. Showing it again adds the native resize
+    ; frame allowance to our custom client area, making it grow on every close.
+    WinActivate("ahk_id " . MainGui.Hwnd)
 }
 RegisterBuilderListHeader(control, titles) {
     global BuilderHeaders

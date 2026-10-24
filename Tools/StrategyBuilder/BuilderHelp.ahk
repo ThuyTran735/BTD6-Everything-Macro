@@ -10,7 +10,7 @@ GetBuilderHelpText(label, group := "") {
         case "import", "import .ahk":
             return "Open an existing .ahk strategy to edit its placements and supported actions. Import replaces the current editor contents, so save your work first. The file is read as text; it is never run. If an action is unsupported, the builder tells you what was skipped."
         case "tools":
-            return "Show monkey labels over the game, remap placement coordinates with F4, or clear the strategy. Remapping keeps the existing rounds and actions. Press Esc during remapping to restore every original placement point."
+            return "Name function from map + mode fills the Function field, for example DarkCastleImpoppable. Standard uses the difficulty, such as MonkeyMeadowEasy. Tools also has monkey labels, F4 coordinate remapping, and Clear. Press Esc during remapping to restore the original points."
         case "?", "help", "strategy builder":
             return "Start in Monkeys to add placements, then use Actions to schedule upgrades and other steps. Export checks the strategy and creates its .ahk code. The builder never plays the strategy. Use the small ? beside a control for details about that control."
         case "-", "minimize":
@@ -26,7 +26,7 @@ GetBuilderHelpText(label, group := "") {
         case "game mode", "mode":
             return "Choose the game mode. The builder writes its starting and ending rounds automatically: Easy 1-40, Medium 1-60, Hard 3-80, Impoppable/CHIMPS 6-100, or Deflation 31-60. Round 0 is pregame setup. Changing mode restores these defaults instead of imported limits."
         case "function name", "function":
-            return "Name the function written into the generated .ahk file. Use letters, numbers, and underscores, such as DarkCastleImpoppable. The builder removes unsupported characters and adds a prefix if the name begins with a number."
+            return "Use Tools > Name function from map + mode to fill this field, for example DarkCastleImpoppable or MonkeyMeadowEasy for Easy Standard. You can still type a custom name. The tool replaces this field only when chosen; exports use it for the function and its final call."
         case "wingmonkey knowledge", "wingmonkey mk":
             return "Match this setting to whether Wingmonkey Monkey Knowledge is enabled in your game. The choice is saved with the strategy settings."
         case "monkeys", "monkey details", "placements":

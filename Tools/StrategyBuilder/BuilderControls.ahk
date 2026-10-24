@@ -189,6 +189,16 @@ class BuilderDarkDropdown extends DarkDropdown {
 class BuilderDarkButton extends DarkButton {
     ; Keep the launcher's press animation and label movement. The form batches
     ; its own redraws separately when an action changes the visible fields.
+    __New(guiObject, x, y, width, height, text, fontSize := 8, style := "") {
+        super.__New(guiObject, x, y, width, height, text, fontSize, style)
+        ; Help badges narrow the caption, but the whole button should still
+        ; accept clicks. Keep this stationary layer behind the animated text.
+        this.HitControl := guiObject.AddText("x" x " y" y " w" width " h" height " BackgroundTrans", "")
+        this.HitControl.OnEvent("Click", ObjBindMethod(this, "HandleClick"))
+        DllCall("SetWindowPos", "Ptr", this.HitControl.Hwnd, "Ptr", this.TextControl.Hwnd,
+            "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)
+    }
+
     Hwnd {
         get => this.TextControl.Hwnd
     }
@@ -204,6 +214,7 @@ class BuilderDarkButton extends DarkButton {
             if value = this._Visible
                 return
             super.Visible := value
+            this.HitControl.Visible := value
         }
     }
 
@@ -214,6 +225,7 @@ class BuilderDarkButton extends DarkButton {
             if value = this.IsEnabled
                 return
             super.Enabled := value
+            this.HitControl.Enabled := value
         }
     }
 
@@ -244,6 +256,7 @@ class BuilderDarkButton extends DarkButton {
         this.Top.Move(this.X, this.Y, this.Width, topHeight)
         this.Bottom.Move(this.X, this.Y + Ceil(this.Height / 2), this.Width, Floor(this.Height / 2))
         this.Highlight.Move(this.X + 1, this.Y + 1, this.Width - 2, 2)
+        this.HitControl.Move(this.X, this.Y, this.Width, this.Height)
         ; Resizing a Progress surface can restore its native edge. Keep the
         ; launcher's drawn borders, including between the two face layers.
         for surface in [this.Glow, this.Border, this.Top, this.Bottom, this.Highlight] {

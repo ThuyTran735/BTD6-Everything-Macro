@@ -35,7 +35,12 @@ RunCurrentMode(*) {
     CloseQueueJobBuilder()
 
 
-    ; A populated queue owns the main Run action. Do not open a
+    ; Event runs select their own maps; keep any queued jobs for later.
+    if CurrentMode = "Auto Collection Event" {
+        return StartAutoCollectionEventRun()
+    }
+
+    ; A populated queue owns the other modes' main Run action. Do not open a
     ; strategy picker or prompt for an unrelated manual run when
     ; the user has already built a queue.
     if MacroJobQueue.Length > 0 {
@@ -44,11 +49,6 @@ RunCurrentMode(*) {
 
         return
     }
-
-    if CurrentMode = "Auto Collection Event" {
-        return StartAutoCollectionEventRun()
-    }
-
 
     if CurrentMode = "Default" {
 

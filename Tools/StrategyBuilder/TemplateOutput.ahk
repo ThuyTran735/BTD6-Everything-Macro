@@ -214,6 +214,11 @@ BuildTemplateText() {
                 delay: action.delay,
                 enabled: action.enabled
             })
+        } else if kind = "click" {
+            allActions.Push({
+                kind: "click", round: action.round, delay: action.delay,
+                x: action.x, y: action.y, count: action.count, interval: action.interval
+            })
         } else {
             item := {
                 kind: "upgrade",
@@ -243,6 +248,8 @@ BuildTemplateText() {
         } else if action.kind = "bananaCollection" {
             helper := action.enabled ? "EnableBananaCollection" : "DisableBananaCollection"
             out .= "        [" action.round ", " action.delay ", () => " helper "()]"
+        } else if action.kind = "click" {
+            out .= "        [" action.round ", " action.delay ", () => RepeatMapClicks(" action.x ", " action.y ", " action.count ", " action.interval ")]"
         } else {
             entityName := EscapeAhkString(action.entity)
 

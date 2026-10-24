@@ -107,6 +107,7 @@ UpdateQueueLauncherButton() {
     global CurrentMode
     global MonkeyExpTypeDropdown
 
+    UpdateLauncherActionLayout()
 
     if QueueButton {
 
@@ -122,9 +123,14 @@ UpdateQueueLauncherButton() {
     }
 
 
-    ; A populated queue always owns the primary Run action, even
-    ; if the launcher is currently displaying a mode that cannot
-    ; run by itself yet.
+    ; Event mode runs independently of jobs kept for the other modes.
+    if CurrentMode = "Auto Collection Event" {
+        RunButton.Text := "START EVENT"
+        RunButton.Enabled := DiscoverCollectionEventStrategies().Length > 0
+        return
+    }
+
+    ; For the other modes, a populated queue owns the primary Run action.
     if MacroJobQueue.Length > 0 {
 
         RunButton.Text :=
@@ -149,9 +155,6 @@ UpdateQueueLauncherButton() {
         RunButton.Text :=
             "START EXP GRIND"
     }
-    else if CurrentMode = "Auto Collection Event" {
-        RunButton.Text := "START EVENT"
-    }
     else {
 
         RunButton.Text :=
@@ -165,11 +168,6 @@ UpdateQueueLauncherButton() {
             false
 
 
-        return
-    }
-
-    if CurrentMode = "Auto Collection Event" {
-        RunButton.Enabled := DiscoverCollectionEventStrategies().Length > 0
         return
     }
 

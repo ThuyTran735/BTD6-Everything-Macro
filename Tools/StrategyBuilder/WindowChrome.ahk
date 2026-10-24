@@ -343,7 +343,8 @@ BuilderButton(text, x, y, w, h, callback, primary := false, ax := 0, ay := 0, aw
     badge := AddBuilderHelpBadge(control, text, x + w - 17, y + 3, ax + aw, ay)
     if badge {
         control.ProtectTopRightOverlay(x + w - 17, y + 3, 14, 14, 1)
-        control.AddClickExclusionControl(badge.TextControl, 1, ObjBindMethod(badge, "HandleClick"))
+        ; Forward the badge's whole face, including the space above its caption.
+        control.AddClickExclusionControl(badge.HitControl, 1, ObjBindMethod(badge, "HandleClick"))
     }
     MainGui.SetFont("s9 Norm cF4F7FB", "Segoe UI")
     return control
@@ -390,7 +391,7 @@ ShowBuilderHelp(*) {
     help := "MONKEYS" . Chr(10) . "Add placements, or double-click a row to edit it. New starts another entry. Row options lets you edit or delete a selection."
     help .= Chr(10) . Chr(10) . "ACTIONS" . Chr(10) . "Choose an action type, set its round and delay, then add it. Double-click an action to save changes in the same row."
     help .= Chr(10) . Chr(10) . "EXPORT" . Chr(10) . "Generate a preview, copy the code, or save an .ahk file. Copy and Save check the schedule and use your latest changes."
-    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools contains labels, remapping and Clear. F2 captures placement; F3 captures a moved tower; F5 captures target coordinates."
+    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools contains labels, remapping and Clear. F2 captures placement; F3 a moved tower; F5 a target; F6 a Repeat clicks point."
     BuilderHelpGui.AddText("x24 y70 w492 h362", help)
     BuilderHelpGui.SetFont("s10 Norm", BuilderHeadingFont)
     close := BuilderDarkButton(BuilderHelpGui, 352, 448, 164, 32, "GOT IT", 8, "Success")

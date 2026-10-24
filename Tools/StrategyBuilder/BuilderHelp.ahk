@@ -70,7 +70,7 @@ GetBuilderHelpText(label, group := "") {
                 ? "Select a placement row, then choose Edit or Delete. Deleting a monkey also removes actions linked to it. You can also double-click the row to edit it or right-click to open these options."
                 : "Select an action row, then choose Edit or Delete. Editing saves back to the same position. Double-click a row to edit it, or right-click to open these options."
         case "action type":
-            return "Choose Upgrade, Targeting, Sell, Ability, Game speed, or a banana collection toggle. Only the fields needed by that action are shown. Ability, game speed, and banana collection apply without selecting a monkey."
+            return "Choose Upgrade, Targeting, Sell, Ability, Game speed, Repeat clicks, or a banana collection toggle. Only the fields needed by that action are shown. Repeat clicks uses a screen point, click count, and interval without selecting a monkey."
         case "monkey":
             return "Select the monkey or hero this action affects. Add it in Monkeys first. Changing the selection clears coordinate overrides so a position from another monkey is not reused accidentally."
         case "upgrade path (for example, 024)", "upgrade path", "upgrade":
@@ -85,10 +85,18 @@ GetBuilderHelpText(label, group := "") {
             return "For Spike Factory Set Target, these are the spike destination coordinates. For ordinary targeting, they optionally select a monkey that has moved from its placement point. Enter both X and Y together. F5 captures the pair."
         case "f5 capture", "f5":
             return "Hide the builder, move the mouse to the target point, and press F5. Press Esc to cancel. For Spike Factory Set Target, capture the spike destination; for ordinary targeting, capture the monkey's current location."
+        case "click x", "click y":
+            return "Enter the screen point to left-click: X 0-1919 and Y 0-1079 for the 1920 × 1080 game. Both values are required. F6 captures the point without clicking it. This action does not need a selected monkey."
+        case "click count":
+            return "Enter how many left-clicks to send at the chosen point. Use a whole number of at least 1. The macro finishes this sequence before moving to the next scheduled action."
+        case "interval (ms)":
+            return "The pause between clicks, in milliseconds: 1000 is one second. Use 0 for no added pause. This is separate from the action's scheduled Delay. There is no interval after the last click, so one click has no repeat wait. Input and detection take some time too."
+        case "f6 capture", "f6":
+            return "Hide the builder, point at the game location, and press F6 to fill Click X and Click Y. Press Esc to cancel. F6 also captures directly while Repeat clicks is selected. Capturing only records the point; it does not click the game."
         case "ability hotkey", "ability":
             return "Enter the BTD6 key for the ability to use, such as 1, 2, or 3. Schedule it after that ability becomes available. This is a global hotkey action and does not need a selected monkey."
         case "game speed", "speed":
-            return "Choose Normal or Fast and schedule the change on a live round within this mode's range. For example, use round 6 or later for Impoppable. Do not use round 0: the game's speed key starts the match during pregame setup."
+            return "Choose Normal or Fast on a live round, such as 6 or later for Impoppable. Do not use round 0. Fast scans its icon first; if missing, it presses Space, waits 250 ms, and scans again, up to five attempts. It reports failure if Fast cannot be confirmed. Normal still uses the tracked speed."
         case "enable banana collection", "disable banana collection":
             return "Turn automatic banana collection on or off at the selected round and delay. It applies to all eligible Banana Farms during idle strategy time and does not need a selected monkey."
         case "add action":

@@ -433,8 +433,8 @@ enter the map details and build one using these three views:
      - MONKEYS: add placements with their coordinates, round, and delay.
        Double-click a row to edit it. NEW starts another placement.
      - ACTIONS: choose an action type, then fill in its relevant fields.
-       Supports Upgrade, Targeting, Sell, Ability, Game speed, and banana
-       collection toggles. Double-click to edit an action in the same row.
+       Supports Upgrade, Targeting, Sell, Ability, Game speed, Repeat clicks,
+       and banana collection toggles. Double-click to edit an action in the same row.
        Actions with the same round and delay keep their original order.
      - EXPORT: generate a preview, copy the code, or save an .ahk file.
        Copy and Save always rebuild the code from the current strategy.
@@ -442,13 +442,14 @@ enter the map details and build one using these three views:
 ROW OPTIONS contains edit and delete. TOOLS contains click-through monkey
 labels, coordinate remapping, and Clear. The ? button opens a short guide.
 Capture coordinates with F2 for placements, F3 for a tower's current position,
-and F5 for targeting points.
+F5 for targeting points, and F6 for Repeat clicks points.
 
 Before exporting, the builder checks whole-number rounds and delays,
 1920x1080 coordinate bounds, upgrade paths, missing monkey references,
 actions before placement, and actions after selling. It also checks that
 each action uses round 0 or a round within the exported starting/ending
-limits. Fix the reported issue and export again.
+limits. Repeat clicks needs both coordinates, a positive whole-number count,
+and a nonnegative whole-number interval. Fix the reported issue and export again.
 
 Imports warn when unsupported actions are skipped. The builder does not
 execute imported scripts, and that warning should be reviewed before saving
@@ -867,9 +868,59 @@ Example:
 
 Meaning:
      - 10 seconds into round 39, press Space once to return to normal speed.
-     - At the start of round 41, press Space once to return to fast speed.
+     - At the start of round 41, request fast speed and verify its icon.
+
+Fast requests always scan the Fast-only icon, including when the tracked
+speed already says Fast. If the icon is absent, press Space, wait 250 ms,
+then scan a fresh frame. Repeat up to five presses. The action reports
+GAME SPEED FAILED if the icon never appears; it does not assume success.
+If the icon is already present, no Space press is needed. Focus loss stops
+the change, and victory/defeat returns to the normal strategy runner.
+Normal requests retain tracked behavior; the pattern confirms Fast only.
 
 Do not schedule a speed action on round 0 because the game has not started yet.
+
+REPEATED MAP CLICKS
+-------------------
+
+Use a scheduled action when a map control needs several clicks at one point:
+
+RepeatMapClicks(x, y, count, intervalMs := 250)
+
+Example:
+
+[20, 1000, () => RepeatMapClicks(960, 540, 3, 250)],
+
+This schedules three left clicks at screen position 960, 540 for round 20,
+after its 1000 ms start delay. The helper adds a 250 ms pause between clicks.
+The schedule delay is measured from round detection, as with other actions;
+it is separate from the helper's between-click interval.
+
+Arguments:
+     - x: a whole-number screen coordinate from 0 to 1919.
+     - y: a whole-number screen coordinate from 0 to 1079.
+     - count: a positive whole number of clicks.
+     - intervalMs: a whole-number pause in milliseconds, 0 or greater.
+
+The largest accepted count or intervalMs is 2147483647.
+Omitting intervalMs uses 250 ms; the builder also imports that shorter call.
+
+There is no interval wait before the first click or after the final click.
+A count of 1 makes one click without any interval wait. Each click takes
+time to perform, so the interval is an added pause, not an exact click rate.
+The next strategy action waits for the sequence to finish. No TowerSetup
+entry or monkey selection is needed for these clicks.
+The sequence stops if BTD6 loses focus, and hands victory or defeat back to
+the normal strategy runner. The macro's existing stop control still applies.
+
+Strategy Builder exposes this helper as Repeat clicks in ACTIONS. Enter
+Click X/Y, Click count, and Interval (ms), then set Round and Delay as usual.
+Use F6 CAPTURE to record the point. Export writes RepeatMapClicks, and
+importing that generated action keeps its click settings editable.
+
+The helper lives in Scripts\InputHelpers.ahk. Map scripts should keep using
+Scripts\IncludeAll.ahk rather than including that helper file directly.
+
 
 BANANA FARM COLLECTION
 ----------------------

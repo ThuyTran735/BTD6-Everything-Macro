@@ -113,7 +113,6 @@ StartAutoCollectionEventRun(*) {
     global CollectionEventCandidates
     global CollectionEventNeedsSelection
     global MacroRunning
-    global MacroJobQueue
     global LauncherGui
     global ForceLauncherVisible
     global RepeatScriptPath
@@ -124,8 +123,6 @@ StartAutoCollectionEventRun(*) {
 
     if MacroRunning || CollectionEventSetupPending
         return false
-    if MacroJobQueue.Length > 0
-        return StartMacroQueue()
 
     CollectionEventSetupPending := true
     try {
@@ -152,8 +149,6 @@ StartAutoCollectionEventRun(*) {
         ; Hotkeys still yield while a dialog is open. Recheck ownership at start.
         if MacroRunning
             return false
-        if MacroJobQueue.Length > 0
-            return StartMacroQueue()
 
         candidates := DiscoverCollectionEventStrategies()
         if candidates.Length = 0 {

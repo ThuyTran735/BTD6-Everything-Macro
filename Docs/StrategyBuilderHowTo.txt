@@ -1,5 +1,5 @@
 BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
-v3.5.3
+v3.5.4
 
 Strategy Builder turns placements and scheduled actions into a map script.
 Start with the map details, add your monkeys, then add what they should do.
@@ -14,7 +14,8 @@ helper files and font can be found.
 
 The three views are:
   MONKEYS - where each monkey or hero goes, and when it is placed.
-  ACTIONS - upgrades, targeting, selling, abilities, speed, and farm collection.
+  ACTIONS - upgrades, targeting, selling, abilities, speed, repeated clicks,
+            and farm collection.
   EXPORT  - preview, copy, and save the generated script.
 
 Switching views keeps your entries. The small ? buttons explain the nearby
@@ -88,9 +89,11 @@ Capturing records the pointer position; it does not place a monkey.
 Other capture keys:
   F3 - a tower's current position for an Upgrade or Sell coordinate override.
   F5 - coordinates for a Targeting action that supports them.
+  F6 - the screen position for a Repeat clicks action.
   F4 - used only during Tools > Remap all placement coordinates.
 
 F2, F3, and F5 also capture directly at the pointer while the builder is open.
+F6 captures directly when ACTIONS is open with Repeat clicks selected.
 The capture buttons are useful when the builder is covering the game.
 
 
@@ -125,10 +128,39 @@ Ability
 Game speed
   Choose Normal or Fast. Use a live round within the mode's shown range,
   such as round 6 or later for Impoppable. Do not use round 0.
+  Fast checks the game's Fast icon first. If missing, it presses Space,
+  waits 250 ms, and scans again, up to five attempts. It reports failure
+  if the icon never appears. Normal still uses the macro's tracked speed.
 
 Enable banana collection / Disable banana collection
   These apply to eligible Banana Farms during idle strategy time. You do
   not select a farm for this action. Add and place your farms normally.
+
+Repeat clicks
+  Enter Click X, Click Y, Click count, and Interval (ms). This action makes
+  the requested number of left clicks at that screen position. It does not
+  need a monkey selection. Click count must be a positive whole number;
+  Interval must be a whole number of milliseconds, 0 or greater.
+  The largest accepted value for either field is 2147483647.
+  X must be 0-1919 and Y must be 0-1079. Use F6 CAPTURE to record the click
+  point, or enter it directly. The nearby ? buttons explain each field.
+
+  Round and Delay control when the sequence starts. Interval controls the
+  pause between clicks; there is no interval added after the final click.
+  A count of 1 makes one click without an interval wait. Each click also
+  takes a short time to perform, so Interval is not an exact click rate.
+  The next strategy action waits until all clicks finish.
+
+  Example: choose Repeat clicks, then enter:
+    Round:          20
+    Delay (ms):     1000
+    Click X:        960
+    Click Y:        540
+    Click count:    3
+    Interval (ms):  250
+  Click ADD ACTION. Once the round-20 delay has elapsed, the macro makes
+  three left clicks at 960, 540, with a 250 ms pause between clicks.
+  Choose coordinates for the control you want to click on your map.
 
 The last action round is kept for the next entry. Delay resets to 0 after
 an action is saved, so check it before adding another action.
@@ -215,6 +247,8 @@ when keeping an existing strategy alongside your version.
 Export checks include:
   - Whole-number rounds and delays, and coordinates inside 1920x1080.
   - Both coordinates when an override or target point is supplied.
+  - A positive whole-number click count and a nonnegative whole-number
+    interval for Repeat clicks, with both click coordinates supplied.
   - Valid upgrade digits and compatible paths across earlier upgrades.
   - One hero and valid monkey references, including capitalization.
   - Actions before their monkey is placed or after it has been sold.

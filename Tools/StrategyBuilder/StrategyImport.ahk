@@ -23,12 +23,13 @@ ImportStrategyScript(*) {
     }
 
     parsed := ParseStrategyScript(text)
-    if !parsed || parsed.entities.Length = 0 {
-        MsgBox("No TowerSetup entries could be imported from this script.", "Strategy Builder", "Icon!")
+    if !parsed || (parsed.entities.Length = 0 && parsed.actions.Length = 0) {
+        MsgBox("No supported monkey placements or scheduled actions could be imported from this script.", "Strategy Builder", "Icon!")
         return
     }
 
-    ; Replace editor state only after parsing found usable TowerSetup entries.
+    ; A click-only strategy can have an empty TowerSetup map.
+    ; Replace editor state only after parsing found usable placements or actions.
     HideMonkeyOverlay()
     Entities := parsed.entities
     UpgradeActions := parsed.actions
@@ -79,7 +80,7 @@ ImportStrategyScript(*) {
         StatusText.Text := "Imported with " unsupported " unsupported action(s) skipped"
         MsgBox(
             "Imported " parsed.entities.Length " monkey/hero entries and " parsed.parsedStrategyEntries " recognized strategy actions.`n`n"
-            . unsupported " action(s) used helpers Strategy Builder does not edit yet, so those actions were skipped.",
+            . unsupported " action(s) were unsupported or had invalid arguments, so those actions were skipped. Review the imported strategy before saving it.",
             "Strategy Builder - Import",
             "Icon!"
         )
@@ -247,9 +248,27 @@ ParseImportedStrategyActions(text) {
         actions
     )
 
+    CollectImportedClickActions(text, actions)
+
     ; Each helper was matched separately. Restore source order before assigning equal-time actions.
     SortImportedActionsByPosition(actions)
     return actions
+}
+
+CollectImportedClickActions(text, actions) {
+    ; Only literal integer arguments are editable. Expressions, missing values,
+    ; and out-of-range numbers stay in the unsupported count shown after import.
+    pattern := "is)\[\s*(\d+)\s*,\s*(\d+)\s*,\s*\(\)\s*=>\s*RepeatMapClicks\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*(-?\d+)\s*)?\)\s*\]"
+    pos := 1
+    while matchPos := RegExMatch(text, pattern, &m, pos) {
+        pos := matchPos + m.Len(0)
+        action := {kind: "click", round: m[1], delay: m[2], x: m[3], y: m[4], count: m[5], interval: m[6] != "" ? m[6] : 250, sourcePos: matchPos}
+        if GetBuilderClickValidationError(action) != ""
+            continue
+        for field in ["round", "delay", "x", "y", "count", "interval"]
+            action.%field% := Integer(action.%field%)
+        actions.Push(action)
+    }
 }
 
 CollectImportedActions(text, pattern, kind, actions) {
@@ -334,7 +353,8 @@ SortImportedActionsByPosition(actions) {
 }
 
 CountStrategyEntries(text) {
-    pattern := "is)\[\s*\d+\s*,\s*\d+\s*,\s*\(\)\s*=>"
+    ; Count malformed schedule values too, so skipping them produces a warning.
+    pattern := "is)\[\s*[^,\[\]\r\n]+\s*,\s*[^,\[\]\r\n]+\s*,\s*\(\)\s*=>"
     pos := 1
     count := 0
 

@@ -35,6 +35,7 @@ global BuilderRedrawPaused := false
 global BuilderActionTypeDDL, BuilderActionSaveButton, BuilderEntitySaveButton
 global BuilderActionHint, BuilderRowMenuButton, BuilderHelpGui := false
 global BuilderRoundHint
+global ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
 
 global TowerTypes := [
     "Dart", "Boomerang", "Bomb", "Tack", "Ice", "Glue", "Desperado",
@@ -163,7 +164,7 @@ BuildGui() {
     BuilderPanel(368, 264, 648, 398, 1, 1)
     BuilderHeading("ACTION DETAILS", 40, 280, 296, 24)
     BuilderLabel("Action type", 40, 312, 296, 18)
-    BuilderActionTypeDDL := BuilderDDL(40, 332, 296, ["Upgrade", "Targeting", "Sell", "Ability", "Game speed", "Enable banana collection", "Disable banana collection"])
+    BuilderActionTypeDDL := BuilderDDL(40, 332, 296, ["Upgrade", "Targeting", "Sell", "Ability", "Game speed", "Repeat clicks", "Enable banana collection", "Disable banana collection"])
     BuilderActionTypeDDL.OnEvent("Change", RefreshBuilderActionForm)
     entityLabel := BuilderLabel("Monkey", 40, 372, 296, 18)
     ActionEntityDDL := BuilderDDL(40, 392, 296, ["Add a monkey first"])
@@ -197,6 +198,18 @@ BuildGui() {
     speedLabel := BuilderLabel("Game speed", 40, 492, 296, 18)
     GameSpeedDDL := BuilderDDL(40, 512, 296, ["Normal", "Fast"])
     BuilderActionFields["speed"] := [speedLabel, GameSpeedDDL]
+    ; Click actions use a screen point instead of a selected monkey.
+    clickXLabel := BuilderLabel("Click X", 40, 372, 72, 18)
+    ClickXEdit := BuilderEdit(40, 392, 72, "", "Number")
+    clickYLabel := BuilderLabel("Click Y", 128, 372, 68, 18)
+    ClickYEdit := BuilderEdit(128, 392, 68, "", "Number")
+    clickCapture := BuilderButton("F6 CAPTURE", 212, 390, 124, 30, CaptureClickCoordinates)
+    clickCountLabel := BuilderLabel("Click count", 40, 492, 136, 18)
+    ClickCountEdit := BuilderEdit(40, 512, 136, "1", "Number")
+    clickIntervalLabel := BuilderLabel("Interval (ms)", 200, 492, 136, 18)
+    ClickIntervalEdit := BuilderEdit(200, 512, 136, "250", "Number")
+    BuilderActionFields["click"] := [clickXLabel, ClickXEdit, clickYLabel, ClickYEdit, clickCapture,
+        clickCountLabel, ClickCountEdit, clickIntervalLabel, ClickIntervalEdit]
     BuilderActionHint := BuilderLabel("", 40, 552, 296, 46, "93A1B2")
     BuilderActionFields["hint"] := [BuilderActionHint]
     BuilderActionSaveButton := BuilderButton("ADD ACTION", 40, 616, 184, 32, SaveBuilderAction, true, 0, 1)
@@ -227,7 +240,7 @@ BuildGui() {
     BuilderLabel("Copy and Save always regenerate from your current strategy. Nothing runs from this preview.", 40, 632, 960, 18, "93A1B2", 0, 1, 1)
     BuilderBuildGroup := ""
     StatusText := BuilderLabel("Ready - add a monkey or import an existing strategy.", 24, 682, 992, 20, "B3BFCC", 0, 1, 1)
-    BuilderLabel("F2  Placement     F3  Moving tower     F5  Target point     Tools  Labels / remap / clear", 24, 716, 992, 18, "93A1B2", 0, 1, 1)
+    BuilderLabel("F2  Placement     F3  Moving tower     F5  Target point     F6  Click point     Tools  Labels / remap / clear", 24, 716, 992, 18, "93A1B2", 0, 1, 1)
 
     StyleBuilderNativeControls(MainGui)
     ShowBuilderView("Monkeys")
@@ -235,6 +248,7 @@ BuildGui() {
     Hotkey("F2", CaptureCoordinatesInstant, "On")
     Hotkey("F3", CaptureUpgradeCoordinatesInstant, "On")
     Hotkey("F5", CaptureTargetCoordinatesInstant, "On")
+    Hotkey("F6", CaptureClickCoordinatesInstant, "On")
 }
 
 ShowBuilderView(view, *) {
@@ -279,6 +293,9 @@ RefreshBuilderActionForm(*) {
         } else if kind = "Game speed" {
             fields.Push("speed")
             BuilderActionHint.Text := "Use a live round within this mode's range. Round 0 is pregame setup."
+        } else if kind = "Repeat clicks" {
+            fields.Push("click")
+            BuilderActionHint.Text := "Delay starts the action. Interval waits between clicks. Later actions wait until this finishes."
         } else
             BuilderActionHint.Text := "Applies to all eligible Banana Farms during idle strategy time."
     }
@@ -330,7 +347,7 @@ EditBuilderEntity(*) {
 
 NewBuilderEntity(*) {
     global BuilderEditingEntity, BuilderEntitySaveButton, EntityLV
-    global EntityTypeDDL, EntityNameEdit, XEdit, YEdit, PlaceDelayEdit
+    global EntityTypeDDL, EntityNameEdit, XEdit, YEdit, PlaceDelayEdit, StatusText
     BuilderEditingEntity := false
     BuilderEntitySaveButton.Text := "ADD MONKEY"
     EntityLV.Modify(0, "-Select")
@@ -339,6 +356,7 @@ NewBuilderEntity(*) {
     YEdit.Value := "0"
     PlaceDelayEdit.Value := "0"
     ApplyDefaultTargetingForType(EntityTypeDDL.Text)
+    StatusText.Text := "New monkey - enter its placement, then choose Add monkey. The last round is kept."
 }
 
 ValidateBuilderEntityInputs() {
@@ -355,10 +373,10 @@ ValidateBuilderEntityInputs() {
 }
 
 ShowBuilderEntityMenu(*) {
-    menu := Menu()
-    menu.Add("Edit selected monkey", EditBuilderEntity)
-    menu.Add("Delete selected monkey and its actions", DeleteBuilderEntity)
-    menu.Show()
+    builderMenu := Menu()
+    builderMenu.Add("Edit selected monkey", EditBuilderEntity)
+    builderMenu.Add("Delete selected monkey and its actions", DeleteBuilderEntity)
+    builderMenu.Show()
 }
 
 DeleteBuilderEntity(*) {
@@ -371,19 +389,19 @@ DeleteBuilderEntity(*) {
 }
 
 ShowBuilderActionMenu(*) {
-    menu := Menu()
-    menu.Add("Edit selected action", LoadSelectedActionForEdit)
-    menu.Add("Delete selected action", DeleteSelectedUpgrade)
-    menu.Show()
+    builderMenu := Menu()
+    builderMenu.Add("Edit selected action", LoadSelectedActionForEdit)
+    builderMenu.Add("Delete selected action", DeleteSelectedUpgrade)
+    builderMenu.Show()
 }
 
 ShowBuilderTools(*) {
-    menu := Menu()
-    menu.Add("Show / hide monkey labels", ToggleMonkeyOverlay)
-    menu.Add("Remap all placement coordinates", RemapAllPlacementCoordinates)
-    menu.Add()
-    menu.Add("Clear strategy", ClearBuilderStrategy)
-    menu.Show()
+    builderMenu := Menu()
+    builderMenu.Add("Show / hide monkey labels", ToggleMonkeyOverlay)
+    builderMenu.Add("Remap all placement coordinates", RemapAllPlacementCoordinates)
+    builderMenu.Add()
+    builderMenu.Add("Clear strategy", ClearBuilderStrategy)
+    builderMenu.Show()
 }
 
 ImportBuilderStrategy(*) {

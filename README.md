@@ -1,15 +1,24 @@
 # BTD6 Everything Macro
-**Current version: v3.5.3**
+**Current version: v3.5.4**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights
+### Current release highlights (v3.5.4)
+
+- Fixed Strategy Builder's right-click menus, **ROW OPTIONS**, and **TOOLS** failing to open.
+- Restored the full clickable area of Builder buttons while keeping their animations and separate **?** help buttons.
+- **NEW** now clearly reports when the monkey form is ready for another entry. Saved rows stay unchanged.
+- Added **Repeat clicks** to Strategy Builder: schedule a set number of left clicks at one coordinate, with a chosen interval between clicks.
+- Removed queue buttons from **Auto Collection Event** and expanded its remaining controls. Event runs ignore pending queue jobs; those jobs stay available when you switch back to another mode.
+- Fast-speed actions now verify the game's Fast icon with FindText, retrying Space with a 250 ms wait if the icon is missing.
+
+### Previous release highlights (v3.5.3)
 
 - Added an Expert [Infernal - Impoppable](Maps/Expert/Infernal/Hard/InfernalImpoppable.ahk) strategy for rounds **6-100**.
 - Added Expert map-detection patterns for **Bloody Puddles, Workshop, Quad, and Muddy Puddles**.
 - Updated Infernal's map-detection pattern and corrected **Inferno** to **Infernal** in map data and the Ace EXP strategy.
 
-### Previous release highlights (v3.5.2)
+### v3.5.2 highlights
 
 - Rebuilt **Strategy Builder** around Monkeys, Actions, and Export views, with a cleaner dark layout and fewer buttons on each screen.
 - Added direct editing for scheduled actions. One action-type form shows the fields you need and keeps edited actions in their original order.
@@ -74,12 +83,14 @@ Open `Tools\StrategyBuilder.ahk` to create a strategy or use **IMPORT** to load 
 For step-by-step instructions and a practice example, read [StrategyBuilderHowTo.txt](Docs/StrategyBuilderHowTo.txt).
 
 - **Monkeys:** add each monkey or hero, its placement coordinates, round, and delay. Double-click a placement to edit it; **NEW** starts another entry.
-- **Actions:** choose Upgrade, Targeting, Sell, Ability, Game speed, or a banana collection toggle. The form shows the relevant fields. Double-click an action to edit it without moving its row; actions with the same round and delay keep their order.
+- **Actions:** choose Upgrade, Targeting, Sell, Ability, Game speed, Repeat clicks, or a banana collection toggle. The form shows the relevant fields. Double-click an action to edit it without moving its row; actions with the same round and delay keep their order.
 - **Export:** generate a preview, copy the code, or save an `.ahk` file. Copy and Save rebuild the code from your current strategy and check it before exporting.
 
-**ROW OPTIONS** contains edit and delete. **TOOLS** contains monkey labels, coordinate remapping, and Clear. The **?** button opens a short guide. Use **F2** to capture a placement, **F3** for a tower's current position, or **F5** for a targeting point.
+**ROW OPTIONS** contains edit and delete. **TOOLS** contains monkey labels, coordinate remapping, and Clear. The **?** button opens a short guide. Use **F2** to capture a placement, **F3** for a tower's current position, **F5** for a targeting point, or **F6** for a Repeat clicks point.
 
 The builder checks whole-number rounds and delays, coordinates within the 1920×1080 screen, legal upgrade paths, and whether an action runs before placement or after selling. Imports still warn when a script contains actions the builder cannot edit; review that warning before saving a replacement.
+
+For a midgame click sequence, choose **Repeat clicks** and enter **Click X**, **Click Y**, **Click count**, and **Interval (ms)**. Use **F6 CAPTURE** to record the click point. Round and Delay set when the sequence starts; Interval is the pause between its clicks. For example, round **20**, delay **1000**, point **960, 540**, count **3**, and interval **250** makes three left clicks at that point with a 250 ms pause between clicks, once the scheduled delay has elapsed. The next strategy action waits for the sequence to finish. No monkey selection is needed, and the nearby **?** buttons explain each field.
 
 Exports include the selected mode's round limits: Easy **1-40**, Medium **1-60**, Hard **3-80**, Impoppable/CHIMPS **6-100**, and Deflation **31-60**. Round **0** remains pregame setup. Explicit imported limits are kept until you change the difficulty or mode.
 
@@ -266,6 +277,8 @@ Strategies can switch BTD6 between normal and fast speed with `SetGameSpeed()`. 
 ```
 
 The example slows the game down 10 seconds into round 39, then returns to fast speed as soon as round 41 is detected. `StartGame()` presses Space twice for normal modes (start the round, then enable fast speed). Apopalypse starts automatically, so it presses Space once to switch the running match to fast speed. Strategy Builder can add and import these speed actions too.
+
+`SetGameSpeed("Fast")` checks the Fast icon even when the macro already remembers Fast. If the icon is absent, it presses Space, waits 250 ms, and scans a fresh frame. It makes at most five attempts and reports `GAME SPEED FAILED` if Fast cannot be confirmed. An already-visible Fast icon needs no key press. Normal requests still use the tracked speed; the supplied pattern confirms Fast only.
 
 ## Folder layout
 ```text

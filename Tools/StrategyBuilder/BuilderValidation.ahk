@@ -19,8 +19,8 @@ ValidateBuilderModel() {
 }
 
 GetBuilderValidationError(entities, actions) {
-    if entities.Length = 0
-        return "Add at least one monkey or hero before generating the template."
+    if entities.Length = 0 && actions.Length = 0
+        return "Add at least one monkey, hero, or scheduled action before generating the template."
 
     knownEntities := Map()
     knownEntities.CaseSense := false
@@ -94,6 +94,10 @@ GetBuilderValidationError(entities, actions) {
         } else if kind = "bananaCollection" {
             if !HasProp(action, "enabled") || (action.enabled != 0 && action.enabled != 1)
                 return label ": choose whether banana collection is enabled or disabled."
+        } else if kind = "click" {
+            clickError := GetBuilderClickValidationError(action, label)
+            if clickError != ""
+                return clickError
         } else {
             return label ": this action type is not supported by the builder."
         }
@@ -154,6 +158,29 @@ IsBuilderNonnegativeInteger(value) {
     return (Type(value) = "Integer" || Type(value) = "String") && RegExMatch(value, "^\d+$")
 }
 
+GetBuilderClickValidationError(action, label := "Click action") {
+    for field in ["round", "delay"] {
+        if !HasProp(action, field) || !IsBuilderIntegerWithinLimit(action.%field%, 2147483647)
+            return label ": " field " must be a whole number from 0 to 2147483647."
+    }
+    coordinateError := GetBuilderCoordinatePairError(action, "x", "y", label, true)
+    if coordinateError != ""
+        return coordinateError
+    if !HasProp(action, "count") || !IsBuilderIntegerWithinLimit(action.count, 2147483647) || action.count < 1
+        return label ": click count must be a whole number from 1 to 2147483647."
+    if !HasProp(action, "interval") || !IsBuilderIntegerWithinLimit(action.interval, 2147483647)
+        return label ": click interval must be a whole number from 0 to 2147483647 milliseconds."
+    return ""
+}
+
+IsBuilderIntegerWithinLimit(value, limit) {
+    if !IsBuilderNonnegativeInteger(value)
+        return false
+    ; Compare the digit count before AHK can convert an oversized pasted number.
+    digits := LTrim(value, "0")
+    return digits = "" || (StrLen(digits) <= StrLen(limit) && digits + 0 <= limit)
+}
+
 GetBuilderCoordinatePairError(item, xName, yName, label, required := false) {
     hasX := HasProp(item, xName)
     hasY := HasProp(item, yName)
@@ -161,9 +188,9 @@ GetBuilderCoordinatePairError(item, xName, yName, label, required := false) {
         return ""
     if !hasX || !hasY
         return label ": enter both X and Y coordinates."
-    if !IsBuilderNonnegativeInteger(item.%xName%) || item.%xName% > 1919
+    if !IsBuilderIntegerWithinLimit(item.%xName%, 1919)
         return label ": X must be a whole number from 0 to 1919."
-    if !IsBuilderNonnegativeInteger(item.%yName%) || item.%yName% > 1079
+    if !IsBuilderIntegerWithinLimit(item.%yName%, 1079)
         return label ": Y must be a whole number from 0 to 1079."
     return ""
 }

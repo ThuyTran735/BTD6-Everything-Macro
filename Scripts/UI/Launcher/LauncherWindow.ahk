@@ -3,6 +3,63 @@
 ; Build the launcher once, then let mode changes reuse its controls.
 ; Keep selection, action, and status rows aligned when queue buttons are hidden.
 
+UpdateLauncherActionLayout() {
+    global CurrentMode, RunButton, AddQueueButton, QueueButton, ModeButton, SettingsButton
+    global LauncherRunHelpBadge, LauncherAddQueueHelpBadge, LauncherQueueHelpBadge
+    global LauncherModeHelpBadge, LauncherSettingsHelpBadge
+
+    if !IsSet(RunButton) || !IsObject(RunButton)
+        return
+
+    ; Event mode chooses its next map every cycle. Queue jobs stay saved in
+    ; memory for the other modes, but have no controls on this screen.
+    showQueue := CurrentMode != "Auto Collection Event" && IsObject(AddQueueButton)
+    for button in [AddQueueButton, QueueButton, LauncherAddQueueHelpBadge, LauncherQueueHelpBadge] {
+        if IsObject(button) && button.Visible != showQueue
+            button.Visible := showQueue
+    }
+
+    MoveLauncherActionWithHelp(RunButton, LauncherRunHelpBadge, 36, 282, showQueue ? 236 : 358)
+    MoveLauncherActionWithHelp(ModeButton, LauncherModeHelpBadge, showQueue ? 158 : 36, 328, showQueue ? 114 : 175)
+    MoveLauncherActionWithHelp(SettingsButton, LauncherSettingsHelpBadge, showQueue ? 280 : 219, 328, showQueue ? 114 : 175)
+}
+
+MoveLauncherActionWithHelp(button, badge, x, y, width) {
+    if !IsObject(button) || (button.X = x && button.Y = y && button.Width = width)
+        return
+
+    MoveLauncherActionSurface(button, x, y, width)
+    if IsObject(badge) {
+        MoveLauncherActionSurface(badge, x + width - badge.Width - 3, y + 3, badge.Width)
+        button.ProtectTopRightOverlay(badge.X, badge.Y, badge.Width, badge.Height, 1)
+    }
+}
+
+MoveLauncherActionSurface(button, x, y, width) {
+    ; Keep the existing controls and their callbacks. Moving every drawn
+    ; layer together also keeps the hover animation and help hit areas aligned.
+    button.X := x
+    button.Y := y
+    button.Width := width
+    height := button.Height
+    button.Glow.Move(x - 2, y - 2, width + 4, height + 4)
+    button.Border.Move(x - 1, y - 1, width + 2, height + 2)
+    button.Top.Move(x, y, width, button.IsFlatFace ? height : Ceil(height / 2))
+    button.Bottom.Move(x, y + Ceil(height / 2), width, Floor(height / 2))
+    button.Highlight.Move(x + 1, y + 1, width - 2, 2)
+    button.TextX := x
+    button.TextWidth := width
+    button.LastTextOffset := -999
+    button.SetTextOffset(0)
+
+    ; Windows can restore a native Progress edge when its size changes.
+    for surface in [button.Glow, button.Border, button.Top, button.Bottom, button.Highlight] {
+        surface.Opt("-0x800000 -E0x200 -E0x20000")
+        DllCall("SetWindowPos", "Ptr", surface.Hwnd, "Ptr", 0,
+            "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x37)
+    }
+}
+
 CreateLauncherUI() {
     global LauncherGui
 
@@ -34,6 +91,11 @@ CreateLauncherUI() {
     global ModeButton
     global SettingsButton
     global CloseButton
+    global LauncherRunHelpBadge
+    global LauncherAddQueueHelpBadge
+    global LauncherQueueHelpBadge
+    global LauncherModeHelpBadge
+    global LauncherSettingsHelpBadge
 
     global CategoryHelpBadge
     global MapHelpBadge
@@ -380,32 +442,35 @@ CreateLauncherUI() {
 
 
 
-    CreateHelpBadgeForButton(
+    LauncherRunHelpBadge := CreateHelpBadgeForButton(
         LauncherGui,
         RunButton,
         "PRIMARY ACTION",
-        "Default Mode opens the strategy picker.`nMonkey EXP Grind runs the selected script.`nAuto Collection Event runs Expert Impoppable until stopped.`n`nIf your queue has jobs, START QUEUE runs them first."
+        "Default Mode opens the strategy picker.`nMonkey EXP Grind runs the selected script.`nAuto Collection Event runs Expert Impoppable until stopped and does not use the queue.`n`nIn the other modes, START QUEUE runs any queued jobs first."
     )
 
 
     if queueButtonsEnabled {
-        CreateHelpBadgeForButton(
+        LauncherAddQueueHelpBadge := CreateHelpBadgeForButton(
             LauncherGui,
             AddQueueButton,
             "ADD QUEUE",
             "Adds a new job to your queue.`n`nChoose the job type and script, then choose how many times it should run."
         )
 
-        CreateHelpBadgeForButton(
+        LauncherQueueHelpBadge := CreateHelpBadgeForButton(
             LauncherGui,
             QueueButton,
             "QUEUE",
             "Opens the Queue Manager.`n`nJobs run from top to bottom. You can edit their order, remove jobs, clear the queue, or start it."
         )
+    } else {
+        LauncherAddQueueHelpBadge := ""
+        LauncherQueueHelpBadge := ""
     }
 
 
-    CreateHelpBadgeForButton(
+    LauncherModeHelpBadge := CreateHelpBadgeForButton(
         LauncherGui,
         ModeButton,
         "MODES",
@@ -413,7 +478,7 @@ CreateLauncherUI() {
     )
 
 
-    CreateHelpBadgeForButton(
+    LauncherSettingsHelpBadge := CreateHelpBadgeForButton(
         LauncherGui,
         SettingsButton,
         "SETTINGS",

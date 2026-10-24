@@ -23,6 +23,7 @@ SaveBuilderAction(*) {
         case "Sell": AddSellAction()
         case "Ability": AddAbilityAction()
         case "Game speed": AddGameSpeedAction()
+        case "Repeat clicks": AddRepeatClickAction()
         case "Enable banana collection": AddBananaCollectionEnableAction()
         case "Disable banana collection": AddBananaCollectionDisableAction()
         default:
@@ -55,6 +56,7 @@ LoadSelectedActionForEdit(*) {
     global BuilderEditingActionIndex, BuilderEditingAction, ActionEntityDDL
     global UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit
     global ActionTargetDDL, ActionTargetXEdit, ActionTargetYEdit, AbilityEdit, GameSpeedDDL, StatusText
+    global ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
 
     row := ActionLV.GetNext(0)
     if row < 1 || row > UpgradeActions.Length
@@ -63,7 +65,7 @@ LoadSelectedActionForEdit(*) {
     action := UpgradeActions[row]
     kind := HasProp(action, "kind") ? action.kind : "upgrade"
     typeNames := Map("upgrade", "Upgrade", "target", "Targeting", "sell", "Sell",
-        "ability", "Ability", "speed", "Game speed", "bananaCollection", "Enable banana collection")
+        "ability", "Ability", "speed", "Game speed", "click", "Repeat clicks", "bananaCollection", "Enable banana collection")
     if !typeNames.Has(kind)
         return false
 
@@ -108,6 +110,11 @@ LoadSelectedActionForEdit(*) {
             }
         case "ability": AbilityEdit.Value := action.hotkey
         case "speed": ChooseDropdownText(GameSpeedDDL, action.speed)
+        case "click":
+            ClickXEdit.Value := action.x
+            ClickYEdit.Value := action.y
+            ClickCountEdit.Value := action.count
+            ClickIntervalEdit.Value := action.interval
     }
 
     BuilderEditingActionIndex := row
@@ -121,6 +128,7 @@ LoadSelectedActionForEdit(*) {
 NewBuilderAction(*) {
     global BuilderEditingActionIndex, BuilderEditingAction, BuilderActionSaveButton
     global UpgradeDelayEdit, AbilityEdit, GameSpeedDDL, ActionLV, StatusText
+    global ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
 
     BuilderEditingActionIndex := 0
     BuilderEditingAction := false
@@ -129,6 +137,10 @@ NewBuilderAction(*) {
     UpgradeDelayEdit.Value := "0"
     AbilityEdit.Value := "1"
     GameSpeedDDL.Choose(1)
+    ClickXEdit.Value := ""
+    ClickYEdit.Value := ""
+    ClickCountEdit.Value := "1"
+    ClickIntervalEdit.Value := "250"
     OnActionEntityChanged()
     RefreshBuilderActionForm()
     StatusText.Text := "New action — the last round is kept for the next entry"
@@ -156,6 +168,7 @@ ValidateBuilderActionInput() {
     global BuilderActionTypeDDL, UpgradeRoundEdit, UpgradeDelayEdit, UpgradeEdit
     global UpgradeXEdit, UpgradeYEdit, ActionTargetXEdit, ActionTargetYEdit
     global ActionEntityDDL, ActionTargetDDL
+    global ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
 
     if !IsBuilderInputInteger(UpgradeRoundEdit.Value)
         return "Round must be a whole number from 0 to 2147483647. Round 0 means pregame."
@@ -163,6 +176,18 @@ ValidateBuilderActionInput() {
         return "Delay must be a whole number from 0 to 2147483647 milliseconds."
 
     actionType := BuilderActionTypeDDL.Text
+    if actionType = "Repeat clicks" {
+        if Trim(ClickXEdit.Value) = "" || Trim(ClickYEdit.Value) = ""
+            return "Enter both Click X and Click Y, or use F6 Capture."
+        problem := ValidateBuilderCoordinatePair(ClickXEdit.Value, ClickYEdit.Value, "Click point")
+        if problem != ""
+            return problem
+        if !IsBuilderInputInteger(ClickCountEdit.Value) || ClickCountEdit.Value + 0 < 1
+            return "Click count must be a whole number from 1 to 2147483647."
+        if !IsBuilderInputInteger(ClickIntervalEdit.Value)
+            return "Interval must be a whole number from 0 to 2147483647 milliseconds."
+        return ""
+    }
     if actionType = "Upgrade" {
         upgrade := Trim(UpgradeEdit.Value)
         if !RegExMatch(upgrade, "^[0-5]{3}$")
@@ -405,6 +430,17 @@ AddSellAction(*) {
     StatusText.Text := "Added sell for " entityName " on round " round
 }
 
+AddRepeatClickAction(*) {
+    global UpgradeActions, ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
+    global UpgradeRoundEdit, UpgradeDelayEdit
+
+    ; Keep the repeat interval separate from the action's scheduled start delay.
+    UpgradeActions.Push({kind: "click", x: Integer(ClickXEdit.Value), y: Integer(ClickYEdit.Value),
+        count: Integer(ClickCountEdit.Value), interval: Integer(ClickIntervalEdit.Value),
+        round: Integer(UpgradeRoundEdit.Value), delay: Integer(UpgradeDelayEdit.Value)})
+    RefreshActionList()
+}
+
 AddAbilityAction(*) {
     global UpgradeActions, AbilityEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
 
@@ -530,6 +566,9 @@ RefreshActionList() {
             ActionLV.Add("", "Ability", "-", action.hotkey, action.round, action.delay)
         } else if kind = "speed" {
             ActionLV.Add("", "Speed", "-", action.speed, action.round, action.delay)
+        } else if kind = "click" {
+            value := action.count " clicks @ " action.x "," action.y " / " action.interval " ms"
+            ActionLV.Add("", "Repeat clicks", "-", value, action.round, action.delay)
         } else if kind = "bananaCollection" {
             ActionLV.Add("", "Farm", "-", action.enabled ? "Enable" : "Disable", action.round, action.delay)
         } else {
@@ -634,6 +673,48 @@ ClearUpgradeCoordinateInputs() {
 
     if UpgradeYEdit
         UpgradeYEdit.Value := ""
+}
+
+CaptureClickCoordinatesInstant(*) {
+    global BuilderView, BuilderActionTypeDDL, ClickXEdit, ClickYEdit, StatusText
+    if BuilderView != "Actions" || BuilderActionTypeDDL.Text != "Repeat clicks"
+        return
+    MouseGetPos(&mx, &my)
+    ClickXEdit.Value := mx
+    ClickYEdit.Value := my
+    StatusText.Text := "Captured click point: " mx ", " my
+    ToolTip("Captured click point: " mx ", " my)
+    SetTimer(() => ToolTip(), -800)
+}
+
+CaptureClickCoordinates(*) {
+    global MainGui, ClickXEdit, ClickYEdit, StatusText
+    StatusText.Text := "Move cursor and press F6..."
+    MainGui.Hide()
+    try {
+        Sleep(150)
+        ToolTip("Move the mouse to the BTD6 point to click.`nPress F6 to capture it, or Esc to cancel.")
+        Loop {
+            if GetKeyState("Escape", "P") {
+                KeyWait("Escape")
+                StatusText.Text := "Click coordinate capture cancelled"
+                return
+            }
+            if GetKeyState("F6", "P") {
+                MouseGetPos(&mx, &my)
+                KeyWait("F6")
+                ClickXEdit.Value := mx
+                ClickYEdit.Value := my
+                StatusText.Text := "Captured click point: " mx ", " my
+                return
+            }
+            Sleep(20)
+        }
+    } finally {
+        ToolTip()
+        MainGui.Show()
+        WinActivate("ahk_id " MainGui.Hwnd)
+    }
 }
 
 CaptureUpgradeCoordinatesInstant(*) {

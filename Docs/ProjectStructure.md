@@ -1,4 +1,4 @@
-# Project structure (v3.5.3)
+# Project structure (v3.5.4)
 
 The big v2 files were split in v3 so debugging does not mean scrolling through 1,500-2,000 lines every time.
 
@@ -12,7 +12,8 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 - `Scripts/Gameplay/Upgrades/` - upgrade timing, panel state/detection, buying, waiting, and locked-upgrade handling.
 - `Scripts/Monkey Logic/` - monkey/tower-specific behavior for Banana Farms, Subs, Dartling, Heli, Mermonkey, Mortar, and Spike Factory.
 - `Scripts/Gameplay/Game State/` - popups, collection rewards, victory/defeat, home-screen checks, and run reset.
-- `Scripts/GameSpeedLogic.ahk` - tracked normal/fast game-speed changes used by scheduled strategy actions.
+- `Scripts/GameSpeedLogic.ahk` - scheduled speed changes, with FindText confirmation and 250 ms retries for Fast.
+- `Scripts/InputHelpers.ahk` - shared input helpers, including `RepeatMapClicks` for scheduled clicks at a fixed screen position.
 - `Scripts/Navigation/` - map/mode navigation plus hero selection.
 - `Scripts/Collection Event/` - bonus-badge patterns, six-card scan regions, and Expert Impoppable map selection.
 - `Scripts/UI/Common/` - shared window chrome, launcher visibility, child-run IPC, and launcher monitoring.

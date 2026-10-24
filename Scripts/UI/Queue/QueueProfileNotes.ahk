@@ -8,7 +8,7 @@ CloneQueueProfileJob(job) {
         path: job.path,
         label: job.HasOwnProp("label") ? job.label : job.path,
         mode: job.HasOwnProp("mode") ? job.mode : "",
-        runs: job.HasOwnProp("runs") ? Max(1, job.runs) : 1
+        runs: job.HasOwnProp("runs") ? NormalizeStoredRunCount(job.runs) : 1
     }
 
     if job.HasOwnProp("enabled") {
@@ -40,7 +40,7 @@ RefreshQueueProfileSummary(repeatOverride := "") {
         . "  x" . summary.repeatCount
         . "  =  " . summary.queueJobs
         . " QUEUE JOB" . (summary.queueJobs = 1 ? "" : "S")
-        . "  -  " . summary.totalRuns
+        . "  -  " . FormatRunCount(summary.totalRuns)
         . " TOTAL RUN" . (summary.totalRuns = 1 ? "" : "S")
 }
 

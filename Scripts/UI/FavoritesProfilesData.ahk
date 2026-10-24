@@ -409,7 +409,8 @@ GetQueueProfileRecords() {
             enabled := IniRead(profilePath, section, "Enabled", "1") != "0"
             if enabled {
                 enabledJobs++
-                totalRuns += Max(1, Integer(IniRead(profilePath, section, "Runs", "1")))
+                totalRuns := CombineRunCounts(totalRuns,
+                    NormalizeStoredRunCount(IniRead(profilePath, section, "Runs", "1")))
             }
         }
 
@@ -496,7 +497,7 @@ WriteQueueProfile(profileName, jobs, existingPath := "") {
 
             jobLabel := job.HasOwnProp("label") ? job.label : job.path
             jobMode := job.HasOwnProp("mode") ? job.mode : ""
-            jobRuns := job.HasOwnProp("runs") ? Max(1, job.runs) : 1
+            jobRuns := job.HasOwnProp("runs") ? NormalizeStoredRunCount(job.runs) : 1
             jobEnabled := (!job.HasOwnProp("enabled") || job.enabled) ? "1" : "0"
 
             IniWrite(MakeProjectRelativePath(job.path), profilePath, section, "Path")
@@ -552,7 +553,7 @@ ReadQueueProfileJobs(profilePath) {
                 path: ResolveStoredProjectPath(storedPath),
                 label: IniRead(profilePath, section, "Label", storedPath),
                 mode: IniRead(profilePath, section, "Mode", "Default"),
-                runs: Max(1, Integer(IniRead(profilePath, section, "Runs", "1"))),
+                runs: NormalizeStoredRunCount(IniRead(profilePath, section, "Runs", "1")),
                 enabled: IniRead(profilePath, section, "Enabled", "1") != "0"
             }
         )
@@ -612,7 +613,7 @@ GetQueueProfileSummary(profilePath, repeatOverride := "") {
     for job in jobs {
         if !job.HasOwnProp("enabled") || job.enabled {
             jobsPerPass++
-            runsPerPass += job.runs
+            runsPerPass := CombineRunCounts(runsPerPass, job.runs)
         }
     }
 
@@ -621,7 +622,8 @@ GetQueueProfileSummary(profilePath, repeatOverride := "") {
         repeatCount: repeatCount,
         queueJobs: jobsPerPass * repeatCount,
         runsPerPass: runsPerPass,
-        totalRuns: runsPerPass * repeatCount
+        ; An infinite job keeps the whole profile open-ended on its first pass.
+        totalRuns: runsPerPass = -1 ? -1 : runsPerPass * repeatCount
     }
 }
 

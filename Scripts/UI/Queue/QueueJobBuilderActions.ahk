@@ -38,7 +38,7 @@ AddQueueBuilderSelection(*) {
                     DestroyQueueJobBuilder(false)
                     runCount := ShowCycleInputPrompt("editqueue", currentRuns)
 
-                    if runCount < 1 {
+                    if runCount = 0 {
                         ShowQueueManager()
                         return false
                     }
@@ -102,7 +102,7 @@ AddQueueBuilderSelection(*) {
                 DestroyQueueJobBuilder(false)
                 runCount := ShowCycleInputPrompt("editqueue", currentRuns)
 
-                if runCount < 1 {
+                if runCount = 0 {
                     ShowQueueManager()
                     return false
                 }

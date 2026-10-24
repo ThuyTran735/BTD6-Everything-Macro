@@ -58,22 +58,13 @@ CreateCycleStatusUI() {
     AddCustomWindowBorder(CycleStatusGui, hudWidth, hudHeight, 1)
 
 
-    ; Keep the run information together in one compact status block.
-    SetUIHeadingFont(
-        CycleStatusGui,
-        9,
-        UIColorPrimaryText
+    ; Use the same card and heading as the launcher for every run type.
+    ; Infinite runs keep this layout when the percentage bar is hidden.
+    AddUICard(CycleStatusGui, 12, 10, 268, 78)
+    AddUICard(CycleStatusGui, 288, 10, 120, 78)
+    CycleStatusText := AddUIOutlinedText(
+        CycleStatusGui, "CYCLE 1 / 1", 24, 16, 244, 22, 9, "Center"
     )
-
-
-    CycleStatusText :=
-        CycleStatusGui.Add(
-            "Text",
-            "x20 y12 w248 h24 Center +0x200 c"
-            . UIColorPrimaryText
-            . " BackgroundTrans",
-            "CYCLE 1 / 1"
-        )
 
 
     SetUIBodyFont(
@@ -86,7 +77,7 @@ CreateCycleStatusUI() {
     CycleProgressText :=
         CycleStatusGui.Add(
             "Text",
-            "x20 y36 w248 h18 Center +0x200 c"
+            "x24 y39 w244 h18 Center +0x200 c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "1 CYCLE LEFT"
@@ -104,7 +95,7 @@ CreateCycleStatusUI() {
 
     CycleStatusGui.Add(
         "Text",
-        "x20 y56 w248 h14 Center +0x200 c"
+        "x24 y60 w244 h14 Center +0x200 c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         "Emergency Stop: Ctrl + Shift + X"
@@ -114,7 +105,7 @@ CreateCycleStatusUI() {
     CycleProgressBackground :=
         CycleStatusGui.Add(
             "Progress",
-            "x20 y76 w248 h8 c"
+            "x24 y78 w244 h4 -0x800000 -E0x200 -E0x20000 c"
             . UIColorControlBorder
             . " Background"
             . UIColorControlBorder
@@ -126,7 +117,7 @@ CreateCycleStatusUI() {
     CycleProgressBar :=
         CycleStatusGui.Add(
             "Progress",
-            "x20 y76 w248 h8 Range0-100 c"
+            "x24 y78 w244 h4 -0x800000 -E0x200 -E0x20000 Range0-100 c"
             . UIColorAccent
             . " Background"
             . UIColorControlBorder
@@ -135,27 +126,15 @@ CreateCycleStatusUI() {
         )
 
 
-    ; Quiet divider between run progress and the stop action.
-    CycleStatusGui.Add(
-        "Progress",
-        "x280 y16 w1 h66 c"
-        . UIColorPanelBorder
-        . " Background"
-        . UIColorPanelBorder
-        . " Disabled",
-        100
-    )
-
-
     CycleCancelButton :=
         CreateDarkButton(
             CycleStatusGui,
-            292,
+            296,
             28,
             104,
             42,
             "CLOSE RUN",
-            7
+            8
         )
 
 

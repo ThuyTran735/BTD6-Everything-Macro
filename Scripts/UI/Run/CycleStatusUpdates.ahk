@@ -36,15 +36,16 @@ UpdateCycleStatusUI() {
     }
 
 
-    ; Continuous event runs have no percentage or final cycle. Show completed
-    ; runs directly, and keep all finite queue/manual calculations unchanged.
-    if CollectionEventRunActive && !QueueRunning {
-        CycleStatusText.Text := "CONTINUOUS"
-        if QueueCurrentRetryCount > 0 {
-            CycleStatusText.Text .= " - RETRY " . QueueCurrentRetryCount . " / " . GetQueueRetryLimit()
-        }
+    ; Open-ended runs share the same themed HUD as counted runs. A completed
+    ; counter is useful here; a percentage would imply an end that does not exist.
+    if (CollectionEventRunActive && !QueueRunning) || RepeatRunTotal = -1 {
+        CycleStatusText.Text := QueueRunning
+            ? "JOB " . QueueActiveJobIndex . " / " . QueueTotalJobs . " - CONTINUOUS"
+            : "CONTINUOUS"
         CycleProgressText.Text := RepeatRunCompleted . " RUN"
             . (RepeatRunCompleted = 1 ? "" : "S") . " COMPLETED"
+        if QueueCurrentRetryCount > 0
+            CycleProgressText.Text .= " | RETRY " . QueueCurrentRetryCount . " / " . GetQueueRetryLimit()
         CycleProgressBar.Visible := false
         CycleProgressBackground.Visible := false
         return
@@ -79,9 +80,11 @@ UpdateCycleStatusUI() {
 
     if QueueRunning {
 
-        runsLeft :=
-            QueueTotalRuns
-            - QueueCompletedRuns
+        ; A later infinite job makes the queue total open-ended. While this
+        ; job is finite, show its own remaining runs and progress instead.
+        runsLeft := QueueTotalRuns = -1
+            ? RepeatRunTotal - RepeatRunCompleted
+            : QueueTotalRuns - QueueCompletedRuns
 
 
         if runsLeft < 0 {
@@ -89,7 +92,10 @@ UpdateCycleStatusUI() {
         }
 
 
-        if QueueTotalRuns > 0 {
+        if QueueTotalRuns = -1 {
+            progress := Floor(RepeatRunCompleted / RepeatRunTotal * 100)
+        }
+        else if QueueTotalRuns > 0 {
 
             progress :=
                 Floor(
@@ -126,7 +132,11 @@ UpdateCycleStatusUI() {
         }
 
 
-        if runsLeft = 1 {
+        if QueueTotalRuns = -1 {
+            CycleProgressText.Text := runsLeft . " RUN"
+                . (runsLeft = 1 ? "" : "S") . " LEFT IN JOB"
+        }
+        else if runsLeft = 1 {
 
             CycleProgressText.Text :=
                 "1 TOTAL RUN LEFT"

@@ -384,7 +384,7 @@ CreateLauncherUI() {
         LauncherGui,
         RunButton,
         "PRIMARY ACTION",
-        "Default Mode opens the strategy picker.`n`nMonkey EXP Grind starts the selected grind script.`n`nIf your queue has jobs, this button becomes START QUEUE."
+        "Default Mode opens the strategy picker.`nMonkey EXP Grind runs the selected script.`nAuto Collection Event runs Expert Impoppable until stopped.`n`nIf your queue has jobs, START QUEUE runs them first."
     )
 
 
@@ -409,7 +409,7 @@ CreateLauncherUI() {
         LauncherGui,
         ModeButton,
         "MODES",
-        "Changes what kind of macro you want to run.`n`nUse this to switch between Map Scripts and Monkey EXP Grind."
+        "Choose Default map scripts, Monkey EXP Grind, or Auto Collection Event.`n`nEvent mode runs Expert Impoppable until stopped. Monkey Money Grind is not available yet."
     )
 
 

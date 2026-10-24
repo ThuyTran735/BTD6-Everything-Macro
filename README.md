@@ -1,16 +1,14 @@
 # BTD6 Everything Macro
-**Current version: v3.5.0**
+**Current version: v3.5.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added **Halloween daily chest recognition** alongside the normal chest pattern.
-- Cleaned up the dark UI with more consistent spacing and aligned controls across the launcher, settings, queue tools, dialogs, run HUD, and Strategy Builder. The original v3.4.0 font choices are preserved.
-- Added **Auto Collection Event** for **Expert maps on Impoppable only**, running continuously until stopped. It scans the Expert map pages for the Halloween bonus badge, prefers a marked map with an installed strategy, and falls back to a random supported Expert Impoppable map. Locked or unavailable Impoppable modes are skipped. The launcher explains this before starting; event mode has no run-count prompt.
-- Replaced generic code comments with practical notes on strategy format, timing, retries, state changes, and UI behavior.
-- Renamed the Sandbox test to `Test/BananaFarmCollectionTest.ahk`.
-
+- Sped up collection reward reveals with a 200 ms pause between clicks, trying the two-card layout before the three-card layout.
+- Added **Infinite** to the run-count prompt for manual runs, Monkey EXP, and queued jobs. Runs continue until stopped, subject to the normal failure and retry rules. An infinite queue job keeps later jobs waiting.
+- Added missing **? help buttons** to the event-start and warning dialogs, and updated launcher help for Auto Collection Event.
+- Matched the **continuous run HUD** to the launcher's dark cards and original font, with completed-run counts instead of a percentage for infinite runs.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -162,7 +160,7 @@ All four special-target systems use the same input timing: **Page Down -> 300 ms
 2. Double-click `Main.ahk`.
 3. Click **SELECT SCRIPT** and choose the strategy you want to use.
 4. Confirm it with **USE STRATEGY**.
-5. Choose the run count and click **START RUN**, or press:
+5. Choose a run count or select **Infinite (until stopped)**, then click **START RUN**, or press:
 
 ```text
 Ctrl + Shift + P

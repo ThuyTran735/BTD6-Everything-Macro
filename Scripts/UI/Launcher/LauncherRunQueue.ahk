@@ -33,6 +33,7 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
     if (
         !isRetry
         && RepeatRunRemaining < 1
+        && RepeatRunRemaining != -1
     ) {
 
         return false
@@ -112,7 +113,7 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
             . " - RUN "
             . currentRun
             . " / "
-            . RepeatRunTotal,
+            . FormatRunCount(RepeatRunTotal),
             UIColorWarning
         )
     }
@@ -126,7 +127,7 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
             "STARTING RUN "
             . currentRun
             . " OF "
-            . RepeatRunTotal
+            . FormatRunCount(RepeatRunTotal)
             . "...",
             UIColorWarning
         )
@@ -228,9 +229,9 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
                 &RunningPid
             )
 
-            ; Event mode stays open-ended. Finite retries repeat their current
-            ; cycle without consuming another requested run.
-            if !isRetry && !eventGeneration {
+            ; Event mode and Infinite counts stay open-ended. Retries repeat
+            ; the current cycle without consuming another requested run.
+            if !isRetry && !eventGeneration && RepeatRunRemaining > 0 {
                 RepeatRunRemaining--
             }
         }

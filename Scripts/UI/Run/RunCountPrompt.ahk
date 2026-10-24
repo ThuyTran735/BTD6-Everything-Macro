@@ -1,11 +1,24 @@
 #Requires AutoHotkey v2.0
 
 ; Shared run-count prompt for starting a strategy and adding or editing a job.
-; The caller receives zero on cancellation and a validated count on confirmation.
+; Zero means cancelled, -1 means Infinite, and positive values are finite counts.
+
+NormalizeStoredRunCount(value) {
+    return value = -1 ? -1 : Max(1, Integer(value))
+}
+
+FormatRunCount(value) {
+    return value = -1 ? "INFINITE" : value
+}
+
+CombineRunCounts(total, count) {
+    return total = -1 || count = -1 ? -1 : total + count
+}
 
 ShowCycleInputPrompt(context := "run", initialValue := 1) {
     global CycleInputGui
     global CycleInputEdit
+    global CycleInputInfiniteCheckbox
     global CycleInputErrorText
     global CycleInputResult
     global CycleInputFinished
@@ -28,7 +41,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 
     dialogWidth := 460
-    dialogHeight := 316
+    dialogHeight := 360
 
 
     isQueuePrompt := (context = "queue" || context = "editqueue")
@@ -87,7 +100,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 
     ; Run-count card.
-    AddUICard(CycleInputGui, 24, 96, 412, 136)
+    AddUICard(CycleInputGui, 24, 96, 412, 180)
     AddUIOutlinedText(
         CycleInputGui,
         "RUN COUNT",
@@ -106,7 +119,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
         "x40 y132 w380 h18 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
-        "Whole number from 1 to 1,000,000"
+        "Choose a count or keep running until stopped"
     )
 
 
@@ -128,18 +141,31 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
         . UIColorInputText
         . " Background"
         . UIColorInputBackground,
-        initialValue
+        initialValue = -1 ? 1 : initialValue
     )
 
 
     ApplyDarkControlTheme(CycleInputEdit)
     CycleInputEdit.OnEvent("Change", CycleInputChanged)
 
+    SetUIBodyFont(CycleInputGui, 10, UIColorPrimaryText)
+    CycleInputInfiniteCheckbox := CycleInputGui.Add(
+        "Checkbox", "x44 y214 w338 h24", "Infinite (until stopped)"
+    )
+    CycleInputInfiniteCheckbox.Value := initialValue = -1
+    CycleInputInfiniteCheckbox.OnEvent("Click", CycleInputChanged)
+    CycleInputEdit.Enabled := !CycleInputInfiniteCheckbox.Value
+    CreateHelpBadge(
+        CycleInputGui, 400, 218, "INFINITE RUNS",
+        "Keeps running this strategy until you stop it. Normal failure and retry limits still apply."
+        . (isQueuePrompt ? "`n`nAn infinite queue job keeps later jobs waiting until you stop the queue." : "")
+    )
+
 
     SetUIBodyFont(CycleInputGui, 8, UIColorError)
     CycleInputErrorText := CycleInputGui.Add(
         "Text",
-        "x40 y212 w380 h16 Center c"
+        "x40 y250 w380 h16 Center c"
         . UIColorError
         . " BackgroundTrans",
         ""
@@ -152,7 +178,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     runButton := CreateDarkButton(
         CycleInputGui,
         24,
-        248,
+        292,
         200,
         44,
         isEditQueuePrompt
@@ -165,7 +191,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     cancelButton := CreateDarkButton(
         CycleInputGui,
         236,
-        248,
+        292,
         200,
         44,
         "CANCEL",
@@ -180,10 +206,10 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
         ? "SAVE CHANGES"
         : (isQueuePrompt ? "ADD TO QUEUE" : "START RUN"),
         isEditQueuePrompt
-        ? "Saves the edited job with this run count.`n`nEnter a whole number from 1 to 1,000,000."
+        ? "Saves the edited job with this run count.`n`nEnter a whole number from 1 to 1,000,000, or select Infinite. An infinite job keeps later jobs waiting until you stop the queue."
         : (isQueuePrompt
-            ? "Sets how many times this queued job should run.`n`nEnter a whole number from 1 to 1,000,000."
-            : "Sets how many times the selected script should run.`n`nEnter a whole number from 1 to 1,000,000.")
+            ? "Sets how many times this queued job should run.`n`nEnter a whole number from 1 to 1,000,000, or select Infinite. An infinite job keeps later jobs waiting until you stop the queue."
+            : "Sets how many times the selected script should run.`n`nEnter a whole number from 1 to 1,000,000, or select Infinite to keep running until you stop it.")
     )
 
 
@@ -228,7 +254,10 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     )
 
 
-    CycleInputEdit.Focus()
+    if CycleInputInfiniteCheckbox.Value
+        CycleInputInfiniteCheckbox.Focus()
+    else
+        CycleInputEdit.Focus()
 
 
     while !CycleInputFinished {
@@ -243,6 +272,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 ConfirmCycleInput(*) {
     global CycleInputEdit
+    global CycleInputInfiniteCheckbox
     global CycleInputErrorText
 
     global CycleInputResult
@@ -253,6 +283,11 @@ ConfirmCycleInput(*) {
         return
     }
 
+    if CycleInputInfiniteCheckbox && CycleInputInfiniteCheckbox.Value {
+        CycleInputResult := -1
+        CycleInputFinished := true
+        return
+    }
 
     inputValue :=
         Trim(
@@ -326,7 +361,10 @@ CancelCycleInput(*) {
 
 CycleInputChanged(*) {
     global CycleInputErrorText
+    global CycleInputEdit, CycleInputInfiniteCheckbox
 
+    if CycleInputEdit && CycleInputInfiniteCheckbox
+        CycleInputEdit.Enabled := !CycleInputInfiniteCheckbox.Value
 
     if CycleInputErrorText {
 
@@ -339,8 +377,10 @@ CycleInputChanged(*) {
 CloseCycleInputUI() {
     global CycleInputGui
     global CycleInputEdit
+    global CycleInputInfiniteCheckbox
     global CycleInputErrorText
 
+    CloseContextHelp()
 
     if CycleInputGui {
 
@@ -357,6 +397,7 @@ CloseCycleInputUI() {
     CycleInputEdit :=
         ""
 
+    CycleInputInfiniteCheckbox := ""
 
     CycleInputErrorText :=
         ""

@@ -57,8 +57,7 @@ StartMacroQueue(*) {
         }
 
 
-        totalRuns +=
-            job.runs
+        totalRuns := CombineRunCounts(totalRuns, job.runs)
     }
 
 

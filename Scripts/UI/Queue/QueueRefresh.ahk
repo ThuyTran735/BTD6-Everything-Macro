@@ -31,8 +31,7 @@ RefreshQueueManager() {
 
     for index, job in MacroJobQueue {
 
-        totalRuns +=
-            job.runs
+        totalRuns := CombineRunCounts(totalRuns, job.runs)
 
 
         rows.Push(
@@ -40,7 +39,7 @@ RefreshQueueManager() {
             . ".  "
             . job.label
             . "    x"
-            . job.runs
+            . FormatRunCount(job.runs)
         )
     }
 
@@ -83,7 +82,7 @@ RefreshQueueManager() {
                 : "S"
             )
             . "  -  "
-            . totalRuns
+            . FormatRunCount(totalRuns)
             . " TOTAL RUN"
             . (
                 totalRuns = 1

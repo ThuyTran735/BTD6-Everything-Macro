@@ -18,6 +18,7 @@ global CycleStatusClosing := false
 
 global CycleInputGui := ""
 global CycleInputEdit := ""
+global CycleInputInfiniteCheckbox := ""
 global CycleInputErrorText := ""
 global CycleInputResult := 0
 global CycleInputFinished := false

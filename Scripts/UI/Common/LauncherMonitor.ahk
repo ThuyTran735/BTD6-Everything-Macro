@@ -259,7 +259,7 @@ MonitorLauncherState() {
             }
 
 
-            if RepeatRunRemaining > 0 {
+            if RepeatRunRemaining = -1 || RepeatRunRemaining > 0 {
 
                 if CycleStatusClosing || !MacroRunning {
                     return
@@ -274,7 +274,7 @@ MonitorLauncherState() {
                 UpdateStatus(
                     CollectionEventRunActive
                         ? "EVENT RUN " . nextRun
-                        : "RUN " . nextRun . " OF " . RepeatRunTotal,
+                        : "RUN " . nextRun . " OF " . FormatRunCount(RepeatRunTotal),
                     UIColorSuccess
                 )
 

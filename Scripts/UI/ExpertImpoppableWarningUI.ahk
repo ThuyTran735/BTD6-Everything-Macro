@@ -241,6 +241,20 @@ ShowExpertImpoppableWarningIfNeeded() {
         "Danger"
     )
 
+    CreateHelpBadgeForButton(
+        ExpertImpoppableWarningGui,
+        continueButton,
+        "CONTINUE ANYWAY",
+        "Continues the pending Expert Impoppable start.`n`nThese strategies expect full Monkey Knowledge. Future reminders are hidden only if you check 'Don't show this warning again'."
+    )
+
+    CreateHelpBadgeForButton(
+        ExpertImpoppableWarningGui,
+        cancelButton,
+        "CANCEL",
+        "Cancels this attempt to start Expert Impoppable and closes the warning.`n`nYour saved warning preference is not changed."
+    )
+
     continueButton.OnEvent(
         "Click",
         AcceptExpertImpoppableWarning
@@ -299,6 +313,7 @@ AcceptExpertImpoppableWarning(*) {
 
     ExpertImpoppableWarningAccepted := true
 
+    CloseContextHelp()
     try {
         if ExpertImpoppableWarningGui {
             ExpertImpoppableWarningGui.Destroy()
@@ -317,6 +332,7 @@ CancelExpertImpoppableWarning(*) {
 
     ExpertImpoppableWarningAccepted := false
 
+    CloseContextHelp()
     try {
         if ExpertImpoppableWarningGui {
             ExpertImpoppableWarningGui.Destroy()

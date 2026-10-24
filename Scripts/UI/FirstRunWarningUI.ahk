@@ -326,6 +326,20 @@ ShowFirstRunWarningIfNeeded() {
         "Danger"
     )
 
+    CreateHelpBadgeForButton(
+        FirstRunWarningGui,
+        agreeButton,
+        "I AGREE - CONTINUE",
+        "Acknowledges the setup requirements and continues to the launcher.`n`nThis warning is hidden on future launches only if you check 'Never show this warning again'."
+    )
+
+    CreateHelpBadgeForButton(
+        FirstRunWarningGui,
+        exitButton,
+        "EXIT",
+        "Closes the macro without continuing to the launcher.`n`nYour saved warning preference is not changed."
+    )
+
     agreeButton.OnEvent(
         "Click",
         AcceptFirstRunWarning
@@ -389,6 +403,7 @@ AcceptFirstRunWarning(*) {
 
     FirstRunWarningAcceptedThisSession := true
 
+    CloseContextHelp()
     try {
         if FirstRunWarningGui {
             FirstRunWarningGui.Destroy()
@@ -407,6 +422,7 @@ DeclineFirstRunWarning(*) {
 
     FirstRunWarningAcceptedThisSession := false
 
+    CloseContextHelp()
     try {
         if FirstRunWarningGui {
             FirstRunWarningGui.Destroy()

@@ -69,14 +69,14 @@ AddJobToQueue(
     }
 
 
-    if runCount < 1 {
+    if runCount < 1 && runCount != -1 {
 
         runCount :=
             PromptForRunCount("queue")
     }
 
 
-    if runCount < 1 {
+    if runCount < 1 && runCount != -1 {
         return false
     }
 

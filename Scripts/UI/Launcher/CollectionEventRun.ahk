@@ -71,6 +71,16 @@ ShowCollectionEventNotice() {
     )
     continueButton := CreateDarkButton(CollectionEventNoticeGui, 24, 264, 250, 44, "START EVENT", 8)
     cancelButton := CreateDarkButton(CollectionEventNoticeGui, 286, 264, 250, 44, "CANCEL", 8, "Default")
+    CreateHelpBadgeForButton(
+        CollectionEventNoticeGui, continueButton, "START EVENT",
+        "Runs supported Expert Impoppable strategies continuously.`n`n"
+        . "Prefers event-marked maps. Otherwise, chooses a random supported map, excluding Dark Dungeons.`n`n"
+        . "Press Ctrl + Shift + X to stop immediately."
+    )
+    CreateHelpBadgeForButton(
+        CollectionEventNoticeGui, cancelButton, "CANCEL",
+        "Closes this notice without starting an event run."
+    )
     continueButton.OnEvent("Click", CloseCollectionEventNotice.Bind(true))
     cancelButton.OnEvent("Click", CloseCollectionEventNotice.Bind(false))
     CollectionEventNoticeGui.OnEvent("Close", CloseCollectionEventNotice.Bind(false))
@@ -87,6 +97,7 @@ CloseCollectionEventNotice(accepted, *) {
     global CollectionEventNoticeGui
     global CollectionEventNoticeAccepted
 
+    CloseContextHelp()
     CollectionEventNoticeAccepted := accepted
     if CollectionEventNoticeGui {
         try CollectionEventNoticeGui.Destroy()

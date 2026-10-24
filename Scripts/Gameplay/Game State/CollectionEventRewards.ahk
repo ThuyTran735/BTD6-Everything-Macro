@@ -133,8 +133,8 @@ HandleCollectionEventRewards(isCurrent := false) {
             return interruption
 
         stallDeadline := A_TickCount + 60000
-        ; The last two points cover the wider spacing of the two-card layout.
-        rewardPoints := [[701, 537], [961, 540], [1204, 542], [810, 540], [1110, 540]]
+        ; Try the two-card layout first, then cover all three-card positions.
+        rewardPoints := [[810, 540], [1110, 540], [701, 537], [961, 540], [1204, 542]]
         pointIndex := 1
         awaitingCollectGone := false
         collectAttempts := 0
@@ -216,7 +216,7 @@ HandleCollectionEventRewards(isCurrent := false) {
             if clickResult.status != "clicked"
                 return clickResult
             pointIndex := Mod(pointIndex, rewardPoints.Length) + 1
-            interruption := WaitCollectionRewardAction(300, isCurrent)
+            interruption := WaitCollectionRewardAction(200, isCurrent)
             if interruption
                 return interruption
         }

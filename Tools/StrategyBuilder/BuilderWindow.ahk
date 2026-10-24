@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 ; The three workspaces share the same editor data. Hidden controls keep their
 ; values, so switching views never changes a strategy or its action order.
@@ -65,7 +65,7 @@ BuildGui()
 
 BuildGui() {
     global
-    MainGui := Gui("+Resize +MinSize1040x744 -Caption -Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
+    MainGui := Gui("+Resize +MinSize1040x744 +OwnDialogs -Caption -Border", "BTD6 Strategy Builder " . GetAppVersionLabel())
     MainGui.BackColor := "0D1117"
     MainGui.SetFont("s9 Norm cF4F7FB", "Segoe UI")
     MainGui.OnEvent("Close", CloseStrategyBuilder)
@@ -228,7 +228,8 @@ BuildGui() {
 
     BuilderBuildGroup := "Export"
     BuilderPanel(24, 264, 992, 398, 1, 1)
-    BuilderHeading("STRATEGY PREVIEW", 40, 280, 600, 24)
+    BuilderHeading("STRATEGY PREVIEW", 40, 280, 380, 24)
+    BuilderButton("SAVE DRAFT", 444, 278, 128, 32, SaveBuilderDraft, true, 1)
     BuilderButton("GENERATE", 584, 278, 132, 32, GenerateTemplate, false, 1)
     BuilderButton("COPY", 728, 278, 108, 32, CopyTemplate, false, 1)
     BuilderButton("SAVE .AHK", 848, 278, 152, 32, SaveTemplate, true, 1)
@@ -240,7 +241,7 @@ BuildGui() {
     BuilderLabel("Copy and Save always regenerate from your current strategy. Nothing runs from this preview.", 40, 632, 960, 18, "93A1B2", 0, 1, 1)
     BuilderBuildGroup := ""
     StatusText := BuilderLabel("Ready - add a monkey or import an existing strategy.", 24, 682, 992, 20, "B3BFCC", 0, 1, 1)
-    BuilderLabel("F2  Placement     F3  Moving tower     F5  Target point     F6  Click point     Tools  Labels / remap / clear", 24, 716, 992, 18, "93A1B2", 0, 1, 1)
+    BuilderLabel("Ctrl+Z  Undo     Ctrl+Y  Redo     Ctrl+S  Save draft     F2 / F3 / F5 / F6  Capture coordinates", 24, 716, 992, 18, "93A1B2", 0, 1, 1)
 
     StyleBuilderNativeControls(MainGui)
     ShowBuilderView("Monkeys")
@@ -249,6 +250,13 @@ BuildGui() {
     Hotkey("F3", CaptureUpgradeCoordinatesInstant, "On")
     Hotkey("F5", CaptureTargetCoordinatesInstant, "On")
     Hotkey("F6", CaptureClickCoordinatesInstant, "On")
+    InitializeBuilderHistory()
+    InitializeBuilderPersistence()
+    HotIf(BuilderShortcutsActive)
+    Hotkey("^z", BuilderUndo)
+    Hotkey("^y", BuilderRedo)
+    Hotkey("^s", SaveBuilderDraft)
+    HotIf()
 }
 
 ShowBuilderView(view, *) {
@@ -314,6 +322,8 @@ RefreshBuilderActionForm(*) {
 
 SaveBuilderEntity(*) {
     global BuilderEditingEntity, Entities, EntityLV, BuilderEntitySaveButton
+    BeginBuilderHistoryChange()
+    try {
     if !ValidateBuilderEntityInputs()
         return
     if IsObject(BuilderEditingEntity) {
@@ -333,21 +343,28 @@ SaveBuilderEntity(*) {
     AddEntity()
     if Entities.Length > previousCount
         NewBuilderAction()
+    } finally EndBuilderHistoryChange()
 }
 
 EditBuilderEntity(*) {
     global EntityLV, Entities, BuilderEditingEntity, BuilderEntitySaveButton
+    BeginBuilderHistoryChange()
+    try {
     row := EntityLV.GetNext()
     if !row
         return
     BuilderEditingEntity := Entities[row]
     LoadSelectedEntityForEdit()
+    MarkBuilderFormBaseline("entity")
     BuilderEntitySaveButton.Text := "SAVE CHANGES"
+    } finally EndBuilderHistoryChange()
 }
 
 NewBuilderEntity(*) {
     global BuilderEditingEntity, BuilderEntitySaveButton, EntityLV
     global EntityTypeDDL, EntityNameEdit, XEdit, YEdit, PlaceDelayEdit, StatusText
+    BeginBuilderHistoryChange()
+    try {
     BuilderEditingEntity := false
     BuilderEntitySaveButton.Text := "ADD MONKEY"
     EntityLV.Modify(0, "-Select")
@@ -357,6 +374,8 @@ NewBuilderEntity(*) {
     PlaceDelayEdit.Value := "0"
     ApplyDefaultTargetingForType(EntityTypeDDL.Text)
     StatusText.Text := "New monkey - enter its placement, then choose Add monkey. The last round is kept."
+    MarkBuilderFormBaseline("entity")
+    } finally EndBuilderHistoryChange()
 }
 
 ValidateBuilderEntityInputs() {
@@ -381,11 +400,14 @@ ShowBuilderEntityMenu(*) {
 
 DeleteBuilderEntity(*) {
     global EntityLV
+    BeginBuilderHistoryChange()
+    try {
     if !EntityLV.GetNext()
         return
     DeleteSelectedEntity()
     NewBuilderAction()
     NewBuilderEntity()
+    } finally EndBuilderHistoryChange()
 }
 
 ShowBuilderActionMenu(*) {
@@ -397,6 +419,10 @@ ShowBuilderActionMenu(*) {
 
 ShowBuilderTools(*) {
     builderMenu := Menu()
+    builderMenu.Add("Undo`tCtrl+Z", BuilderUndo)
+    builderMenu.Add("Redo`tCtrl+Y", BuilderRedo)
+    builderMenu.Add("Save draft`tCtrl+S", SaveBuilderDraft)
+    builderMenu.Add()
     builderMenu.Add("Name function from map + mode", NameBuilderFunctionFromMap)
     builderMenu.Add()
     builderMenu.Add("Show / hide monkey labels", ToggleMonkeyOverlay)
@@ -408,6 +434,8 @@ ShowBuilderTools(*) {
 
 NameBuilderFunctionFromMap(*) {
     global MapNameEdit, DifficultyDDL, ModeDDL, FunctionNameEdit, OutputEdit, StatusText
+    BeginBuilderHistoryChange()
+    try {
 
     name := GetBuilderSuggestedFunctionName(MapNameEdit.Value, DifficultyDDL.Text, ModeDDL.Text)
     if name = "" {
@@ -424,22 +452,15 @@ NameBuilderFunctionFromMap(*) {
     }
     StatusText.Text := "Function named: " . name
     return true
+    } finally EndBuilderHistoryChange()
 }
 
 ImportBuilderStrategy(*) {
-    global Entities
-    previousEntities := Entities
     ImportStrategyScript()
-    if Entities != previousEntities
-        ResetBuilderEditors()
 }
 
 ClearBuilderStrategy(*) {
-    global Entities
-    previousEntities := Entities
     ClearAll()
-    if Entities != previousEntities
-        ResetBuilderEditors()
 }
 
 ResetBuilderEditors() {
@@ -449,7 +470,7 @@ ResetBuilderEditors() {
 }
 
 CloseStrategyBuilder(*) {
-    ExitApp()
+    RequestBuilderClose()
 }
 
 CleanupStrategyBuilder(*) {
@@ -458,6 +479,7 @@ CleanupStrategyBuilder(*) {
     if cleanedUp
         return 0
     cleanedUp := true
+    StopBuilderHistory()
 
     ; ExitApp clears globals while Windows is still sending paint messages.
     ; Detach our handlers first, while the GUI and its controls are still valid.
@@ -496,8 +518,11 @@ StyleBuilderEdit(control) {
 
 OnDifficultyChanged(*) {
     global DifficultyDDL, ModeDDL
+    BeginBuilderHistoryChange(false)
+    try {
     RefreshModeChoicesForDifficulty(DifficultyDDL.Text, ModeDDL.Text)
     OnModeChanged()
+    } finally EndBuilderHistoryChange()
 }
 
 RefreshModeChoicesForDifficulty(difficulty, preferredMode := "Standard") {
@@ -515,6 +540,8 @@ OnModeChanged(*) {
     global ModeDDL, DifficultyDDL, StatusText
     global ImportedStartRound, ImportedEndRound, IsImportingStrategy
     global BuilderRoundHint
+    BeginBuilderHistoryChange(false)
+    try {
     if !IsImportingStrategy {
         ImportedStartRound := ""
         ImportedEndRound := ""
@@ -528,6 +555,7 @@ OnModeChanged(*) {
         StatusText.Text := "Ready"
     }
     RefreshBuilderRoundHint()
+    } finally EndBuilderHistoryChange()
 }
 
 RefreshBuilderRoundHint() {
@@ -538,14 +566,23 @@ RefreshBuilderRoundHint() {
 
 OnEntityTypeChanged(*) {
     global EntityTypeDDL, HeroDDL, EntityNameEdit
+    BeginBuilderHistoryChange(false)
+    try {
     type := EntityTypeDDL.Text
     HeroDDL.Enabled := type = "Hero"
     EntityNameEdit.Value := GetNextEntityName(type)
     ApplyDefaultTargetingForType(type)
+    } finally EndBuilderHistoryChange()
 }
 
 ApplyDefaultTargetingForType(type) {
     global TargetingDDL
     defaults := Map("Ace", "Circle", "Dartling", "Normal", "Heli", "Follow Mouse", "Mortar", "Target", "SpikeFactory", "Normal")
     ChooseDropdownText(TargetingDDL, defaults.Has(type) ? defaults[type] : "First")
+}
+
+BuilderShortcutsActive(*) {
+    global MainGui
+    return IsObject(MainGui) && WinActive("ahk_id " . MainGui.Hwnd)
+        && DllCall("IsWindowEnabled", "Ptr", MainGui.Hwnd)
 }

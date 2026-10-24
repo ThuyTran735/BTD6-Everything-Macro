@@ -1,5 +1,5 @@
-BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
-v3.5.5
+﻿BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
+v3.5.6
 
 Strategy Builder turns placements and scheduled actions into a map script.
 Start with the map details, add your monkeys, then add what they should do.
@@ -16,7 +16,7 @@ The three views are:
   MONKEYS - where each monkey or hero goes, and when it is placed.
   ACTIONS - upgrades, targeting, selling, abilities, speed, repeated clicks,
             and farm collection.
-  EXPORT  - preview, copy, and save the generated script.
+  EXPORT  - save an editable draft, preview, copy, or export the script.
 
 Switching views keeps your entries. The small ? buttons explain the nearby
 control. The ? in the header opens the general builder guide.
@@ -209,6 +209,16 @@ compare the generated result with the original script.
 
 TOOLS includes:
 
+  Undo / Redo (Ctrl+Z / Ctrl+Y)
+    Reverse or reapply edits, placements, actions, deletions, and remapping.
+    Typing is grouped after a short pause. A new edit after Undo clears Redo.
+    Opening rows and changing views are not changes. History is limited to
+    100 snapshots and restarts when importing a different strategy.
+
+  Save draft (Ctrl+S)
+    Saves rows, settings, and unfinished form entries, even if the strategy
+    is not ready to export. IMPORT reopens the .btd6draft later.
+
   Name function from map + mode
     Fills the Function field using the current map and game mode, following
     the project's existing strategy names. Examples:
@@ -237,7 +247,8 @@ TOOLS includes:
     points are not remapped.
 
   Clear strategy
-    Clears the placements, scheduled actions, and preview after confirmation.
+    Offers Save, Discard, or Cancel for unsaved work before clearing.
+    Undo can restore the cleared entries during this session.
 
 
 9. PREVIEW AND SAVE
@@ -250,16 +261,33 @@ Open EXPORT:
 Copy and Save always use the current saved entries, even if you generated
 an older preview earlier. Fix any reported validation issue, then try again.
 
-Save into the matching map and difficulty folder:
-  Maps\Category\Map Name\Difficulty\YourStrategy.ahk
+Builder saves stay in the local UserData folder:
+  UserData\StrategyBuilder\Drafts\YourStrategy.btd6draft
+  UserData\StrategyBuilder\Exports\YourStrategy.ahk
 
-For example:
-  Maps\Beginner\Monkey Meadow\Easy\MonkeyMeadowPractice.ahk
+Choose a filename in those folders. Exported .ahk code only includes rows
+added to the lists; SAVE DRAFT also keeps fields you have not added yet.
+Generated exports have an include path for their local Exports folder.
+COPY still produces code for Maps\Category\Map Name\Difficulty. If you move
+a local export into Maps yourself, adjust its IncludeAll path for that depth.
+Builder does not add these personal files to the shared strategy catalog.
 
-The Save dialog initially points at Maps. Navigate into the appropriate
-category, map, and difficulty folders before saving. That folder depth is
-also what the generated script's include path expects. Use a new filename
-when keeping an existing strategy alongside your version.
+The entire UserData folder is ignored by Git. Settings > User Data > Export
+backs up Builder drafts and exports along with your other settings. Close
+Strategy Builder before importing a UserData backup, then reopen it; importing
+is blocked while the Builder is open to protect the restored files. Older
+backups without StrategyBuilder data still work and keep newer local files.
+
+When closing or replacing unsaved work:
+  SAVE    - saves an editable draft, then continues.
+  DISCARD - continues without saving the current changes.
+  CANCEL  - keeps editing. Cancelling a save or a failed write also stays open.
+
+Draft recovery runs in the background. After an unexpected close, reopen
+Builder and choose Restore to resume the unfinished editor. Discard removes
+the recovery copy; Later keeps it for manual import and starts a new editor.
+Recovery is separate from named saved drafts and does not include Undo history.
+It is a recent checkpoint, so a crash can lose changes from the last moment.
 
 Export checks include:
   - Whole-number rounds and delays, and coordinates inside 1920x1080.
@@ -306,7 +334,8 @@ Double-click the targeting row, change Strong to First, and click SAVE
 CHANGES. There should still be two action rows, in the same order.
 
 Open EXPORT, click GENERATE, and check the placement and both actions.
-Save as Maps\Beginner\Monkey Meadow\Easy\MonkeyMeadowPractice.ahk.
+Use SAVE DRAFT for the editable copy, then SAVE .AHK to create
+UserData\StrategyBuilder\Exports\MonkeyMeadowPractice.ahk.
 You can return with IMPORT to edit the saved strategy later.
 
 For hand-written helpers and the full strategy format, see MapScriptGuide.txt

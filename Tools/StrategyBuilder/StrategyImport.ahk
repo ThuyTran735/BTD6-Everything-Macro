@@ -4,29 +4,86 @@
 ; Unrecognized action shapes are counted so the import can tell the user what was skipped.
 
 ImportStrategyScript(*) {
+    global MainGui, StatusText
+
+    MainGui.Opt("-AlwaysOnTop")
+    path := FileSelect("1", GetBuilderDataFolder(), "Import strategy script or editable draft",
+        "Strategies and drafts (*.ahk; *.btd6draft)")
+    if path = ""
+        return false
+    return ImportBuilderFile(path)
+}
+
+ImportBuilderFile(path) {
+    global StatusText
+    ; Parse first. A canceled file picker or malformed file must not replace any
+    ; of the current rows, unfinished fields, or undo history.
+    isDraft := RegExMatch(path, "i)\.btd6draft$")
+    try {
+        if isDraft
+            parsed := ReadBuilderDraftFile(path)
+        else {
+            if FileGetSize(path) > 8 * 1024 * 1024
+                throw Error("This strategy file is too large to import.")
+            parsed := ParseStrategyScript(FileRead(path, "UTF-8"))
+            if !parsed || (parsed.entities.Length = 0 && parsed.actions.Length = 0)
+                throw Error("No supported monkey placements or scheduled actions could be imported from this script.")
+            if !ValidateImportedBuilderScript(parsed)
+                throw Error("This strategy contains unsupported settings or invalid placement/action data. Check its map settings, tower names, and numeric values.")
+        }
+    } catch as err {
+        MsgBox("Could not import the selected file. Your current strategy is unchanged.`n`n" err.Message,
+            "Strategy Builder - Import", "Icon!")
+        return false
+    }
+    if !ConfirmBuilderReplace("importing another strategy")
+        return false
+    previous := CaptureBuilderState()
+    BeginBuilderHistoryChange()
+    try {
+        if isDraft {
+            RestoreBuilderState(parsed)
+            StatusText.Text := "Draft opened, including unfinished fields: " path
+        } else {
+            ApplyImportedBuilderScript(parsed, path)
+            ResetBuilderEditors()
+        }
+        MarkBuilderSaved()
+    } catch as err {
+        RestoreBuilderState(previous)
+        MsgBox("The import could not be applied. Your previous strategy has been restored.`n`n" err.Message,
+            "Strategy Builder - Import", "Iconx")
+        return false
+    } finally {
+        EndBuilderHistoryChange()
+    }
+    ResetBuilderHistory()
+    return true
+}
+
+ValidateImportedBuilderScript(parsed) {
+    candidate := CaptureBuilderState()
+    candidate["entities"] := CloneBuilderState(parsed.entities)
+    candidate["actions"] := CloneBuilderState(parsed.actions)
+    difficulty := parsed.difficulty, mode := parsed.gameMode
+    if difficulty = "Impoppable" || difficulty = "CHIMPS" {
+        mode := difficulty
+        difficulty := "Hard"
+    }
+    candidate["metadata"] := Map("mapName", parsed.map, "functionName", parsed.functionName,
+        "category", parsed.category, "difficulty", difficulty, "mode", mode,
+        "wingmonkey", parsed.wingmonkeyMK ? 1 : 0, "importedStartRound", parsed.startRound, "importedEndRound", parsed.endRound)
+    for key in ["entitySelection", "entityEditIndex", "actionSelection", "actionEditIndex"]
+        candidate["editor"][key] := 0
+    return ValidateBuilderState(candidate)
+}
+
+ApplyImportedBuilderScript(parsed, path) {
     global MainGui, Entities, UpgradeActions, OutputEdit, StatusText
     global MapNameEdit, FunctionNameEdit, CategoryDDL, DifficultyDDL, ModeDDL
     global EntityTypeDDL, EntityNameEdit, HeroDDL, XEdit, YEdit, PlaceRoundEdit, PlaceDelayEdit
     global ImportedStartRound, ImportedEndRound, IsImportingStrategy
     global WingmonkeyMKCheckbox
-
-    projectRoot := RegExReplace(A_ScriptDir, "i)\\Tools$")
-    MainGui.Opt("-AlwaysOnTop")
-    path := FileSelect("1", projectRoot "\Maps", "Import strategy script", "AutoHotkey Script (*.ahk)")
-    if path = ""
-        return
-
-    try text := FileRead(path, "UTF-8")
-    catch as err {
-        MsgBox("Could not read the strategy file.`n`n" err.Message, "Strategy Builder", "Iconx")
-        return
-    }
-
-    parsed := ParseStrategyScript(text)
-    if !parsed || (parsed.entities.Length = 0 && parsed.actions.Length = 0) {
-        MsgBox("No supported monkey placements or scheduled actions could be imported from this script.", "Strategy Builder", "Icon!")
-        return
-    }
 
     ; A click-only strategy can have an empty TowerSetup map.
     ; Replace editor state only after parsing found usable placements or actions.
@@ -39,27 +96,30 @@ ImportStrategyScript(*) {
 
     ; Mode refresh normally clears imported round bounds; keep them while loading this file.
     IsImportingStrategy := true
-    MapNameEdit.Value := parsed.map
-    FunctionNameEdit.Value := parsed.functionName
-    ChooseDropdownText(CategoryDDL, parsed.category)
+    try {
+        MapNameEdit.Value := parsed.map
+        FunctionNameEdit.Value := parsed.functionName
+        ChooseDropdownText(CategoryDDL, parsed.category)
 
-    difficulty := parsed.difficulty
-    mode := parsed.gameMode
-    ; Older scripts store these modes as difficulty names; the form keeps them under Hard.
-    if difficulty = "Impoppable" {
-        difficulty := "Hard"
-        mode := "Impoppable"
-    } else if difficulty = "CHIMPS" {
-        difficulty := "Hard"
-        mode := "CHIMPS"
+        difficulty := parsed.difficulty
+        mode := parsed.gameMode
+        ; Older scripts store these modes as difficulty names; the form keeps them under Hard.
+        if difficulty = "Impoppable" {
+            difficulty := "Hard"
+            mode := "Impoppable"
+        } else if difficulty = "CHIMPS" {
+            difficulty := "Hard"
+            mode := "CHIMPS"
+        }
+
+        if !ChooseDropdownText(DifficultyDDL, difficulty)
+            DifficultyDDL.Choose(1)
+
+        RefreshModeChoicesForDifficulty(DifficultyDDL.Text, mode)
+        OnModeChanged()
+    } finally {
+        IsImportingStrategy := false
     }
-
-    if !ChooseDropdownText(DifficultyDDL, difficulty)
-        DifficultyDDL.Choose(1)
-
-    RefreshModeChoicesForDifficulty(DifficultyDDL.Text, mode)
-    OnModeChanged()
-    IsImportingStrategy := false
 
     RefreshEntityList()
     RefreshActionEntityDropdown()

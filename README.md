@@ -1,14 +1,21 @@
-# BTD6 Everything Macro
-**Current version: v3.5.5**
+﻿# BTD6 Everything Macro
+**Current version: v3.5.6**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.5.5)
+### Current release highlights (v3.5.6)
+
+- Added **Undo / Redo** in Strategy Builder with **Ctrl+Z / Ctrl+Y** for placements, actions, edits, and deletions.
+- Added **Save / Discard / Cancel** before closing, clearing, or importing over unsaved work. **Save draft / Ctrl+S** keeps unfinished fields as well as saved rows.
+- Added local draft recovery after an unexpected close. Editable drafts and generated `.ahk` exports stay inside **UserData/StrategyBuilder**, which is excluded from Git and included in UserData backups.
+- Fixed window growth after coordinate capture and remapping, and kept dropdowns from covering help dialogs. Case-only monkey renames now update linked actions.
+
+### Previous release highlights (v3.5.5)
 
 - Fixed Strategy Builder growing wider and taller when closing **?** help popups. Help now returns focus without changing the window size or position.
 - Added **TOOLS → Name function from map + mode** in Strategy Builder. It follows existing names such as `DarkCastleImpoppable` and uses the difficulty for Standard modes, such as `MonkeyMeadowEasy`.
 
-### Previous release highlights (v3.5.4)
+### v3.5.4 highlights
 
 - Fixed Strategy Builder's right-click menus, **ROW OPTIONS**, and **TOOLS** failing to open.
 - Restored the full clickable area of Builder buttons while keeping their animations and separate **?** help buttons.
@@ -83,7 +90,9 @@ The old top-level files are intentionally kept as compatibility wrappers, so exi
 
 ## Strategy Builder
 
-Open `Tools\StrategyBuilder.ahk` to create a strategy or use **IMPORT** to load an existing `.ahk` file.
+Open `Tools\StrategyBuilder.ahk` to create a strategy or use **IMPORT** to load an existing `.ahk` file or a saved `.btd6draft`.
+
+**Save draft / Ctrl+S** preserves the full editor in `UserData/StrategyBuilder/Drafts`; **Save .ahk** exports added rows to `UserData/StrategyBuilder/Exports`. Recovery copies also stay in UserData. Exporting code does not replace saving an editable draft. Close Strategy Builder before importing a UserData backup so autosave cannot overwrite restored work. Backups from older versions still work.
 
 For step-by-step instructions and a practice example, read [StrategyBuilderHowTo.txt](Docs/StrategyBuilderHowTo.txt).
 

@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 ; Keep help next to the builder so labels and explanations can change together.
 ; A blank result means the label is descriptive text, not an editable control.
@@ -8,15 +8,17 @@ GetBuilderHelpText(label, group := "") {
 
     switch label {
         case "import", "import .ahk":
-            return "Open an existing .ahk strategy to edit its placements and supported actions. Import replaces the current editor contents, so save your work first. The file is read as text; it is never run. If an action is unsupported, the builder tells you what was skipped."
+            return "Open an existing .ahk strategy to edit its placements and supported actions. Import also opens saved .btd6draft files. Before replacing unsaved work, you can Save, Discard, or Cancel. The file is read as text; it is never run. If an action is unsupported, the builder tells you what was skipped."
+        case "save draft":
+            return "Save the complete editable strategy in UserData\StrategyBuilder\Drafts, including unfinished fields. Ctrl+S does the same. Import can reopen a draft. Save .ahk exports playable code separately; it only includes rows added to the lists."
         case "tools":
-            return "Name function from map + mode fills the Function field, for example DarkCastleImpoppable. Standard uses the difficulty, such as MonkeyMeadowEasy. Tools also has monkey labels, F4 coordinate remapping, and Clear. Press Esc during remapping to restore the original points."
+            return "Name function from map + mode fills the Function field, for example DarkCastleImpoppable. Standard uses the difficulty, such as MonkeyMeadowEasy. Tools also has Undo (Ctrl+Z), Redo (Ctrl+Y), Save draft (Ctrl+S), monkey labels, F4 coordinate remapping, and Clear. Press Esc during remapping to restore the original points."
         case "?", "help", "strategy builder":
             return "Start in Monkeys to add placements, then use Actions to schedule upgrades and other steps. Export checks the strategy and creates its .ahk code. The builder never plays the strategy. Use the small ? beside a control for details about that control."
         case "-", "minimize":
             return "Minimize the builder while you inspect the game. Your editor contents stay open. Return to the builder from the Windows taskbar."
         case "x", "close":
-            return "Close the Strategy Builder. Save your strategy from Export first if you want to keep your changes."
+            return "Close the Strategy Builder. Unsaved changes prompt Save, Discard, or Cancel. Save preserves unfinished fields in a local draft."
         case "map name":
             return "Enter the name of the BTD6 map used by this strategy, such as Dark Castle. This name is saved in the strategy's map settings."
         case "category":
@@ -110,7 +112,7 @@ GetBuilderHelpText(label, group := "") {
         case "copy":
             return "Regenerate the strategy from the latest saved editor entries, validate it, and copy the complete .ahk code to the clipboard. A stale preview is not reused."
         case "save .ahk":
-            return "Regenerate and validate the strategy, then choose where to save the .ahk file. Save changes in any row you are editing first. The file is created without running the strategy."
+            return "Regenerate and validate the strategy, then save the .ahk file under UserData\StrategyBuilder\Exports. Save changes in any row you are editing first. The file is created without running the strategy."
         case "got it":
             return "Close this explanation and return to the builder."
     }
@@ -124,6 +126,7 @@ ShowBuilderControlHelp(title, text, *) {
     if Trim(text) = ""
         return false
 
+    CloseBuilderDropdowns()
     if BuilderHelpGui {
         for control in BuilderHelpGui {
             if BuilderButtons.Has(control.Hwnd)

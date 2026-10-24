@@ -202,7 +202,7 @@ RequestImportUserDataFromSettings(*) {
         "IMPORT DATA",
         ImportPendingUserDataBackup,
         UserDataTransferGui,
-        "Restores settings, favorites, launcher state, queue profiles, run history, logs, and anything else stored in UserData. Restart the macro after importing so every screen reloads the restored values."
+        "Restores settings, favorites, launcher state, queue profiles, run history, logs, Strategy Builder drafts and exports, and anything else stored in UserData. Restart the macro after importing so every screen reloads the restored values."
     )
 }
 
@@ -215,6 +215,13 @@ ImportPendingUserDataBackup(*) {
 
     if sourceFolder = "" || !DirExist(sourceFolder) {
         SetUserDataTransferStatus("The selected backup folder is no longer available.")
+        return
+    }
+
+    ; A running builder would write its in-memory draft over the restored files.
+    ; Let the user save and close it before retrying the import.
+    if IsStrategyBuilderOpenForUserDataImport() {
+        SetUserDataTransferStatus("Close Strategy Builder, then import again so its open draft cannot overwrite the backup.")
         return
     }
 
@@ -303,7 +310,7 @@ ShowUserDataTransferUI(*) {
     UserDataTransferGui.Add(
         "Text",
         "x36 y128 w428 h48 c" . UIColorSecondaryText . " BackgroundTrans",
-        "The whole UserData folder: settings, favorites, launcher state, queue profiles, run history, logs, and any future UserData files."
+        "The whole UserData folder: settings, favorites, launcher state, queue profiles, run history, logs, Strategy Builder drafts and exports, and any future UserData files."
     )
 
     SetUIHeadingFont(UserDataTransferGui, 8, UIColorHeadingText)
@@ -388,4 +395,19 @@ CloseUserDataTransferUI(*) {
     UserDataTransferGui := ""
     UserDataTransferStatusText := ""
     PendingUserDataImportFolder := ""
+}
+
+IsStrategyBuilderOpenForUserDataImport() {
+    ; Capture temporarily hides the builder, but its autosave is still alive.
+    previous := DetectHiddenWindows(true)
+    try {
+        for hwnd in WinGetList("ahk_class AutoHotkeyGUI") {
+            try title := WinGetTitle("ahk_id " . hwnd)
+            catch
+                continue
+            if InStr(title, "BTD6 Strategy Builder ") = 1
+                return true
+        }
+        return false
+    } finally DetectHiddenWindows(previous)
 }

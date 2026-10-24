@@ -1,4 +1,4 @@
-# Project structure (v3.5.5)
+﻿# Project structure (v3.5.6)
 
 The big v2 files were split in v3 so debugging does not mean scrolling through 1,500-2,000 lines every time.
 
@@ -22,7 +22,8 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 - `Scripts/UI/Queue/` - queue manager, queue job builder, and queue profile code.
 - `Scripts/UI/Run/` - the in-run HUD and run-count prompt.
 - `Scripts/UI/Settings/` - settings toggles, update checks, log controls, and UserData backup/restore.
-- `Tools/StrategyBuilder/` - Strategy Builder window, editors, import/export, overlays, and chrome.
+- `Tools/StrategyBuilder/` - Strategy Builder window, editors, import/export, overlays, and chrome. `BuilderHistory.ahk` owns snapshots and undo/redo; `BuilderPersistence.ahk` owns local saves/recovery; `BuilderDialogs.ahk` owns decision prompts.
+- `UserData/StrategyBuilder/` - personal editable drafts, generated exports, and recovery checkpoints. This runtime data is ignored by Git and moves with UserData backups. Older backups need no conversion.
 
 ## Adding collection-event badges
 

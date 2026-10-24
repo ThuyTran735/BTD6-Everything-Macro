@@ -1,5 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
-#SingleInstance Force
+#SingleInstance Ignore
 #Include ..\Scripts\Version.ahk
 #Include ..\Scripts\UI\UITheme.ahk
 #Include ..\Scripts\UI\CustomControlsUI.ahk
@@ -21,3 +21,7 @@ UIFontHeading := LoadBuilderHeadingFont()
 #Include StrategyBuilder\OverlayHelpers.ahk
 #Include StrategyBuilder\WindowChrome.ahk
 #Include StrategyBuilder\BuilderHelp.ahk
+
+#Include StrategyBuilder\BuilderHistory.ahk
+#Include StrategyBuilder\BuilderPersistence.ahk
+#Include StrategyBuilder\BuilderDialogs.ahk

@@ -4,6 +4,12 @@
 ; Coordinate overrides select a moved tower; Spike Factory target points have a separate meaning.
 
 SaveBuilderAction(*) {
+    BeginBuilderHistoryChange()
+    try return SaveBuilderActionCore()
+    finally EndBuilderHistoryChange()
+}
+
+SaveBuilderActionCore(*) {
     global BuilderActionTypeDDL, BuilderEditingActionIndex, BuilderEditingAction
     global UpgradeActions, ActionLV, StatusText
 
@@ -52,6 +58,12 @@ SaveBuilderAction(*) {
 }
 
 LoadSelectedActionForEdit(*) {
+    BeginBuilderHistoryChange()
+    try return LoadSelectedActionForEditCore()
+    finally EndBuilderHistoryChange()
+}
+
+LoadSelectedActionForEditCore(*) {
     global UpgradeActions, ActionLV, BuilderActionTypeDDL, BuilderActionSaveButton
     global BuilderEditingActionIndex, BuilderEditingAction, ActionEntityDDL
     global UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit
@@ -121,11 +133,18 @@ LoadSelectedActionForEdit(*) {
     BuilderEditingAction := action
     BuilderActionSaveButton.Text := "Save changes"
     RefreshBuilderActionForm()
+    MarkBuilderFormBaseline("action")
     StatusText.Text := "Editing action " row " — choose New action to leave this row unchanged"
     return true
 }
 
 NewBuilderAction(*) {
+    BeginBuilderHistoryChange()
+    try return NewBuilderActionCore()
+    finally EndBuilderHistoryChange()
+}
+
+NewBuilderActionCore(*) {
     global BuilderEditingActionIndex, BuilderEditingAction, BuilderActionSaveButton
     global UpgradeDelayEdit, AbilityEdit, GameSpeedDDL, ActionLV, StatusText
     global ClickXEdit, ClickYEdit, ClickCountEdit, ClickIntervalEdit
@@ -143,6 +162,7 @@ NewBuilderAction(*) {
     ClickIntervalEdit.Value := "250"
     OnActionEntityChanged()
     RefreshBuilderActionForm()
+    MarkBuilderFormBaseline("action")
     StatusText.Text := "New action — the last round is kept for the next entry"
 }
 
@@ -517,6 +537,12 @@ AddGameSpeedAction(*) {
 }
 
 DeleteSelectedUpgrade(*) {
+    BeginBuilderHistoryChange()
+    try return DeleteSelectedUpgradeCore()
+    finally EndBuilderHistoryChange()
+}
+
+DeleteSelectedUpgradeCore(*) {
     global ActionLV, UpgradeActions, StatusText
 
     row := ActionLV.GetNext(0)
@@ -676,6 +702,12 @@ ClearUpgradeCoordinateInputs() {
 }
 
 CaptureClickCoordinatesInstant(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureClickCoordinatesInstantCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureClickCoordinatesInstantCore(*) {
     global BuilderView, BuilderActionTypeDDL, ClickXEdit, ClickYEdit, StatusText
     if BuilderView != "Actions" || BuilderActionTypeDDL.Text != "Repeat clicks"
         return
@@ -688,6 +720,12 @@ CaptureClickCoordinatesInstant(*) {
 }
 
 CaptureClickCoordinates(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureClickCoordinatesCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureClickCoordinatesCore(*) {
     global MainGui, ClickXEdit, ClickYEdit, StatusText
     StatusText.Text := "Move cursor and press F6..."
     MainGui.Hide()
@@ -712,12 +750,17 @@ CaptureClickCoordinates(*) {
         }
     } finally {
         ToolTip()
-        MainGui.Show()
-        WinActivate("ahk_id " MainGui.Hwnd)
+        RestoreBuilderAfterCapture()
     }
 }
 
 CaptureUpgradeCoordinatesInstant(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureUpgradeCoordinatesInstantCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureUpgradeCoordinatesInstantCore(*) {
     global UpgradeXEdit, UpgradeYEdit, StatusText
 
     MouseGetPos(&mx, &my)
@@ -729,6 +772,12 @@ CaptureUpgradeCoordinatesInstant(*) {
 }
 
 CaptureUpgradeCoordinates(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureUpgradeCoordinatesCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureUpgradeCoordinatesCore(*) {
     global MainGui, UpgradeXEdit, UpgradeYEdit, StatusText
 
     StatusText.Text := "Move cursor and press F3..."
@@ -740,7 +789,7 @@ CaptureUpgradeCoordinates(*) {
         if GetKeyState("Escape", "P") {
             KeyWait("Escape")
             ToolTip()
-            MainGui.Show()
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Upgrade coordinate capture cancelled"
             return
         }
@@ -751,10 +800,7 @@ CaptureUpgradeCoordinates(*) {
             ToolTip()
             UpgradeXEdit.Value := mx
             UpgradeYEdit.Value := my
-            MainGui.Show()
-            MainGui.Opt("+AlwaysOnTop")
-            WinActivate("ahk_id " MainGui.Hwnd)
-            SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Captured upgrade coordinates: " mx ", " my
             return
         }
@@ -775,6 +821,12 @@ ClearTargetCoordinateInputs() {
 }
 
 CaptureTargetCoordinatesInstant(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureTargetCoordinatesInstantCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureTargetCoordinatesInstantCore(*) {
     global ActionTargetXEdit, ActionTargetYEdit, StatusText
 
     if !ActionTargetXEdit.Enabled || !ActionTargetYEdit.Enabled
@@ -789,6 +841,12 @@ CaptureTargetCoordinatesInstant(*) {
 }
 
 CaptureTargetCoordinates(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureTargetCoordinatesCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureTargetCoordinatesCore(*) {
     global MainGui, ActionTargetXEdit, ActionTargetYEdit, StatusText
 
     if !ActionTargetXEdit.Enabled || !ActionTargetYEdit.Enabled {
@@ -805,7 +863,7 @@ CaptureTargetCoordinates(*) {
         if GetKeyState("Escape", "P") {
             KeyWait("Escape")
             ToolTip()
-            MainGui.Show()
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Targeting coordinate capture cancelled"
             return
         }
@@ -816,10 +874,7 @@ CaptureTargetCoordinates(*) {
             ToolTip()
             ActionTargetXEdit.Value := mx
             ActionTargetYEdit.Value := my
-            MainGui.Show()
-            MainGui.Opt("+AlwaysOnTop")
-            WinActivate("ahk_id " MainGui.Hwnd)
-            SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Captured targeting coordinates: " mx ", " my
             return
         }

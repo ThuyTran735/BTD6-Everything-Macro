@@ -4,6 +4,12 @@
 ; A cancelled batch remap restores every original position, including points captured earlier.
 
 CaptureCoordinatesInstant(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureCoordinatesInstantCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureCoordinatesInstantCore(*) {
     global XEdit, YEdit, StatusText
 
     MouseGetPos(&mx, &my)
@@ -15,6 +21,12 @@ CaptureCoordinatesInstant(*) {
 }
 
 CaptureCoordinates(*) {
+    BeginBuilderHistoryChange()
+    try return CaptureCoordinatesCore()
+    finally EndBuilderHistoryChange()
+}
+
+CaptureCoordinatesCore(*) {
     global MainGui, XEdit, YEdit, StatusText
 
     StatusText.Text := "Move cursor and press F2..."
@@ -26,7 +38,7 @@ CaptureCoordinates(*) {
         if GetKeyState("Escape", "P") {
             KeyWait("Escape")
             ToolTip()
-            MainGui.Show()
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Coordinate capture cancelled"
             return
         }
@@ -37,10 +49,7 @@ CaptureCoordinates(*) {
             ToolTip()
             XEdit.Value := mx
             YEdit.Value := my
-            MainGui.Show()
-            MainGui.Opt("+AlwaysOnTop")
-            WinActivate("ahk_id " MainGui.Hwnd)
-            SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+            RestoreBuilderAfterCapture()
             StatusText.Text := "Captured: " mx ", " my
             return
         }
@@ -51,6 +60,12 @@ CaptureCoordinates(*) {
 
 
 RemapAllPlacementCoordinates(*) {
+    BeginBuilderHistoryChange()
+    try return RemapAllPlacementCoordinatesCore()
+    finally EndBuilderHistoryChange()
+}
+
+RemapAllPlacementCoordinatesCore(*) {
     global MainGui, Entities, MonkeyOverlayVisible, StatusText
 
     if Entities.Length = 0 {
@@ -104,10 +119,7 @@ RemapAllPlacementCoordinates(*) {
                 }
 
                 ToolTip()
-                MainGui.Show()
-                MainGui.Opt("+AlwaysOnTop")
-                WinActivate("ahk_id " MainGui.Hwnd)
-                SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+                RestoreBuilderAfterCapture()
                 RefreshEntityList()
 
                 if overlayWasVisible
@@ -134,10 +146,7 @@ RemapAllPlacementCoordinates(*) {
     }
 
     ToolTip()
-    MainGui.Show()
-    MainGui.Opt("+AlwaysOnTop")
-    WinActivate("ahk_id " MainGui.Hwnd)
-    SetTimer(() => MainGui.Opt("-AlwaysOnTop"), -250)
+    RestoreBuilderAfterCapture()
 
     RefreshEntityList()
 
@@ -209,6 +218,7 @@ AddEntity(*) {
     PlaceRoundEdit.Value := placeRound
     PlaceDelayEdit.Value := "0"
     ApplyDefaultTargetingForType(type)
+    MarkBuilderFormBaseline("entity")
     StatusText.Text := "Added " name
 }
 
@@ -291,7 +301,7 @@ UpdateSelectedEntity(*) {
     }
 
     ; Actions refer to the display name, so a rename must follow through to the schedule.
-    if name != oldName {
+    if !(name == oldName) {
         for action in UpgradeActions {
             if HasProp(action, "entity") && action.entity = oldName
                 action.entity := name
@@ -303,6 +313,7 @@ UpdateSelectedEntity(*) {
     RefreshActionEntityDropdown(name)
     RefreshActionList()
     RefreshMonkeyOverlayIfVisible()
+    MarkBuilderFormBaseline("entity")
     StatusText.Text := "Updated " name
 }
 

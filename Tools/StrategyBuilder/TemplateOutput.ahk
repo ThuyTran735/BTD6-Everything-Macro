@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 ; Turns editor state into a strategy script, with placements sorted before other tied actions.
 ; Generation, copy, and save share the same output so the preview matches the saved file.
@@ -32,29 +32,43 @@ SaveTemplate(*) {
 
     template := BuildTemplateText()
     if template = ""
-        return
+        return false
     OutputEdit.Value := template
 
     defaultName := SanitizeFileName(FunctionNameEdit.Value) ".ahk"
-    projectRoot := RegExReplace(A_ScriptDir, "i)\\Tools$")
-    defaultPath := projectRoot "\Maps\" defaultName
+    try EnsureBuilderDataFolders()
+    catch as err {
+        MsgBox("Could not create the local export folder.`n`n" err.Message, "Strategy Builder", "Iconx")
+        return false
+    }
+    defaultPath := GetBuilderDataFolder("Exports") "\" defaultName
 
     MainGui.Opt("-AlwaysOnTop")
-    path := FileSelect("S16", defaultPath, "Save generated strategy", "AutoHotkey Script (*.ahk)")
+    path := FileSelect("S", defaultPath, "Save generated strategy in UserData", "AutoHotkey Script (*.ahk)")
     if path = ""
-        return
+        return false
 
     if !RegExMatch(path, "i)\.ahk$")
         path .= ".ahk"
+    if !IsBuilderLocalSavePath(path, "Exports") {
+        MsgBox("Save generated scripts inside this local folder so they stay out of GitHub:`n`n"
+            GetBuilderDataFolder("Exports"), "Strategy Builder - Local exports", "Icon!")
+        return false
+    }
+    if !ConfirmBuilderFileOverwrite(path)
+        return false
 
     try {
-        if FileExist(path)
-            FileDelete(path)
-        FileAppend(template, path, "UTF-8")
-        StatusText.Text := "Saved: " path
-        MsgBox("Strategy template saved to:`n" path, "Strategy Builder", "Iconi")
+        ; UserData/StrategyBuilder/Exports is one level shallower than a map's
+        ; normal strategy folder. Keep the local export runnable from here.
+        exported := StrReplace(template, "#Include ..\..\..\..\Scripts\IncludeAll.ahk",
+            "#Include ..\..\..\Scripts\IncludeAll.ahk")
+        WriteBuilderFileAtomic(path, exported)
+        StatusText.Text := "Script exported locally. Save draft also keeps unfinished fields: " path
+        return true
     } catch as err {
         MsgBox("Could not save the file.`n`n" err.Message, "Strategy Builder", "Iconx")
+        return false
     }
 }
 
@@ -65,34 +79,41 @@ ClearAll(*) {
     global ImportedStartRound, ImportedEndRound
     global WingmonkeyMKCheckbox, GameSpeedDDL
 
-    result := MsgBox("Clear all monkeys, hero, scheduled actions, and generated output?", "Strategy Builder", "YesNo Icon?")
-    if result != "Yes"
-        return
+    if !ConfirmBuilderReplace("clearing this strategy")
+        return false
 
-    HideMonkeyOverlay()
-    Entities := []
-    UpgradeActions := []
-    ImportedStartRound := ""
-    ImportedEndRound := ""
-    WingmonkeyMKCheckbox.Value := 0
-    if GameSpeedDDL
-        GameSpeedDDL.Choose(1)
-    OutputEdit.Value := ""
-    EntityTypeDDL.Choose(1)
-    HeroDDL.Enabled := false
-    EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
-    XEdit.Value := "0"
-    YEdit.Value := "0"
-    PlaceRoundEdit.Value := "0"
-    PlaceDelayEdit.Value := "0"
-    UpgradeEdit.Value := "000"
-    UpgradeXEdit.Value := ""
-    UpgradeYEdit.Value := ""
-    ApplyDefaultTargetingForType(EntityTypeDDL.Text)
-    RefreshEntityList()
-    RefreshActionEntityDropdown()
-    RefreshActionList()
-    StatusText.Text := "Cleared"
+    BeginBuilderHistoryChange()
+    try {
+        HideMonkeyOverlay()
+        Entities := []
+        UpgradeActions := []
+        ImportedStartRound := ""
+        ImportedEndRound := ""
+        WingmonkeyMKCheckbox.Value := 0
+        if GameSpeedDDL
+            GameSpeedDDL.Choose(1)
+        OutputEdit.Value := ""
+        EntityTypeDDL.Choose(1)
+        HeroDDL.Enabled := false
+        EntityNameEdit.Value := GetNextEntityName(EntityTypeDDL.Text)
+        XEdit.Value := "0"
+        YEdit.Value := "0"
+        PlaceRoundEdit.Value := "0"
+        PlaceDelayEdit.Value := "0"
+        UpgradeEdit.Value := "000"
+        UpgradeXEdit.Value := ""
+        UpgradeYEdit.Value := ""
+        ApplyDefaultTargetingForType(EntityTypeDDL.Text)
+        RefreshEntityList()
+        RefreshActionEntityDropdown()
+        RefreshActionList()
+        ResetBuilderEditors()
+        MarkBuilderSaved()
+        StatusText.Text := "Cleared"
+        return true
+    } finally {
+        EndBuilderHistoryChange()
+    }
 }
 
 BuildTemplateText() {

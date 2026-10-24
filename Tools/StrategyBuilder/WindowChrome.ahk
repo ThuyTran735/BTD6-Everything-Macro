@@ -190,6 +190,23 @@ MinimizeStrategyBuilder(*) {
     }
 }
 
+RestoreBuilderAfterCapture() {
+    global MainGui
+    if !IsObject(MainGui)
+        return false
+    try hwnd := MainGui.Hwnd
+    catch
+        return false
+    if !DllCall("IsWindow", "Ptr", hwnd, "Int")
+        return false
+
+    ; Gui.Show recalculates the thick frame even though our client-area
+    ; handler already includes it. Show the existing window without resizing.
+    DllCall("ShowWindow", "Ptr", hwnd, "Int", 5)
+    WinActivate("ahk_id " . hwnd)
+    return true
+}
+
 
 ResizeStrategyBuilderChrome(guiObject, minMax, width, height) {
     global BuilderWindowBorder, BuilderLayoutItems
@@ -378,8 +395,9 @@ SetBuilderFieldVisible(control, visible) {
 
 ShowBuilderHelp(*) {
     global MainGui, BuilderHelpGui, BuilderHeadingFont, BuilderButtons
+    CloseBuilderDropdowns()
     if BuilderHelpGui {
-        BuilderHelpGui.Show()
+        WinActivate("ahk_id " . BuilderHelpGui.Hwnd)
         return
     }
     BuilderHelpGui := Gui("-Caption +Border +Owner" . MainGui.Hwnd, "Strategy Builder help")
@@ -388,10 +406,10 @@ ShowBuilderHelp(*) {
     BuilderHelpGui.SetFont("s15 Norm cF4F7FB", BuilderHeadingFont)
     BuilderHelpGui.AddText("x24 y24 w492 h30", "STRATEGY BUILDER")
     BuilderHelpGui.SetFont("s10 Norm cD8E0E8", "Segoe UI")
-    help := "MONKEYS" . Chr(10) . "Add placements, or double-click a row to edit it. New starts another entry. Row options lets you edit or delete a selection."
-    help .= Chr(10) . Chr(10) . "ACTIONS" . Chr(10) . "Choose an action type, set its round and delay, then add it. Double-click an action to save changes in the same row."
-    help .= Chr(10) . Chr(10) . "EXPORT" . Chr(10) . "Generate a preview, copy the code, or save an .ahk file. Copy and Save check the schedule and use your latest changes."
-    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools names the function from map + mode, shows labels, remaps points, or clears the strategy. F2: placement; F3: moved tower; F5: target; F6: clicks."
+    help := "MONKEYS" . Chr(10) . "Add placements, or double-click a row to edit it. New starts another entry. Row options edits or deletes the selection."
+    help .= Chr(10) . Chr(10) . "ACTIONS / HISTORY" . Chr(10) . "Schedule an action by round and delay. Double-click to edit. Ctrl+Z undoes changes; Ctrl+Y redoes them."
+    help .= Chr(10) . Chr(10) . "SAVE / EXPORT" . Chr(10) . "Ctrl+S saves the editable draft, including unfinished fields. Saves stay in UserData. Export checks and creates .ahk code. Recovery can restore work after an unexpected close."
+    help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools names the function, shows labels, remaps points, or clears the strategy. Capture: F2 placement, F3 tower, F5 target, F6 clicks. Esc cancels capture."
     BuilderHelpGui.AddText("x24 y70 w492 h362", help)
     BuilderHelpGui.SetFont("s10 Norm", BuilderHeadingFont)
     close := BuilderDarkButton(BuilderHelpGui, 352, 448, 164, 32, "GOT IT", 8, "Success")

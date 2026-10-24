@@ -1,4 +1,4 @@
-BTD6 EVERYTHING MACRO - STRATEGY WRITING GUIDE
+﻿BTD6 EVERYTHING MACRO - STRATEGY WRITING GUIDE
 
 This guide explains how to correctly write map strategies using the current macro system.
 
@@ -436,7 +436,7 @@ enter the map details and build one using these three views:
        Supports Upgrade, Targeting, Sell, Ability, Game speed, Repeat clicks,
        and banana collection toggles. Double-click to edit an action in the same row.
        Actions with the same round and delay keep their original order.
-     - EXPORT: generate a preview, copy the code, or save an .ahk file.
+     - EXPORT: save an editable draft, generate a preview, copy code, or save .ahk.
        Copy and Save always rebuild the code from the current strategy.
 
 ROW OPTIONS contains edit and delete. TOOLS includes function naming from
@@ -448,6 +448,18 @@ prefix if needed for a leading number. Choosing the tool replaces the field;
 changing map settings alone keeps custom and imported names. A changed name
 clears the old preview. Generate, Copy, and Save use the new name for the
 declaration and final function call. Existing files are not renamed.
+Ctrl+Z / Ctrl+Y undo and redo changes. Ctrl+S saves a complete editable draft,
+including unfinished fields. Import opens .btd6draft files as well as .ahk.
+Closing, clearing, or replacing unsaved work offers Save, Discard, or Cancel.
+Unexpected closes offer draft recovery on the next launch.
+
+All Builder saves stay under UserData\StrategyBuilder: Drafts for editable
+files, Exports for generated .ahk scripts, and Recovery for crash checkpoints.
+They are ignored by Git and included in UserData backups. Close the Builder
+before importing a UserData backup; older backups remain compatible.
+Save .ahk adjusts its include path for the local Exports folder. COPY keeps
+the usual Maps\Category\Map Name\Difficulty include depth.
+
 The ? button opens a short guide.
 Capture coordinates with F2 for placements, F3 for a tower's current position,
 F5 for targeting points, and F6 for Repeat clicks points.

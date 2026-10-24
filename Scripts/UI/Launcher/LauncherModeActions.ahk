@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles launcher close/run/queue actions and picks the active launcher mode.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Route launcher actions to the selected mode, or to the pending queue.
 
 RequestCloseLauncher(*) {
     global LauncherGui
@@ -23,9 +22,11 @@ RunCurrentMode(*) {
     global CurrentMode
     global MacroJobQueue
     global MacroRunning
+    global CollectionEventSetupPending
+    global UIColorWarning
 
 
-    if MacroRunning {
+    if MacroRunning || CollectionEventSetupPending {
         return
     }
 
@@ -42,6 +43,10 @@ RunCurrentMode(*) {
         StartMacroQueue()
 
         return
+    }
+
+    if CurrentMode = "Auto Collection Event" {
+        return StartAutoCollectionEventRun()
     }
 
 
@@ -74,9 +79,17 @@ RunCurrentMode(*) {
 
 QueueCurrentSelection(*) {
     global MacroRunning
+    global CollectionEventSetupPending
+    global CurrentMode
+    global UIColorWarning
 
 
-    if MacroRunning {
+    if MacroRunning || CollectionEventSetupPending {
+        return
+    }
+
+    if CurrentMode = "Auto Collection Event" {
+        UpdateStatus("EVENT MODE SELECTS MAPS EACH CYCLE", UIColorWarning)
         return
     }
 

@@ -1,12 +1,13 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Updates special targeting state after upgrades that change how a tower aims.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Samples upgrade-button appearance and updates targeting changed automatically by a purchase.
+; Stored targeting must match the game before later aim helpers calculate their next steps.
 
 CaptureUpgradeButtonSignature(
     x,
     y
 ) {
+    ; Sample a small grid instead of trusting one pixel that an animation could leave unchanged.
     offsets := [
         [-48, -18], [-24, -18], [0, -18], [24, -18], [48, -18],
         [-48, 0],   [-24, 0],   [0, 0],   [24, 0],   [48, 0],

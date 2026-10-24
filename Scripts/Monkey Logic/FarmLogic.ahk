@@ -132,6 +132,7 @@ CollectBananasWhileIdle() {
         return false
     }
 
+    ; Rebuild on each idle step because upgrades and sales can change eligibility.
     farms := GetBananaCollectionFarms()
 
     if farms.Length = 0 {
@@ -148,6 +149,7 @@ CollectBananasWhileIdle() {
     farmEntry := farms[BananaCollectionFarmIndex]
     farm := farmEntry.tower
 
+    ; Borrow screen coordinates only for this hover; finally restores the caller.
     previousCoordMode := A_CoordModeMouse
     CoordMode("Mouse", "Screen")
 

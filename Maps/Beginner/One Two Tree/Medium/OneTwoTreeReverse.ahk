@@ -3,6 +3,7 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 OneTwoTreeReverse() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Beginner",
         map: "One Two Tree",
@@ -12,6 +13,8 @@ OneTwoTreeReverse() {
         wingmonkeyMK: false
     }
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
@@ -63,6 +66,8 @@ OneTwoTreeReverse() {
         }
     )
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
         [3, 0, () => PlaceTower(TowerSetup["Sniper A"])],

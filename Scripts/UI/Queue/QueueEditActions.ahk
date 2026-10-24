@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Moves, edits, removes, and clears jobs in the current queue.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Edits the in-memory queue and keeps the highlighted row in a useful place.
+; Clearing the whole queue goes through confirmation before removing jobs.
 
 MoveQueueJob(
     direction

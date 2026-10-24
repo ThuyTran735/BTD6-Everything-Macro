@@ -1,9 +1,9 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 #Include ..\Scripts\Version.ahk
 
-; v3 file note: This is the small entry file for Strategy Builder now. The editor pieces are split up below so one tool file isn't a mile long.
-; The split is organization-only; callers can keep including this file like before.
+; Starts the standalone editor and loads its placement, action, import, and export helpers.
+; Keep this entry point stable so launcher shortcuts can continue opening the same file.
 
 #Include StrategyBuilder\BuilderWindow.ahk
 #Include StrategyBuilder\EntityEditor.ahk

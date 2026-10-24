@@ -3,8 +3,6 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; v3 file note: Quick manual test for Placement. It stays separate from the normal launcher.
-
 ; Manual placement test.
 ; Start inside a loaded BTD6 game with enough cash for the selected tower.
 
@@ -17,6 +15,7 @@ global RunConfig := {
     wingmonkeyMK: false
 }
 
+; These are the test placements; placed/upgrades are live macro state, not proof of game state.
 global TowerSetup := Map(
     "Sub A", {
             type: "Sub",
@@ -81,6 +80,7 @@ Space:: {
 
 Right::SelectTower(1)
 Left::SelectTower(-1)
+; Reset only the macro records. Any towers already placed in BTD6 remain in the game.
 R:: {
     ResetTowerSetup()
     ShowCurrentTower()

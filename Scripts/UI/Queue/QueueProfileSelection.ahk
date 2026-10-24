@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Updates status, selection, favorites, and the selected profile details.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Resolves the selected profile and refreshes its details and favorite state.
+; The loading flag prevents control-change events from saving partially loaded values.
 
 SetQueueProfileStatus(text, color := "") {
     global QueueProfileStatusText
@@ -109,6 +109,7 @@ RefreshSelectedQueueProfileDetails() {
     global QueueProfileRepeatPlusButton
     global QueueProfileDetailsLoading
 
+    ; Changing selection fills several controls; do not autosave midway through.
     QueueProfileDetailsLoading := true
 
     record := GetSelectedQueueProfileRecord()

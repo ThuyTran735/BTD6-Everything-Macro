@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Mortar part of the macro. Keep this focused so run bugs are easier to trace later.
+; Select a Mortar, place its manual target, and remember the last requested point.
 
 EnsureMortarSelected(tower) {
     ClickMapPoint(tower.x, tower.y)
@@ -21,6 +21,7 @@ SetMortarTarget(tower, targetX, targetY) {
     if !EnsureMortarSelected(tower)
         return false
 
+    ; The shared helper owns PgDn timing and closes the panel after the target click.
     ClickSpecialTargetPoint(targetX, targetY)
 
     tower.targeting := "Target"

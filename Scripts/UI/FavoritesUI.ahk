@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for Favorites. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Places favorite controls beside fields and refreshes their selected item.
+; Selections are restored by name because favoriting an item can change list order.
 
 CreateFavoriteButton(
     guiObject,

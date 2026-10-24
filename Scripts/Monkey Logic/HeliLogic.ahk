@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Heli part of the macro. Keep this focused so run bugs are easier to trace later.
+; Enter Lock in Place from the tracked Heli mode, then set its hover position.
 
 EnsureHeliSelected(tower) {
     ClickMapPoint(tower.x, tower.y)

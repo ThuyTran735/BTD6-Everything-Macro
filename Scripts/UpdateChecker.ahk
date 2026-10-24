@@ -1,6 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles the UpdateChecker part of the macro. Keep this focused so run bugs are easier to trace later.
+; Reads public version metadata and reports whether a newer release is available.
+; Startup checks respect the saved setting; checking a version does not install files.
 
 ; Update checking for the public GitHub repository.
 ; The remote version is read directly from Scripts/Version.ahk.
@@ -62,6 +63,7 @@ CompareMacroVersions(leftVersion, rightVersion) {
     leftParts := StrSplit(NormalizeMacroVersion(leftVersion), ".")
     rightParts := StrSplit(NormalizeMacroVersion(rightVersion), ".")
 
+    ; Compare each numeric part so versions such as 3.10.0 sort after 3.9.0.
     Loop 3 {
         leftValue := A_Index <= leftParts.Length ? (leftParts[A_Index] + 0) : 0
         rightValue := A_Index <= rightParts.Length ? (rightParts[A_Index] + 0) : 0
@@ -263,14 +265,14 @@ ShowLauncherUpdateNotice(version) {
         if !UpdateCheckText
             return
 
-        UpdateCheckText.Move(43, 438, 170, 15)
+        UpdateCheckText.Move(51, 434, 166, 15)
         UpdateCheckText.Opt("+Left")
         UpdateCheckText.SetFont("c" . UIColorSuccess)
         UpdateCheckText.Text := "UPDATE AVAILABLE: v" . version
         UpdateCheckText.Visible := true
 
         if UpdateLinkText {
-            UpdateLinkText.Move(217, 438, 64, 15)
+            UpdateLinkText.Move(221, 434, 64, 15)
             UpdateLinkText.Opt("+Left")
             UpdateLinkText.Text := "Update"
             UpdateLinkText.Visible := true
@@ -294,7 +296,7 @@ SetLauncherUpdateCheckStatus(text, color := "") {
         if UpdateLinkText
             UpdateLinkText.Visible := false
 
-        UpdateCheckText.Move(43, 438, 238, 15)
+        UpdateCheckText.Move(51, 434, 234, 15)
         UpdateCheckText.Opt("+Left")
         UpdateCheckText.SetFont("c" . color)
 
@@ -396,6 +398,8 @@ AdvanceStartupUpdateCheckAnimation(*) {
 
 
 RunStartupUpdateCheck(*) {
+    ; Check again after the animation: the user may have disabled startup
+    ; checks in Settings while that timer was still running.
     if !IsAutoUpdateCheckEnabled()
         return
 

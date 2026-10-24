@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: The custom dropdown class. It stays together because its methods all share the same drawing and scroll state.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keeps the dropdown trigger, popup rows, and scroll position in one control.
+; Only the active popup may handle input inside its rectangle.
 
 class DarkDropdown {
 
@@ -276,6 +276,12 @@ class DarkDropdown {
                 100
             )
 
+        ; These are flat color surfaces; native frames would outline each half
+        ; of the trigger and each tiny scrollbar independently.
+        for surface in [this.Border, this.Top, this.Bottom, this.PopupBackground, this.ScrollTrack, this.ScrollThumb] {
+            surface.Opt("-0x800000 -E0x200 -E0x20000")
+        }
+
         this.ScrollTrack.Visible := false
         this.ScrollThumb.Visible := false
 
@@ -314,6 +320,8 @@ class DarkDropdown {
                     100
                 )
 
+
+            rowBackground.Opt("-0x800000 -E0x200 -E0x20000")
 
             this.PopupGui.SetFont(
                 "s9 Norm c"

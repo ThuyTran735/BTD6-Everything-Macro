@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Run HUD code is split into HUD drawing/positioning, status updates, cancel handling, and the run-count prompt.
-; The split is organization-only; callers can keep including this file like before.
+; Loads the run HUD, its lifecycle guards, and the shared run-count prompt.
+; Positioning and cancellation stay separate from drawing so timers can retire the HUD safely.
 
 #Include Run\CycleStatusState.ahk
 #Include Run\CycleStatusWindow.ahk

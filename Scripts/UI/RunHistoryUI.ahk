@@ -1,7 +1,8 @@
 #Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for RunHistory. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Stores session totals and shows the latest saved results. Refreshing this
+; screen only reads history; counters are updated by the run lifecycle.
 
 global RunHistoryGui := ""
 global RunHistoryLastRunText := ""
@@ -186,9 +187,9 @@ ShowRunHistoryUI(*) {
 
 
     EnableCustomWindowChrome(RunHistoryGui)
-    AddCustomWindowBorder(RunHistoryGui, 620, 458)
+    AddCustomWindowBorder(RunHistoryGui, 620, 520)
 
-    AddUIOutlinedText(RunHistoryGui, "RUN HISTORY", 20, 18, 580, 34, 13, "Center")
+    AddUIOutlinedText(RunHistoryGui, "RUN HISTORY", 24, 24, 572, 28, 13, "Center")
 
     CreateHelpBadgeForHeader(
         RunHistoryGui,
@@ -200,64 +201,71 @@ ShowRunHistoryUI(*) {
     SetUIBodyFont(RunHistoryGui, 9, UIColorSecondaryText)
     RunHistoryGui.Add(
         "Text",
-        "x30 y58 w560 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y60 w572 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Persistent statistics for completed and failed macro sessions"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "LAST RUN", 34, 96, 160, 20, 8)
+    ; Totals have equal space, with longer session details below them.
+    AddUICard(RunHistoryGui, 24, 96, 180, 84)
+    AddUICard(RunHistoryGui, 220, 96, 180, 84)
+    AddUICard(RunHistoryGui, 416, 96, 180, 84)
+    AddUICard(RunHistoryGui, 24, 196, 572, 136)
+    AddUICard(RunHistoryGui, 24, 348, 572, 88)
+
+    AddUIOutlinedText(RunHistoryGui, "LAST RUN", 40, 208, 144, 20, 8)
     SetUIBodyFont(RunHistoryGui, 9, UIColorPrimaryText)
     RunHistoryLastRunText := RunHistoryGui.Add(
         "Text",
-        "x205 y94 w375 h42 c" . UIColorPrimaryText . " BackgroundTrans",
+        "x200 y208 w380 h44 c" . UIColorPrimaryText . " BackgroundTrans",
         "NEVER"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "LAST FAILURE", 34, 148, 160, 20, 8)
+    AddUIOutlinedText(RunHistoryGui, "LAST FAILURE", 40, 268, 144, 20, 8)
     SetUIBodyFont(RunHistoryGui, 9, UIColorError)
     RunHistoryLastFailureText := RunHistoryGui.Add(
         "Text",
-        "x205 y146 w375 h42 c" . UIColorError . " BackgroundTrans",
+        "x200 y268 w380 h44 c" . UIColorError . " BackgroundTrans",
         "NONE"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "SUCCESSFUL RUNS", 34, 204, 180, 20, 8)
-    SetUIBodyBoldFont(RunHistoryGui, 10, UIColorSuccess)
+    AddUIOutlinedText(RunHistoryGui, "SUCCESSFUL RUNS", 40, 108, 148, 20, 8)
+    SetUIBodyFont(RunHistoryGui, 16, UIColorSuccess)
     RunHistorySuccessText := RunHistoryGui.Add(
         "Text",
-        "x230 y202 w120 h24 c" . UIColorSuccess . " BackgroundTrans",
+        "x40 y132 w148 h32 c" . UIColorSuccess . " BackgroundTrans",
         "0"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "FAILED RUNS", 34, 240, 180, 20, 8)
-    SetUIBodyBoldFont(RunHistoryGui, 10, UIColorError)
+    AddUIOutlinedText(RunHistoryGui, "FAILED RUNS", 236, 108, 148, 20, 8)
+    SetUIBodyFont(RunHistoryGui, 16, UIColorError)
     RunHistoryFailureText := RunHistoryGui.Add(
         "Text",
-        "x230 y238 w120 h24 c" . UIColorError . " BackgroundTrans",
+        "x236 y132 w148 h32 c" . UIColorError . " BackgroundTrans",
         "0"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "TOTAL CYCLES", 330, 204, 150, 20, 8)
-    SetUIBodyBoldFont(RunHistoryGui, 10, UIColorPrimaryText)
+    AddUIOutlinedText(RunHistoryGui, "TOTAL CYCLES", 432, 108, 148, 20, 8)
+    SetUIBodyFont(RunHistoryGui, 16, UIColorPrimaryText)
     RunHistoryCyclesText := RunHistoryGui.Add(
         "Text",
-        "x495 y202 w90 h24 Right c" . UIColorPrimaryText . " BackgroundTrans",
+        "x432 y132 w148 h32 c" . UIColorPrimaryText . " BackgroundTrans",
         "0"
     )
 
-    AddUIOutlinedText(RunHistoryGui, "RECENT QUEUE / PROFILE", 34, 294, 220, 20, 8)
+    AddUIOutlinedText(RunHistoryGui, "RECENT QUEUE / PROFILE", 40, 360, 540, 20, 8)
     SetUIBodyFont(RunHistoryGui, 9, UIColorPrimaryText)
     RunHistoryRecentSourceText := RunHistoryGui.Add(
         "Text",
-        "x34 y322 w552 h42 c" . UIColorPrimaryText . " BackgroundTrans",
+        "x40 y384 w540 h40 c" . UIColorPrimaryText . " BackgroundTrans",
         "NONE"
     )
 
     clearButton := CreateDarkButton(
         RunHistoryGui,
-        34,
-        388,
-        268,
-        42,
+        24,
+        452,
+        280,
+        44,
         "CLEAR HISTORY",
         8,
         "Danger"
@@ -265,10 +273,10 @@ ShowRunHistoryUI(*) {
 
     closeButton := CreateDarkButton(
         RunHistoryGui,
-        318,
-        388,
-        268,
-        42,
+        316,
+        452,
+        280,
+        44,
         "BACK TO SETTINGS",
         8,
         "Default"
@@ -296,9 +304,9 @@ ShowRunHistoryUI(*) {
 
     RefreshRunHistoryUI()
 
-    RunHistoryGui.Show("Hide w620 h458")
+    RunHistoryGui.Show("Hide w620 h520")
     ApplyDarkWindowStyle(RunHistoryGui)
-    RunHistoryGui.Show("w620 h458 Center")
+    RunHistoryGui.Show("w620 h520 Center")
 }
 
 

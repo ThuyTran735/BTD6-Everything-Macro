@@ -3,6 +3,7 @@
 #Include ..\..\..\..\IncludeAll.ahk
 
 WizardEXP() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Expert",
         map: "Dark Castle",
@@ -14,6 +15,8 @@ WizardEXP() {
         endRound: 60,
     }
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
@@ -57,6 +60,8 @@ WizardEXP() {
         }
     )
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Hero"])],
         [0, 0, () => PlaceTower(TowerSetup["Wizard A"])],

@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the SpecialTargeting part of the macro. Keep this focused so run bugs are easier to trace later.
+; Shared PgDn-and-click sequence for towers with a manual target point.
 
 ClickSpecialTargetPoint(targetX, targetY) {
     ; Shared special/manual targeting flow:

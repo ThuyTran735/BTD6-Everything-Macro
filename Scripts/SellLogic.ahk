@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles selling towers. BTD6 already has a sell hotkey, so keep this simple.
+; Select the requested tower and use the sell hotkey, then clear its tracked state.
 
 SellTower(
     tower,
@@ -76,6 +76,7 @@ SellTower(
     Sleep(180)
 
 
+    ; Reusing this tower object later must not carry sold upgrades or panel state.
     tower.placed :=
         false
 

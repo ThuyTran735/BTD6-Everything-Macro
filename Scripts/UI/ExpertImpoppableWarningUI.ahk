@@ -112,7 +112,7 @@ ShowExpertImpoppableWarningIfNeeded() {
     ExpertImpoppableWarningAccepted := false
 
     dialogWidth := 570
-    dialogHeight := 458
+    dialogHeight := 464
 
     ExpertImpoppableWarningGui := Gui(
         "+AlwaysOnTop +ToolWindow -MaximizeBox -MinimizeBox",
@@ -126,9 +126,9 @@ ShowExpertImpoppableWarningIfNeeded() {
     AddUICard(
         ExpertImpoppableWarningGui,
         24,
-        82,
+        80,
         522,
-        300,
+        304,
         UIColorPanelBorder,
         UIColorPanelRaised
     )
@@ -136,9 +136,9 @@ ShowExpertImpoppableWarningIfNeeded() {
     AddUIOutlinedText(
         ExpertImpoppableWarningGui,
         "EXPERT IMPOPPABLE WARNING",
-        18,
-        18,
-        534,
+        24,
+        24,
+        522,
         38,
         12,
         "Center",
@@ -154,7 +154,7 @@ ShowExpertImpoppableWarningIfNeeded() {
 
     ExpertImpoppableWarningGui.Add(
         "Text",
-        "x42 y100 w486 h24 Center c" . UIColorHeadingText . " BackgroundTrans",
+        "x40 y96 w490 h24 Center c" . UIColorHeadingText . " BackgroundTrans",
         "FULL MONKEY KNOWLEDGE EXPECTED"
     )
 
@@ -166,7 +166,7 @@ ShowExpertImpoppableWarningIfNeeded() {
 
     ExpertImpoppableWarningGui.Add(
         "Text",
-        "x52 y136 w466 h60 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x40 y136 w490 h56 Left c" . UIColorSecondaryText . " BackgroundTrans",
         "All Expert Impoppable strategies in this macro were created and tested with every Monkey Knowledge upgrade researched and unlocked."
     )
 
@@ -178,7 +178,7 @@ ShowExpertImpoppableWarningIfNeeded() {
 
     ExpertImpoppableWarningGui.Add(
         "Text",
-        "x52 y204 w466 h54 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x40 y204 w490 h50 Left c" . UIColorSecondaryText . " BackgroundTrans",
         "Without full Monkey Knowledge, cash, tower costs, cooldowns, and other bonuses may differ from what the strategy expects."
     )
 
@@ -190,7 +190,7 @@ ShowExpertImpoppableWarningIfNeeded() {
 
     ExpertImpoppableWarningGui.Add(
         "Text",
-        "x52 y266 w466 h42 Center c" . UIColorError . " BackgroundTrans",
+        "x40 y266 w490 h42 Left c" . UIColorError . " BackgroundTrans",
         "Running the strategy without full Monkey Knowledge may result in losing."
     )
 
@@ -203,19 +203,19 @@ ShowExpertImpoppableWarningIfNeeded() {
     ; Keep this unchecked by default so hiding the warning is always intentional.
     ExpertImpoppableWarningDontShowAgain := ExpertImpoppableWarningGui.Add(
         "CheckBox",
-        "x52 y326 w300 h24 c" . UIColorSecondaryText,
+        "x40 y324 w490 h24 c" . UIColorSecondaryText,
         "Don't show this warning again"
     )
 
     SetUIBodyFont(
         ExpertImpoppableWarningGui,
-        7,
+        8,
         UIColorMutedText
     )
 
     ExpertImpoppableWarningGui.Add(
         "Text",
-        "x72 y354 w430 h18 c" . UIColorMutedText . " BackgroundTrans",
+        "x60 y352 w470 h20 c" . UIColorMutedText . " BackgroundTrans",
         "Leave this unchecked if you want the reminder next time."
     )
 

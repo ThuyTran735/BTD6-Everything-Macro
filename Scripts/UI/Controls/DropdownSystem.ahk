@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles the dropdown wheel hook, polling, and closing other open dropdowns.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Routes wheel input and outside clicks to the active dropdown.
+; Hidden owner windows remain registered; only destroyed windows are removed.
 
 StartDarkDropdownWheelHook() {
     global UIDarkDropdownWheelHookStarted
@@ -207,6 +207,7 @@ PollDarkDropdowns() {
         )
 
 
+    ; Close on the press edge only, rather than once per poll while held.
     if (
         leftDown
         && !UIDarkDropdownMouseWasDown

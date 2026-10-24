@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Draws and manages the custom dark list control.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Draws the visible list rows and keeps selection separate from scrolling.
+; Hover updates repaint backgrounds only so labels stay stable during mouse movement.
 
 class DarkList {
 

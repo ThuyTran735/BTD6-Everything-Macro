@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Keeps the custom border, hit testing, minimize, and resize code together.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Matches the standalone builder chrome to the dark launcher.
+; Only the title area drags the window, leaving form controls free to receive clicks.
 
 StrategyBuilderChromeHitTest(wParam, lParam, msg, hwnd) {
     global MainGui
@@ -33,6 +33,8 @@ StrategyBuilderChromeHitTest(wParam, lParam, msg, hwnd) {
     screenX := lParam & 0xFFFF
     screenY := (lParam >> 16) & 0xFFFF
 
+    ; WM_NCHITTEST packs signed screen coordinates into two 16-bit values.
+    ; Decode negatives so title dragging also works on monitors left of the main display.
     if screenX >= 0x8000 {
         screenX -= 0x10000
     }
@@ -57,8 +59,8 @@ StrategyBuilderChromeHitTest(wParam, lParam, msg, hwnd) {
 
 
 CreateStrategyBuilderBorder(guiObject, width, height) {
-    borderColor := "263241"
-    thickness := 4
+    borderColor := "2A3441"
+    thickness := 2
 
     top := guiObject.Add(
         "Progress",
@@ -122,6 +124,7 @@ ResizeStrategyBuilderChrome(guiObject, minMax, width, height) {
     global BuilderCloseControl
     global BuilderWindowBorder
 
+    ; Minimized windows report dimensions that are not useful for laying out the chrome.
     if minMax = -1 {
         return
     }
@@ -129,4 +132,28 @@ ResizeStrategyBuilderChrome(guiObject, minMax, width, height) {
     try BuilderMinimizeControl.Move(width - 86, 12, 30, 28)
     try BuilderCloseControl.Move(width - 46, 12, 30, 28)
     ResizeStrategyBuilderBorder(BuilderWindowBorder, width, height)
+}
+
+StyleBuilderNativeControls(guiObject) {
+    ; Keep native keyboard navigation and the controls' existing event handlers.
+    ; Older Windows themes can fall back to their usual control appearance.
+    for control in guiObject {
+        if control.Type = "ListView" {
+            control.Opt("cF4F7FB Background10161D")
+        }
+
+        if (
+            control.Type = "Edit"
+            || control.Type = "ListView"
+            || control.Type = "Button"
+            || control.Type = "DropDownList"
+        ) {
+            try DllCall(
+                "uxtheme\SetWindowTheme",
+                "Ptr", control.Hwnd,
+                "Str", "DarkMode_Explorer",
+                "Ptr", 0
+            )
+        }
+    }
 }

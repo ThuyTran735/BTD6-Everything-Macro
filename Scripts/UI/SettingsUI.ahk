@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Settings is split into the main window, toggles, update checking, logs, and navigation actions. The public SettingsUI include stays the same.
-; The split is organization-only; callers can keep including this file like before.
+; Include the Settings screens and their actions through this single entry point.
+; Preference storage stays in the action modules rather than the window builder.
 
 #Include Settings\SettingsWindow.ahk
 #Include Settings\SettingsToggles.ahk

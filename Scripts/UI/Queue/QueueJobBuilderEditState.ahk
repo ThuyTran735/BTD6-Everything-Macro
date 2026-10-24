@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Restores an existing queue job when the builder is opened for editing.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Restores an existing job into the editor using its saved mode and script path.
+; Dependent dropdowns are rebuilt in order before the saved strategy is selected.
 
 InitializeQueueBuilderEditSelection() {
     global QueueBuilderEditIndex

@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs repeat/queued jobs and clears the repeat-run state afterward.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Launch one strategy process per cycle, with a fresh token for its completion result.
 
 StartNextQueuedRun(isRetry := false, defeatRestart := false) {
     global MacroRunning
@@ -20,9 +19,12 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
 
     global UIColorWarning
     global UIColorError
+    global CycleStatusClosing
+    global CollectionEventRunActive
+    global CollectionEventRunGeneration
 
 
-    if !MacroRunning {
+    if !MacroRunning || CycleStatusClosing {
 
         return false
     }
@@ -36,6 +38,17 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
         return false
     }
 
+
+    ; Keep the event session separate from the selected launcher mode. A queue
+    ; started while that mode is selected must still run its own fixed scripts.
+    eventGeneration := CollectionEventRunActive ? CollectionEventRunGeneration : 0
+    if eventGeneration && !PrepareCollectionEventCycle(eventGeneration, isRetry, defeatRestart)
+        return false
+
+    if !MacroRunning || CycleStatusClosing
+        return false
+    if eventGeneration && !IsCurrentCollectionEventRun(eventGeneration)
+        return false
 
     if !FileExist(
         RepeatScriptPath
@@ -103,6 +116,10 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
             UIColorWarning
         )
     }
+    else if eventGeneration {
+
+        UpdateStatus("STARTING EVENT RUN " . currentRun . "...", UIColorWarning)
+    }
     else {
 
         UpdateStatus(
@@ -125,9 +142,14 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
     ; Optional Daily Chest check runs before normal map launches.
     ; A defeat-restart retry is already inside the restarted map, so
     ; do not click Home-screen Daily Chest coordinates during recovery.
-    if !defeatRestart
+    if !defeatRestart && !eventGeneration
         RunPreMapDailyChestIfEnabled()
 
+    ; A chest animation or event scan can yield to the emergency-stop hotkey.
+    if !MacroRunning || CycleStatusClosing
+        return false
+    if eventGeneration && !IsCurrentCollectionEventRun(eventGeneration)
+        return false
 
     ActiveRunToken := CreateChildRunToken()
     ClearChildRunResult(ActiveRunToken)
@@ -161,6 +183,9 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
             . Chr(34)
     }
 
+    if eventGeneration {
+        command .= " " . Chr(34) . "--btd6-collection-event=1" . Chr(34)
+    }
 
     try {
 
@@ -182,22 +207,46 @@ StartNextQueuedRun(isRetry := false, defeatRestart := false) {
             50
         )
 
-        Run(
-            command,
-            A_ScriptDir,
-            ,
-            &RunningPid
-        )
+        if !MacroRunning || CycleStatusClosing
+            return false
+        if eventGeneration && !IsCurrentCollectionEventRun(eventGeneration)
+            return false
 
+        ; Publish the child PID and consume the cycle together. A stop arriving
+        ; during Run() must see the new PID rather than leave an orphan process.
+        Critical("On")
+        try {
+            if !MacroRunning || CycleStatusClosing
+                return false
+            if eventGeneration && !IsCurrentCollectionEventRun(eventGeneration)
+                return false
 
-        if !isRetry {
-            RepeatRunRemaining--
+            Run(
+                command,
+                A_ScriptDir,
+                ,
+                &RunningPid
+            )
+
+            ; Event mode stays open-ended. Finite retries repeat their current
+            ; cycle without consuming another requested run.
+            if !isRetry && !eventGeneration {
+                RepeatRunRemaining--
+            }
+        }
+        finally {
+            Critical("Off")
         }
 
 
         return true
     }
     catch Error as err {
+
+        if !MacroRunning || CycleStatusClosing
+            return false
+        if eventGeneration && !IsCurrentCollectionEventRun(eventGeneration)
+            return false
 
         MacroRunning :=
             false
@@ -257,6 +306,7 @@ ClearRepeatRunState() {
     global RepeatRunRemaining
     global RepeatRunCompleted
 
+    ClearCollectionEventRunState()
 
     RepeatScriptPath :=
         ""

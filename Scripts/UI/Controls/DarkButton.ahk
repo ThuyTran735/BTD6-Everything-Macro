@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Draws and manages the custom dark button control.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Buttons share the same drawing and hit-testing code across launcher dialogs.
 
 class DarkButton {
 
@@ -164,20 +163,15 @@ class DarkButton {
         )
 
 
-        ; A Flat button uses one physical face control instead of two stacked
-        ; Progress controls. Giving Top the full height and keeping Bottom
-        ; hidden removes the native Progress edge that otherwise appears as a
-        ; horizontal seam through wide footer/navigation buttons.
-        if this.IsFlatFace {
-            ; Progress controls carry a native 3D frame. With a full-height
-            ; flat face that frame became the bright white/gray rectangle seen
-            ; around BACK TO PROFILES. Remove the native frames and keep only
-            ; our theme-colored custom border.
-            this.Border.Opt("-0x800000 -E0x200 -E0x20000")
-            this.Top.Opt("-0x800000 -E0x200 -E0x20000")
-            this.Bottom.Opt("-0x800000 -E0x200 -E0x20000")
-            this.Highlight.Opt("-0x800000 -E0x200 -E0x20000")
+        ; Theme colors draw every edge. Native Progress frames would add pale
+        ; outlines and a seam where the two face layers meet.
+        for surface in [this.Glow, this.Border, this.Top, this.Bottom, this.Highlight] {
+            surface.Opt("-0x800000 -E0x200 -E0x20000")
+        }
 
+        ; Flat footer buttons use one full-height face. Keep the spare lower
+        ; layer hidden so hover and press colors stay continuous.
+        if this.IsFlatFace {
             this.Top.Move(x, y, width, height)
             this.Bottom.Visible := false
         }
@@ -588,6 +582,8 @@ class DarkButton {
         }
 
 
+        ; Keep one action pending through both animation timers so a quick
+        ; second click cannot schedule another callback during the animation.
         this.ActionPending := true
 
 
@@ -636,6 +632,8 @@ class DarkButton {
     }
 
 
+    ; The callback may destroy its own window, so finish visual work first.
+    ; Rechecking the handle also discards a delayed click from a closed dialog.
     CompleteClick() {
         if !this.ActionPending {
             return

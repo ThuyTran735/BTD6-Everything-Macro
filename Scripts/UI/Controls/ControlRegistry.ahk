@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Creates the shared control registries and the small button/list factory helpers.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Shared factories and registries for custom buttons and lists.
+; The polling system uses these objects to update hover without separate timers per control.
 
 
 global UIDarkLists := []

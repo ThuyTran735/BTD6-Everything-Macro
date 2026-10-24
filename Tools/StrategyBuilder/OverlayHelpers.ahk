@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Owns the click-through monkey labels plus a few small builder-only helpers.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Shows temporary, click-through labels at the saved monkey positions.
+; The small text helpers below keep generated names and quoted strings valid.
 
 ToggleMonkeyOverlay(*) {
     global MonkeyOverlayVisible
@@ -25,6 +25,7 @@ ShowMonkeyOverlay() {
     }
 
     for entity in Entities {
+        ; E0x20 lets mouse input pass through the label to the game underneath.
         overlay := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
         overlay.BackColor := "010203"
         overlay.SetFont("s10 w600 cFFD45C", "Segoe UI")
@@ -46,6 +47,7 @@ ShowMonkeyOverlay() {
 HideMonkeyOverlay(*) {
     global MonkeyOverlayWindows, MonkeyOverlayVisible
 
+    ; Destroy old windows instead of hiding them so refreshes cannot leave stale labels behind.
     for overlay in MonkeyOverlayWindows {
         try overlay.Destroy()
     }
@@ -72,6 +74,7 @@ IntegerOrDefault(value, defaultValue := 0) {
 }
 
 EscapeAhkString(text) {
+    ; AutoHotkey string literals escape a quote by doubling it.
     q := Chr(34)
     return StrReplace(text, q, q q)
 }

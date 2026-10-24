@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for FirstRunWarning. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Show setup requirements before the launcher opens. Only save acceptance when
+; the user explicitly chooses to hide this reminder on future launches.
 
 global FirstRunWarningGui := ""
 global FirstRunWarningAcceptedThisSession := false
@@ -89,10 +90,10 @@ ShowFirstRunWarningIfNeeded() {
     AddCustomWindowBorder(FirstRunWarningGui, dialogWidth, dialogHeight)
     AddUICard(
         FirstRunWarningGui,
-        28,
-        86,
-        544,
-        620,
+        24,
+        80,
+        552,
+        640,
         UIColorPanelBorder,
         UIColorPanelRaised
     )
@@ -100,9 +101,9 @@ ShowFirstRunWarningIfNeeded() {
     AddUIOutlinedText(
         FirstRunWarningGui,
         "IMPORTANT BEFORE USING THE MACRO",
-        22,
-        20,
-        556,
+        24,
+        24,
+        552,
         38,
         12,
         "Center",
@@ -118,7 +119,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x42 y100 w516 h34 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x40 y96 w520 h32 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Set up BTD6's hotkeys exactly like this before running a strategy."
     )
 
@@ -130,7 +131,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y145 w496 h22 c" . UIColorHeadingText . " BackgroundTrans",
+        "x40 y144 w520 h22 c" . UIColorHeadingText . " BackgroundTrans",
         "1. RESET ALL HOTKEYS TO DEFAULT"
     )
 
@@ -142,7 +143,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y171 w472 h40 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x52 y172 w496 h40 c" . UIColorSecondaryText . " BackgroundTrans",
         "Open BTD6 Settings > Hotkeys and reset every binding to its default first. Do this before adding the three custom bindings below."
     )
 
@@ -154,7 +155,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y222 w496 h22 c" . UIColorWarning . " BackgroundTrans",
+        "x40 y224 w520 h22 c" . UIColorWarning . " BackgroundTrans",
         "2. SET THESE THREE CUSTOM TOWER HOTKEYS"
     )
 
@@ -166,7 +167,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y249 w472 h62 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x52 y252 w496 h54 c" . UIColorSecondaryText . " BackgroundTrans",
         "Mermonkey = F6`nSkywarden = F7`nDesperado = F8"
     )
 
@@ -178,7 +179,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y307 w472 h28 c" . UIColorMutedText . " BackgroundTrans",
+        "x52 y316 w496 h20 c" . UIColorMutedText . " BackgroundTrans",
         "Leave every other BTD6 hotkey at its default."
     )
 
@@ -190,7 +191,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y350 w496 h22 c" . UIColorHeadingText . " BackgroundTrans",
+        "x40 y348 w520 h22 c" . UIColorHeadingText . " BackgroundTrans",
         "3. DO NOT USE ALT+TAB OR TAB"
     )
 
@@ -202,7 +203,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y376 w472 h44 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x52 y376 w496 h42 c" . UIColorSecondaryText . " BackgroundTrans",
         "While BTD6 is running for a macro session, do not press Alt+Tab or Tab. It can leave the game in a bad keyboard/focus state and make macro inputs unreliable."
     )
 
@@ -214,7 +215,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y430 w496 h22 c" . UIColorHeadingText . " BackgroundTrans",
+        "x40 y430 w520 h22 c" . UIColorHeadingText . " BackgroundTrans",
         "4. USE THE WINDOWS KEY TO SWITCH APPS"
     )
 
@@ -226,7 +227,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y456 w472 h42 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x52 y458 w496 h40 c" . UIColorSecondaryText . " BackgroundTrans",
         "If you need another app, press the Windows key first, then switch to or click that app from there."
     )
 
@@ -238,7 +239,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y510 w496 h22 c" . UIColorError . " BackgroundTrans",
+        "x40 y510 w520 h22 c" . UIColorError . " BackgroundTrans",
         "5. RESTART BTD6 IF IT HAPPENS"
     )
 
@@ -250,7 +251,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y536 w472 h38 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x52 y538 w496 h38 c" . UIColorSecondaryText . " BackgroundTrans",
         "If you accidentally use Alt+Tab or Tab, completely close and restart BTD6 before using the macro again."
     )
 
@@ -262,7 +263,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x52 y586 w496 h22 c" . UIColorError . " BackgroundTrans",
+        "x40 y588 w520 h22 c" . UIColorError . " BackgroundTrans",
         "6. USE AT YOUR OWN RISK"
     )
 
@@ -274,7 +275,7 @@ ShowFirstRunWarningIfNeeded() {
 
     FirstRunWarningGui.Add(
         "Text",
-        "x64 y612 w472 h38 c" . UIColorMutedText . " BackgroundTrans",
+        "x52 y616 w496 h38 c" . UIColorMutedText . " BackgroundTrans",
         "By agreeing, you accept that the macro author is not responsible for bans, suspensions, lost progress, or other action taken against your game account."
     )
 
@@ -287,28 +288,28 @@ ShowFirstRunWarningIfNeeded() {
     ; Leave this off by default so hiding the warning is always the user's choice.
     FirstRunWarningNeverShowAgain := FirstRunWarningGui.Add(
         "CheckBox",
-        "x64 y666 w300 h24 c" . UIColorSecondaryText,
+        "x52 y666 w496 h24 c" . UIColorSecondaryText,
         "Never show this warning again"
     )
 
     SetUIBodyFont(
         FirstRunWarningGui,
-        7,
+        8,
         UIColorMutedText
     )
 
     FirstRunWarningGui.Add(
         "Text",
-        "x84 y692 w450 h22 c" . UIColorMutedText . " BackgroundTrans",
+        "x72 y694 w476 h20 c" . UIColorMutedText . " BackgroundTrans",
         "Leave this unchecked if you want the reminder next time."
     )
 
     agreeButton := CreateDarkButton(
         FirstRunWarningGui,
-        28,
-        736,
-        350,
-        48,
+        24,
+        744,
+        356,
+        42,
         "I AGREE - CONTINUE",
         8,
         "Success"
@@ -317,9 +318,9 @@ ShowFirstRunWarningIfNeeded() {
     exitButton := CreateDarkButton(
         FirstRunWarningGui,
         392,
-        736,
-        180,
-        48,
+        744,
+        184,
+        42,
         "EXIT",
         8,
         "Danger"

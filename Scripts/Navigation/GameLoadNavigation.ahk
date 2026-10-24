@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Waits for the match to load and holds the small pattern-click helpers.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Waits for the in-game Settings button before returning control to the strategy.
+; The shared pattern helpers report failure to callers rather than choosing another menu path.
 
 WaitForGameLoad(
     timeout := 15000
@@ -30,6 +30,7 @@ WaitForGameLoad(
         if PatternExists(
             pattern
         ) {
+            ; Settings can appear before the map finishes its opening animation.
             Sleep(1000)
 
             return true

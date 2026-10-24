@@ -1,7 +1,6 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
-; v3 file note: Round tracking got too hard to debug in one file. The OCR reader, Glacial Trail fixes, validation, and recovery are separate now while this path stays compatible.
-; The split is organization-only; callers can keep including this file like before.
+; Share round reading, validation, and recovery behind the same include used by every strategy. RoundWait combines them while waiting for actions.
 
 #Include Gameplay\Rounds\RoundData.ahk
 #Include Gameplay\Rounds\RoundConfig.ahk

@@ -2,8 +2,6 @@
 #SingleInstance Force
 #Include ..\Scripts\Version.ahk
 
-; v3 file note: Quick manual test for GameModeUnlock. It stays separate from the normal launcher.
-
 ; Automatic game-mode unlock end-to-end test.
 ; Launch the REAL Deflation map script so prerequisite path discovery uses
 ; the same filename/location rules as production runs.
@@ -19,6 +17,7 @@ if !FileExist(testScript) {
     ExitApp()
 }
 
+; Match the child strategy result to this attempt so an earlier run cannot supply the outcome.
 runToken := FormatTime(, "yyyyMMddHHmmss") "_" Random(1000, 9999)
 resultPath := A_Temp "\BTD6EverythingMacro_RunResult_" runToken ".ini"
 
@@ -46,6 +45,7 @@ if !FileExist(resultPath) {
     ExitApp()
 }
 
+; Read the completed result before deleting the temporary handoff file.
 status := IniRead(resultPath, "Result", "Status", "Unknown")
 reason := IniRead(resultPath, "Result", "Reason", "")
 

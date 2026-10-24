@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles the top-level job/category/map field changes.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Switches between map and tower fields and refreshes dependent choices.
+; Hidden controls keep their state so changing job type does not rebuild the window.
 
 QueueBuilderJobTypeChanged(*) {
     global QueueBuilderJobTypeDropdown

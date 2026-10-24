@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Checks green buttons, spaces purchase hotkeys, and performs the actual buy.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Checks affordability, spaces purchase hotkeys, and verifies the button after a buy.
+; Lock recovery runs only when the normal visual confirmation needs help.
 
 IsUpgradeGreen(
     x,
@@ -42,6 +42,7 @@ WaitForUpgradePurchaseSlot() {
         return
     }
 
+    ; Verification already used part of this interval, so sleep only for what remains.
     elapsed := A_TickCount - LastUpgradePurchaseTick
     remaining := UpgradePurchaseSpacingMs - elapsed
 
@@ -62,7 +63,9 @@ BuyUpgrade(
     tower,
     path,
     &panelSide,
-    timingStep := false
+    timingStep := false,
+    clickX := "",
+    clickY := ""
 ) {
     global UpgradeHotkeys
     global UpgradePoints
@@ -96,6 +99,8 @@ BuyUpgrade(
     ; animation, so always re-confirm affordability after the spacing wait
     ; and immediately before sending the next upgrade hotkey.
     WaitForUpgradePurchaseSlot()
+    if !IsTowerInputActive()
+        return false
 
 
     if !IsUpgradeGreen(
@@ -107,7 +112,9 @@ BuyUpgrade(
                 tower,
                 path,
                 &panelSide,
-                timingStep
+                timingStep,
+                clickX,
+                clickY
             )
 
 
@@ -146,11 +153,8 @@ BuyUpgrade(
     MarkUpgradeHotkey(timingStep)
 
 
-    Send(
-        UpgradeHotkeys[
-            path
-        ]
-    )
+    if !SendGameKey(UpgradeHotkeys[path])
+        return false
 
 
     MarkUpgradePurchaseSent()
@@ -161,6 +165,8 @@ BuyUpgrade(
     Sleep(
         50
     )
+    if !IsTowerInputActive()
+        return false
 
 
     afterSignature :=
@@ -175,6 +181,8 @@ BuyUpgrade(
         ; Give the button one more cheap visual check. This remains inside the
         ; existing 250 ms hotkey-to-hotkey spacing window.
         Sleep(40)
+        if !IsTowerInputActive()
+            return false
 
         afterSignature :=
             CaptureUpgradeButtonSignature(
@@ -198,7 +206,9 @@ BuyUpgrade(
         HandleLockedUpgrade(
             tower,
             path,
-            &panelSide
+            &panelSide,
+            clickX,
+            clickY
         )
 
 
@@ -225,16 +235,15 @@ BuyUpgrade(
         ; originally requested upgrade once, then use the same 50 ms
         ; hotkey settle.
         WaitForUpgradePurchaseSlot()
+        if !IsTowerInputActive()
+            return false
 
 
         MarkUpgradeHotkey(timingStep)
 
 
-        Send(
-            UpgradeHotkeys[
-                path
-            ]
-        )
+        if !SendGameKey(UpgradeHotkeys[path])
+            return false
 
 
         MarkUpgradePurchaseSent()
@@ -243,6 +252,8 @@ BuyUpgrade(
         Sleep(
             50
         )
+        if !IsTowerInputActive()
+            return false
 
 
         MarkUpgradeConfirmed(timingStep)

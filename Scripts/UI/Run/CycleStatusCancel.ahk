@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Completes/hides the HUD and handles stopping active cycles.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Stops active work and retires the HUD without allowing old timers to revive it.
+; The emergency hotkey bypasses confirmation but follows the same shutdown path.
 
 CompleteCycleStatusUI() {
     global CycleStatusGui
@@ -274,25 +274,32 @@ CancelMacroCycles(*) {
 
 
     if RunningPid {
+        stoppedPid := RunningPid
 
         ; Record the user's explicit stop request in the child run log
         ; before terminating the strategy process.
         LogManualRunStopByPid(
-            RunningPid,
+            stoppedPid,
             "USER CLOSED RUN MANUALLY"
         )
 
 
         try {
             if ProcessExist(
-                RunningPid
+                stoppedPid
             ) {
 
                 ProcessClose(
-                    RunningPid
+                    stoppedPid
                 )
+                ProcessWaitClose(stoppedPid, 1)
             }
         }
+
+        ; A killed child cannot send the Up half of a held input. Wait for its
+        ; exit first, and do not release keys owned by a newly started run.
+        if !ProcessExist(stoppedPid) && !MacroRunning && RunningPid = stoppedPid
+            ReleaseMacroModifierKeys(true)
     }
 
 

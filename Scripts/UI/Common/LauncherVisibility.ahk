@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles launcher suppression, continuation, show/hide, and secondary-menu cleanup.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Controls launcher visibility and the delay between child runs.
+; Run suppression owns the screen until completion, cancellation, or an error releases it.
 
 SetLauncherRunSuppressed(
     suppressed
@@ -128,10 +128,23 @@ ClearMacroContinuation() {
 }
 
 
+IsCurrentHomePopupContinuation(action, tick) {
+    global MacroRunning
+    global CycleStatusClosing
+    global MacroContinuationAction
+    global MacroContinuationTick
+
+    ; A popup wait may yield to Stop or a replacement continuation.
+    return MacroRunning && !CycleStatusClosing
+        && MacroContinuationAction = action && MacroContinuationTick = tick
+}
+
+
 ContinueMacroWhenReady() {
     global MacroRunning
     global MacroContinuationAction
     global MacroContinuationTick
+    global UIColorError
 
 
     if MacroContinuationAction = "" {
@@ -149,15 +162,47 @@ ContinueMacroWhenReady() {
         return
     }
 
+    ; Candidate rejection happens before gameplay. The selector handles bounded
+    ; recovery from the mode menu, so it need not wait for the Home timeout.
+    if MacroContinuationAction = "event-reselect" {
+        ClearMacroContinuation()
+        StartNextQueuedRun(true)
+        return
+    }
+
+    ; A Home promo can hide Play, so dismiss recognized interruptions before
+    ; waiting for Home or handing control to the chest and event-map routines.
+    continuationAction := MacroContinuationAction
+    continuationTick := MacroContinuationTick
+    isCurrent := IsCurrentHomePopupContinuation.Bind(continuationAction, continuationTick)
+    homeResult := HandleHomeMenuInterruptions(isCurrent)
+    if !isCurrent.Call()
+        return
+    ; A reward sequence owns its full wait. Neither a busy owner nor a failure
+    ; may fall through to the ordinary eight-second Home-detection fallback.
+    if homeResult = "pending"
+        return
+    if homeResult = "blocked" {
+        reason := GetHomeMenuInterruptionReason()
+        CancelMacroCycles()
+        RecordRunHistoryFailure(reason)
+        UpdateStatus("COLLECTION REWARDS FAILED", UIColorError)
+        MsgBox(reason, "Collection Event Rewards")
+        return
+    }
 
     homeReady :=
         IsHomeScreenVisible()
+    if !isCurrent.Call()
+        return
 
 
+    ; Home detection gets a short grace period; the timeout prevents a missed
+    ; frame from leaving the continuation timer waiting indefinitely.
     timedOut :=
-        MacroContinuationTick
+        continuationTick
         && A_TickCount
-            - MacroContinuationTick
+            - continuationTick
             >= 8000
 
 
@@ -169,8 +214,9 @@ ContinueMacroWhenReady() {
     }
 
 
+    ; Consume this scheduled action before starting another child so it runs once.
     action :=
-        MacroContinuationAction
+        continuationAction
 
 
     ClearMacroContinuation()

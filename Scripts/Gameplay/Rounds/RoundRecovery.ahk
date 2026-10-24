@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles missing round reads, popup recovery, and Glacial Trail resync behavior.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Tracks sustained missing OCR and attempts the appropriate popup or map-specific recovery.
+; Short gaps are normal during transitions and do not justify clicking or advancing the round.
 
 CheckRoundReadRecovery(timeoutMs := "") {
     detectedRound :=
@@ -43,6 +43,7 @@ HandleMissingRoundRead(timeoutMs := "") {
             : timeoutMs
 
 
+    ; Start the grace period at the first missing frame, not at the previous good read.
     if RoundReadMissingSince = 0 {
 
         RoundReadMissingSince :=

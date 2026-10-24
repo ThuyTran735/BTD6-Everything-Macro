@@ -1,7 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Placement part of the macro. Keep this focused so run bugs are easier to trace later.
+; Place at the scripted point, then check that the tower can be selected.
+; Retrying a click is safe at that same point; repeating the buy key is not.
 
 PlaceTower(tower) {
     global TowerHotkeys
@@ -18,8 +19,13 @@ PlaceTower(tower) {
     if !TowerHotkeys.Has(tower.type)
         return SetRunFailureReason("PLACEMENT FAILED", "Unknown tower type: " . tower.type)
 
+    if HasProp(tower, "placed") && tower.placed
+        return true
 
-    hotkey := TowerHotkeys[tower.type]
+    if !IsTowerInputActive()
+        return SetRunFailureReason("PLACEMENT FAILED", "BTD6 lost focus before placement")
+
+    placementKey := TowerHotkeys[tower.type]
 
 
     LogStrategyAction(
@@ -53,44 +59,34 @@ PlaceTower(tower) {
     )
 
 
-    ; Hero requires SendEvent in BTD6.
-    ; Give the game a little more time to accept the hero
-    ; hotkey before the placement click. This is especially
-    ; important for the first round-0 action on maps/modes
-    ; that finish loading a little later than others.
-    if tower.type = "Hero" {
-        Sleep(60)
+    ; Heroes need SendEvent too. Use the same held input for every binding,
+    ; including the newer monkeys' F-keys, and allow the placement cursor to load.
+    if !SendGameKey(placementKey)
+        return SetRunFailureReason("PLACEMENT FAILED", "BTD6 lost focus while selecting the tower")
 
-        SendEvent("{u down}")
-        Sleep(40)
+    Sleep(tower.type = "Hero" ? 180 : 120)
 
-        SendEvent("{u up}")
-        Sleep(140)
+    if !ClickTowerPoint(tower.x, tower.y)
+        return SetRunFailureReason("PLACEMENT FAILED", "BTD6 lost focus before the placement click")
 
-
-    } else {
-        ; Send the configured tower hotkey as-is. The three newer monkeys use
-        ; dedicated F-keys so we do not have to depend on Shift staying held.
-        Send(hotkey)
-        Sleep(40)
-    }
-
-
-    ; Give BTD6 a little time after moving
-    ; before confirming the placement.
-    Sleep(50)
-
-
-    ClickMapPoint(
-        tower.x,
-        tower.y
-    )
-
-
-    ; Give BTD6 time to finish the placement
-    ; before another strategy action happens.
     Sleep(200)
 
+    ; A delayed first click may still be placing the tower. The selection
+    ; helper clicks only this coordinate and waits for the panel to appear.
+    ; It never sends the placement key again or shifts to a neighboring point.
+    panelSide := false
+    result := EnsureUpgradePanelOpen(tower, &panelSide, tower.x, tower.y, true)
+
+    if result = "Victory" || result = "Defeat"
+        return result
+
+    if result = false {
+        return SetRunFailureReason("PLACEMENT FAILED",
+            "Could not confirm " . GetTowerLogName(tower) . " at " . tower.x . ", " . tower.y)
+    }
+
+    if !IsTowerInputActive()
+        return SetRunFailureReason("PLACEMENT FAILED", "BTD6 lost focus while confirming placement")
 
     tower.placed := true
 
@@ -104,6 +100,8 @@ PlaceTower(tower) {
     if HasProp(tower, "panelSide")
         tower.panelSide := false
 
+    ; This action opened a confirmed panel. Close it before the next placement.
+    SendEscapeAndWait()
 
     return true
 }

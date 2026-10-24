@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs manual update checks from the Settings screen.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; A short status animation confirms the click before the update request begins.
 
 CheckForUpdatesFromSettings(*) {
     global SettingsUpdateCheckActive
@@ -78,6 +77,7 @@ RunSettingsUpdateCheck(*) {
             . "   |   GitHub: v" . result.latestVersion
         )
     }
+    ; Failed requests must also release the guard so another check can be attempted.
     finally {
         SettingsUpdateCheckActive := false
     }

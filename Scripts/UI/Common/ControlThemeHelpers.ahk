@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Applies dark window/control styling and updates the launcher status text.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Applies dark window and edit-control styling, then updates launcher status.
+; Native edit borders are removed because the surrounding UI draws its own outline.
 
 ApplyModernWindowStyle() {
     global LauncherGui
@@ -201,7 +201,7 @@ UpdateStatus(
     }
 
 
-    try StatusText.Move(43, 414, 238, 18)
+    try StatusText.Move(51, 406, 234, 20)
     try SetUIProgressColor(StatusIndicator, color)
 
 

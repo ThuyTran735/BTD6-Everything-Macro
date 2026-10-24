@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Adds the selected job and handles closing/destroying the builder.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Commits the chosen script after the run-count prompt succeeds.
+; Editing replaces the original row only after confirmation; cancellation keeps it intact.
 
 AddQueueBuilderSelection(*) {
     global QueueBuilderJobTypeDropdown
@@ -32,6 +32,7 @@ AddQueueBuilderSelection(*) {
 
 
                 if QueueBuilderIsEditing {
+                    ; Save the index before destroying the editor resets its globals.
                     currentRuns := MacroJobQueue[QueueBuilderEditIndex].runs
                     editIndex := QueueBuilderEditIndex
                     DestroyQueueJobBuilder(false)
@@ -95,6 +96,7 @@ AddQueueBuilderSelection(*) {
 
 
             if QueueBuilderIsEditing {
+                ; A cancelled count prompt leaves the existing job untouched.
                 currentRuns := MacroJobQueue[QueueBuilderEditIndex].runs
                 editIndex := QueueBuilderEditIndex
                 DestroyQueueJobBuilder(false)

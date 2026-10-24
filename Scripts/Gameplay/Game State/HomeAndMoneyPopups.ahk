@@ -1,7 +1,9 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles Monkey Money plus home-screen/DLC/login style interruptions.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Dismisses supported money, DLC, Boss Rush, animated-series, and login interruptions.
+; Gameplay checks wait for the round display to return before the caller resumes its work.
+
+global LastHomeMenuInterruptionReason := ""
 
 HandleMonkeyMoneyPopup() {
     global GameStatePatterns
@@ -129,17 +131,61 @@ WaitForGameplayAfterPopup(
 }
 
 
-HandleHomeMenuInterruptions() {
+HandleHomeMenuInterruptions(isCurrent := false) {
+    global LastHomeMenuInterruptionReason
+
     handledAny := false
+    reasonInitialized := false
 
 
     Loop 4 {
+
+        ; Launcher scans can yield to Stop while a popup is fading out.
+        if !IsHomePopupActionCurrent(isCurrent)
+            break
+
+        ; Rewards can cover Home completely. Finish their full sequence before
+        ; looking for ordinary promos or allowing navigation to continue.
+        rewardResult := HandleCollectionEventRewards(isCurrent)
+        if !IsHomePopupActionCurrent(isCurrent)
+            return handledAny
+        if rewardResult.status = "busy"
+            return "pending"
+        if !reasonInitialized {
+            LastHomeMenuInterruptionReason := ""
+            reasonInitialized := true
+        }
+        if rewardResult.status = "cancelled"
+            return handledAny
+        if rewardResult.status = "failed" {
+            LastHomeMenuInterruptionReason := "COLLECTION REWARDS FAILED"
+                . (rewardResult.reason != "" ? ": " . rewardResult.reason : "")
+            SetRunFailureReason("COLLECTION REWARDS FAILED", rewardResult.reason)
+            return "blocked"
+        }
+        if rewardResult.status = "handled" {
+            handledAny := true
+            continue
+        }
+
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            break
+
+        if HandleAnimatedSeriesPopup(isCurrent) {
+            handledAny := true
+            continue
+        }
+
+        if !IsHomePopupActionCurrent(isCurrent)
+            break
 
         if HandleCloseDLCPopup() {
             handledAny := true
             continue
         }
 
+        if !IsHomePopupActionCurrent(isCurrent) || !WinActive("ahk_exe BloonsTD6.exe")
+            break
 
         if HandleBossRushPopup() {
             handledAny := true
@@ -152,6 +198,72 @@ HandleHomeMenuInterruptions() {
 
 
     return handledAny
+}
+
+GetHomeMenuInterruptionReason(defaultReason := "COLLECTION REWARDS FAILED") {
+    global LastHomeMenuInterruptionReason
+
+    ; The launcher survives many runs; its general first-failure log may belong
+    ; to an earlier attempt. This reason belongs to the latest blocked screen.
+    return LastHomeMenuInterruptionReason != "" ? LastHomeMenuInterruptionReason : defaultReason
+}
+
+IsHomePopupActionCurrent(isCurrent) {
+    ; Direct strategy calls need no launcher callback; their process owns the run.
+    if !IsObject(isCurrent)
+        return true
+    try return !!isCurrent.Call()
+    catch
+        return false
+}
+
+FindAnimatedSeriesPopupClose(captureFrame := true) {
+    global GameStatePatterns
+
+    for key in ["AnimatedSeriesTitle", "AnimatedSeriesClose"] {
+        if !GameStatePatterns.Has(key) || GameStatePatterns[key] = ""
+            return false
+    }
+
+    ; Both shapes must come from one frame. A generic X on its own could belong
+    ; to a different menu. These bounds use the project's 1920x1080 layout.
+    if captureFrame
+        FindText().ScreenShot(250, 70, 1500, 300)
+    titles := FindText(&titleX, &titleY, 450, 80, 1450, 230,
+        0, 0, GameStatePatterns["AnimatedSeriesTitle"], 0, 1)
+    if !titles || titles.Length != 1
+        return false
+
+    ; Look beside the detected banner, then click the actual X match rather
+    ; than guessing its position from a fixed screen coordinate.
+    buttons := FindText(&closeX, &closeY, titleX - 441, titleY + 3,
+        titleX - 361, titleY + 63, 0, 0, GameStatePatterns["AnimatedSeriesClose"], 0, 1)
+    if !buttons || buttons.Length != 1
+        return false
+    return {x: closeX, y: closeY}
+}
+
+HandleAnimatedSeriesPopup(isCurrent := false) {
+    if !IsHomePopupActionCurrent(isCurrent) || !WinActive("ahk_exe BloonsTD6.exe")
+        return false
+    closeButton := FindAnimatedSeriesPopupClose()
+    if !closeButton || !IsHomePopupActionCurrent(isCurrent) || !WinActive("ahk_exe BloonsTD6.exe")
+        return false
+
+    ReleaseMacroModifierKeys()
+    if !IsHomePopupActionCurrent(isCurrent) || !WinActive("ahk_exe BloonsTD6.exe")
+        return false
+    previousMouseMode := A_CoordModeMouse
+    try {
+        CoordMode("Mouse", "Screen")
+        Click(closeButton.x, closeButton.y)
+    }
+    finally {
+        CoordMode("Mouse", previousMouseMode)
+    }
+    LogMessage("INFO", "Closed the animated-series Home popup")
+    Sleep(700)
+    return true
 }
 
 

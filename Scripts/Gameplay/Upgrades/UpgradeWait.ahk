@@ -1,13 +1,15 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Waits for an upgrade to become buyable and makes sure the right panel is open.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Polls affordability while keeping defeat, victory, and panel recovery checks alive.
+; Cheap green-pixel checks run often; heavier screen scans are spaced out independently.
 
 WaitForUpgrade(
     tower,
     path,
     &panelSide,
-    timingStep := false
+    timingStep := false,
+    clickX := "",
+    clickY := ""
 ) {
     global UpgradePoints
     global IsPregame
@@ -25,6 +27,8 @@ WaitForUpgrade(
     lastDefeatCheck := A_TickCount
     lastVictoryCheck := A_TickCount
     lastRoundTrackCheck := A_TickCount
+    lastPanelCheck := A_TickCount
+    missingPanelChecks := 0
 
 
     if !UpgradePoints.Has(
@@ -56,6 +60,9 @@ WaitForUpgrade(
     ; game-state scans are throttled separately below while we are still
     ; waiting for the upgrade to become affordable.
     Loop {
+
+        if !IsTowerInputActive()
+            return false
 
         if !UpgradePoints.Has(
             panelSide
@@ -186,6 +193,30 @@ WaitForUpgrade(
         }
 
 
+        ; A missed click or popup can leave the green-pixel wait with no panel.
+        ; Keep this scan off the fast path and require two consecutive misses
+        ; so one animation frame cannot cause an unnecessary reselection.
+        if A_TickCount - lastPanelCheck >= 1000 {
+            lastPanelCheck := A_TickCount
+            detectedSide := GetUpgradePanelSide()
+            if !IsTowerInputActive()
+                return false
+            if detectedSide {
+                panelSide := detectedSide
+                missingPanelChecks := 0
+            }
+            else {
+                missingPanelChecks++
+                if missingPanelChecks >= 2 {
+                    panelResult := EnsureUpgradePanelOpen(tower, &panelSide, clickX, clickY)
+                    if panelResult != true
+                        return panelResult
+                    missingPanelChecks := 0
+                    lastPanelCheck := A_TickCount
+                }
+            }
+        }
+
         ; A small button-area PixelSearch is cheap enough to poll quickly.
         ; Five milliseconds keeps CPU usage reasonable while making the
         ; visible-green -> hotkey delay effectively immediate.
@@ -196,237 +227,109 @@ WaitForUpgrade(
 
 EnsureUpgradePanelOpen(
     tower,
-    &panelSide
+    &panelSide,
+    clickX := "",
+    clickY := "",
+    forceReselect := false
 ) {
     global IsPregame
 
-
-    currentPanelSide :=
-        GetUpgradePanelSide()
-
-
-    if currentPanelSide {
-
-        panelSide :=
-            currentPanelSide
-
-
-        return true
+    if (clickX = "") != (clickY = "")
+        return false
+    if clickX = "" {
+        clickX := tower.x
+        clickY := tower.y
     }
+    if !IsTowerInputActive()
+        return false
 
-
-    ; If the panel vanished, recovery will reselect this exact tower.
-
-
-    ; A level-up screen can appear just after the
-    ; first-time balloon info screen is dismissed.
-    ; Clear it before any click tries to reselect the tower.
-    if !IsPregame {
-
-        ; One immediate popup check only. Never block the normal monkey
-        ; selection path for the old 2500 ms level-up timeout.
-        WaitForLevelUpAfterNewBloon(0)
-    }
-
-
-    ; Fast path.
-    ;
-    ; This is the important part that fixes the delay:
-    ; immediately attempt to select the monkey several
-    ; times without waiting for round OCR.
-    Loop 3 {
-
-        if !IsPregame {
-
-            WaitForLevelUpAfterNewBloon(0)
-        }
-
-        ClickMapPoint(
-            tower.x,
-            tower.y
-        )
-
-
-        Sleep(
-            IsFastDeflationPregameUpgrade() ? 25 : 35
-        )
-
-
-        currentPanelSide :=
-            GetUpgradePanelSide()
-
-
+    ; Ordinary recovery may reuse a visible panel. A fresh UpgradeTower action
+    ; must click its requested coordinates before accepting any panel.
+    if !forceReselect {
+        currentPanelSide := GetUpgradePanelSide()
+        if !IsTowerInputActive()
+            return false
         if currentPanelSide {
-
-            panelSide :=
-                currentPanelSide
-
-
+            panelSide := currentPanelSide
             return true
         }
-
-
-        if !IsPregame {
-
-            state :=
-                CheckGameState()
-
-
-            if state = "Victory" {
-                return "Victory"
-            }
-
-
-            if state = "Defeat" {
-                return "Defeat"
-            }
-        }
-
-
-        Sleep(
-            IsFastDeflationPregameUpgrade() ? 10 : 15
-        )
     }
 
-
-    ; Pregame should not have the unknown mid-match
-    ; hero unlock popup.
-    if IsPregame {
-        return false
-    }
-
-
-    ; Only reach this slower path when several immediate
-    ; tower selections failed.
-    ;
-    ; At this point an interruption may really be
-    ; covering the game.
-    startTick :=
-        A_TickCount
-
-
-    lastTowerRetry :=
-        0
-
-
-    timeoutMs :=
-        12000
-
-
-    Loop {
-
-        state :=
-            CheckGameState()
-
-
-        if state = "Victory" {
-            return "Victory"
-        }
-
-
-        if state = "Defeat" {
-            return "Defeat"
-        }
-
-
-        WaitForLevelUpAfterNewBloon(100)
-
-
-        roundHealth :=
-            CheckRoundReadRecovery(650)
-
-
-        if roundHealth = "Recovered" {
-
-            ; Unknown popup recovery just clicked
-            ; 1598,1043 five times.
-            ;
-            ; Re-select the monkey immediately.
-            ClickMapPoint(
-                tower.x,
-                tower.y
-            )
-
-
-            Sleep(
-                55
-            )
-
-
-            currentPanelSide :=
-                GetUpgradePanelSide()
-
-
+    recoveryDeadline := A_TickCount + 12000
+    Loop 3 {
+        if !IsTowerInputActive()
+            return false
+        ; The last click may finish rendering while popup recovery is running.
+        ; Only the first forced attempt must click before accepting a panel.
+        if A_Index > 1 {
+            currentPanelSide := GetUpgradePanelSide()
+            if !IsTowerInputActive()
+                return false
             if currentPanelSide {
-
-                panelSide :=
-                    currentPanelSide
-
-
+                panelSide := currentPanelSide
                 return true
             }
-
-
-            lastTowerRetry :=
-                A_TickCount
         }
-        else if roundHealth = "Readable" {
+        if !IsPregame
+            WaitForLevelUpAfterNewBloon(0)
+        if !IsTowerInputActive()
+            return false
+        if !ClickTowerPoint(clickX, clickY)
+            return false
 
-            ; No blocking popup is present.
-            ;
-            ; Retry the monkey quickly.
-            if (
-                A_TickCount
-                - lastTowerRetry
-                >= 70
-            ) {
-
-                lastTowerRetry :=
-                    A_TickCount
-
-
-                ClickMapPoint(
-                    tower.x,
-                    tower.y
-                )
-
-
-                Sleep(
-                    55
-                )
-
-
-                currentPanelSide :=
-                    GetUpgradePanelSide()
-
-
-                if currentPanelSide {
-
-                    panelSide :=
-                        currentPanelSide
-
-
-                    return true
-                }
+        ; Wait for rendering before another click. Repeated clicks during the
+        ; same delayed frame can close the panel just as it finally opens.
+        Loop 3 {
+            Sleep(150)
+            if !IsTowerInputActive()
+                return false
+            currentPanelSide := GetUpgradePanelSide()
+            if !IsTowerInputActive()
+                return false
+            if currentPanelSide {
+                panelSide := currentPanelSide
+                return true
             }
         }
 
-
-        ; If roundHealth = "Waiting", do not click
-        ; behind a likely unknown popup. The round
-        ; recovery timer will clear it after the configured recovery delay.
-        if (
-            A_TickCount
-            - startTick
-            >= timeoutMs
-        ) {
-
-            return false
+        if IsPregame {
+            if A_Index = 3
+                return false
+            continue
         }
 
+        ; Keep known overlays and terminal states responsive after a failed
+        ; selection. Unknown-popup recovery is bounded, and never adds extra
+        ; tower clicks beyond the three attempts above.
+        state := CheckGameState()
+        if state = "Victory" || state = "Defeat"
+            return state
+        if !IsTowerInputActive()
+            return false
+        if A_Index = 3
+            return false
 
-        Sleep(
-            25
-        )
+        while A_TickCount < recoveryDeadline {
+            if !IsTowerInputActive()
+                return false
+            WaitForLevelUpAfterNewBloon(100)
+            if !IsTowerInputActive()
+                return false
+            roundHealth := CheckRoundReadRecovery(650)
+            if !IsTowerInputActive()
+                return false
+            if roundHealth = "Recovered" || roundHealth = "Readable"
+                break
+
+            Sleep(150)
+            if !IsTowerInputActive()
+                return false
+            state := CheckGameState()
+            if state = "Victory" || state = "Defeat"
+                return state
+        }
+        if A_TickCount >= recoveryDeadline
+            return false
     }
+    return false
 }

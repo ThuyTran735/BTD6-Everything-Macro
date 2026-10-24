@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Starts queue execution and sets up the current queue run.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Validates the whole queue before handing its first job to the run loop.
+; Queue totals are initialized once here so the HUD can report overall progress.
 
 StartMacroQueue(*) {
     global MacroJobQueue
@@ -35,6 +35,7 @@ StartMacroQueue(*) {
     totalRuns := 0
 
 
+    ; Catch missing scripts before changing run state or hiding the launcher.
     for job in MacroJobQueue {
 
         if !FileExist(

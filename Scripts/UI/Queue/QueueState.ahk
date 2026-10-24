@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Keeps queue globals and the add-job/history-source helpers together.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keeps the editable queue separate from the currently running job counters.
+; New jobs are appended only after a real script and run count are available.
 
 
 global MacroJobQueue := []
@@ -81,6 +81,7 @@ AddJobToQueue(
     }
 
 
+    ; Nothing is added until the count prompt has returned a usable value.
     MacroJobQueue.Push(
         {
             path: scriptPath,

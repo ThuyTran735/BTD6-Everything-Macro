@@ -3,6 +3,7 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 ; Credits to sYnce on YT for the help on rounds 6-93.
 SanctuaryImpoppable() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Expert",
         map: "Sanctuary",
@@ -14,6 +15,8 @@ SanctuaryImpoppable() {
         endRound: 100
     }
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Dart A", {
             type: "Dart",
@@ -187,6 +190,9 @@ SanctuaryImpoppable() {
         }
     )
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
+    ; Per-action X/Y overrides select a moved tower without rewriting its placement record.
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
         [0, 0, () => PlaceTower(TowerSetup["Desperado A"])],

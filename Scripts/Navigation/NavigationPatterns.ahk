@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Keeps the FindText patterns used while moving through BTD6 menus.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Captured menu controls used for Home, map categories, difficulty, and mode navigation.
+; Lock captures belong to a specific mode so another locked button cannot reject the request.
 
 global NavigationPatterns := Map(
     ; Home screen

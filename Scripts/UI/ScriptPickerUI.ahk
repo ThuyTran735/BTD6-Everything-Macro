@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for ScriptPicker. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Choose a difficulty and strategy before passing the selection to a run or queue.
 
 ShowScriptPicker(
     mapName,
@@ -34,7 +34,7 @@ ShowScriptPicker(
 
 
     windowWidth := 520
-    windowHeight := 646
+    windowHeight := 644
 
 
     ScriptPickerGui := Gui(
@@ -55,9 +55,9 @@ ShowScriptPicker(
     AddUIOutlinedText(
         ScriptPickerGui,
         mapName,
+        24,
         20,
-        18,
-        480,
+        472,
         30,
         12,
         "Center"
@@ -67,7 +67,7 @@ ShowScriptPicker(
     SetUIBodyFont(ScriptPickerGui, 9, UIColorSecondaryText)
     ScriptPickerGui.Add(
         "Text",
-        "x20 y52 w480 h20 Center c"
+        "x24 y56 w472 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         "Choose a difficulty, then select the strategy file to use"
@@ -75,13 +75,13 @@ ShowScriptPicker(
 
 
     ; Difficulty card.
-    AddUICard(ScriptPickerGui, 16, 82, 488, 180)
+    AddUICard(ScriptPickerGui, 24, 88, 472, 160)
     AddUIOutlinedText(
         ScriptPickerGui,
         "DIFFICULTY",
-        30,
-        92,
-        460,
+        36,
+        100,
+        448,
         20,
         9,
         "Center"
@@ -90,9 +90,9 @@ ShowScriptPicker(
 
     difficultyList := CreateDarkList(
         ScriptPickerGui,
-        30,
-        120,
-        460,
+        36,
+        128,
+        448,
         108,
         availableDifficulties,
         36
@@ -106,13 +106,13 @@ ShowScriptPicker(
 
 
     ; Strategy card.
-    AddUICard(ScriptPickerGui, 16, 272, 488, 230)
+    AddUICard(ScriptPickerGui, 24, 260, 472, 232)
     AddUIOutlinedText(
         ScriptPickerGui,
         "STRATEGY FILES",
-        30,
-        282,
-        460,
+        36,
+        272,
+        448,
         20,
         9,
         "Center"
@@ -121,9 +121,9 @@ ShowScriptPicker(
 
     strategyList := CreateDarkList(
         ScriptPickerGui,
-        30,
-        310,
-        460,
+        36,
+        300,
+        448,
         180,
         [],
         36
@@ -134,7 +134,7 @@ ShowScriptPicker(
 
 
     ; Actions card.
-    AddUICard(ScriptPickerGui, 16, 512, 488, 118)
+    AddUICard(ScriptPickerGui, 24, 504, 472, 116)
 
 
     actionButtonText := action = "queue"
@@ -144,9 +144,9 @@ ShowScriptPicker(
 
     runSelectedButton := CreateDarkButton(
         ScriptPickerGui,
-        30,
-        526,
-        220,
+        36,
+        516,
+        218,
         42,
         actionButtonText,
         8
@@ -155,9 +155,9 @@ ShowScriptPicker(
 
     openFolderButton := CreateDarkButton(
         ScriptPickerGui,
-        270,
-        526,
-        220,
+        266,
+        516,
+        218,
         42,
         "OPEN MAP FOLDER",
         8
@@ -166,10 +166,10 @@ ShowScriptPicker(
 
     cancelButton := CreateDarkButton(
         ScriptPickerGui,
-        30,
-        580,
-        460,
         36,
+        570,
+        448,
+        38,
         "CANCEL",
         8
     )

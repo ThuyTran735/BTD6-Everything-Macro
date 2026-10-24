@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles save/mode prompts that can pop up during navigation.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Handles optional save warnings and the required confirmation screen for special modes.
+; A save prompt may never appear; a requested mode confirmation must be found to continue.
 
 HandleSavePrompt(
     timeout := 4000
@@ -36,6 +36,7 @@ HandleSavePrompt(
         ) {
             Click(X, Y)
 
+            ; Wait for the warning to disappear before the next navigation click.
             Loop 20 {
                 Sleep(50)
 
@@ -68,6 +69,7 @@ HandleSavePrompt(
             - startTime
             >= timeout
         ) {
+            ; No warning is a valid path when this map has no saved game.
             return true
         }
 

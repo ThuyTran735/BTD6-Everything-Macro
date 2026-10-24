@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3.1.1: Tracks the speed state that the macro itself selected.
+; Track the speed selected by the macro so repeated requests do not toggle it back.
 ; BTD6 uses Space to toggle between normal and fast speed once a round is running.
 
 global CurrentGameSpeed := "Unknown"

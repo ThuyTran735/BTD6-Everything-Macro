@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Reads/writes the tiny child-run and cycle-stop files used between scripts.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Exchanges small result files between the launcher and each child strategy.
+; A unique run token keeps reports separate; the stop flag is consumed once.
 
 IsInGameScreen() {
     global NavigationPatterns
@@ -60,6 +60,7 @@ ReadChildRunResult(token) {
         result.reason := IniRead(path, "Result", "Reason", "")
     }
 
+    ; Each result belongs to one completed child and should not be read twice.
     try FileDelete(path)
     return result
 }

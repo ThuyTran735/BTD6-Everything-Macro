@@ -3,11 +3,10 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; v3 file note: Quick manual test for FullGame. It stays separate from the normal launcher.
-
 ; End-to-end run test.
 ; Uses the same RunMapStrategy() pipeline as real map scripts.
 
+; Select a real match so the test exercises navigation as well as the action runner.
 global RunConfig := {
     category: "Beginner",
     map: "Monkey Meadow",
@@ -28,6 +27,8 @@ global TowerSetup := Map(
     }
 )
 
+; Place the tower in pregame, then buy the first upgrade when round 1 is detected.
+; Entries use [round, delay in milliseconds, action], just like a saved map strategy.
 strategy := [
     [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
     [1, 0, () => UpgradeTower(TowerSetup["Dart A"], "002")]

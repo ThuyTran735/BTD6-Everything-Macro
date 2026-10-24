@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Targeting part of the macro. Keep this focused so run bugs are easier to trace later.
+; Cycle normal tower targeting using the order available at its current upgrades.
 
 global EliteSniperActive := false
 
@@ -277,6 +277,7 @@ SetTargeting(tower, targetMode, overrideX := "", overrideY := "") {
     profileLength := targetingOrder.Length
 
 
+    ; Wrap forward through the active profile, including any upgrade-only modes.
     forwardSteps := Mod(
         targetIndex - currentIndex + profileLength,
         profileLength

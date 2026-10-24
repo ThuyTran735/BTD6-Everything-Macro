@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs hover/click/wheel polling and shared color/progress helpers for custom controls.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Runs the shared hover and wheel handling for buttons and lists.
+; Hit tests use screen coordinates so painted controls line up with the real cursor.
 
 UIControlContainsScreenPoint(
     controlObject,
@@ -14,6 +14,8 @@ UIControlContainsScreenPoint(
     }
 
 
+    ; Cursor coordinates and this rectangle are both physical screen pixels.
+    ; Mixing them with GUI layout coordinates would shift hit areas under DPI scaling.
     rect := Buffer(16, 0)
 
 

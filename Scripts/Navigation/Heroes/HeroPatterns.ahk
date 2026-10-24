@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Stores hero and skin patterns. Keeping the big pattern table away from the selection code makes the flow much easier to read.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Stores each hero name with the skin captures accepted by the picker.
+; The separate Unlock capture lets selection distinguish a visible portrait from an owned hero.
 
 global HeroSelectionPatterns := Map(
     ; button shown on a hero the player does not own.

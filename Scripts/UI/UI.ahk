@@ -1,6 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: UI code for . Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Declares shared launcher and run state, then loads the UI modules.
+; Startup stays in Main.ahk; these includes make the controls and callbacks available first.
 
 global LauncherGui := ""
 
@@ -124,6 +125,8 @@ global CategoryData := Map()
 #Include QueueUI.ahk
 #Include ScriptPickerUI.ahk
 #Include ModeUI.ahk
+#Include ..\Collection Event\CollectionEventSelection.ahk
+#Include Launcher\CollectionEventRun.ahk
 #Include LauncherUI.ahk
 
 

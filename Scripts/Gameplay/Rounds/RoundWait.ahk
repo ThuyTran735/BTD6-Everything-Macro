@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Waits for target rounds and resets/reads the tracker state used by strategies.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Waits for validated target rounds and records when each round began.
+; Readable counters take the fast path; interruption recovery is reserved for missing reads.
 
 WaitForRound(
     targetRound

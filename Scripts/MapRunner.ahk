@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the MapRunner part of the macro. Keep this focused so run bugs are easier to trace later.
+; Run one complete map cycle and report its result back to the launcher process.
 
 GetCurrentLauncherCycle() {
     cyclePrefix :=
@@ -47,7 +47,17 @@ GetCurrentLauncherCycle() {
 
 
 ShouldSelectHeroForCurrentCycle() {
-    return GetCurrentLauncherCycle() = 1
+    ; Collection runs can switch strategies between cycles, including heroes.
+    return IsCollectionEventRun() || GetCurrentLauncherCycle() = 1
+}
+
+
+IsCollectionEventRun() {
+    for argument in A_Args {
+        if argument = "--btd6-collection-event=1"
+            return true
+    }
+    return false
 }
 
 
@@ -89,6 +99,7 @@ GetLauncherRunResultPath(token := "") {
 
 
 WriteLauncherRunResult(status, reason := "") {
+    ; Directly launched strategies have no token and need no launcher result file.
     path := GetLauncherRunResultPath()
     if path = ""
         return false
@@ -176,6 +187,11 @@ RunMapStrategyCore(strategy) {
 
 
         if navigationResult = "Locked" {
+            ; The event launcher owns candidate selection. Report a skip here
+            ; instead of starting a prerequisite child that it cannot track.
+            if IsCollectionEventRun()
+                return SetRunFailureReason("EVENT CANDIDATE UNAVAILABLE", RunConfig.map . " - Impoppable is locked")
+
             prerequisite := GetGameModePrerequisite(
                 RunConfig.gameMode
             )
@@ -260,6 +276,7 @@ RunMapStrategyCore(strategy) {
     ResetGameSpeedState()
 
 
+    ; Pregame begins only after load completion and the fresh-state reset above.
     LogMessage("INFO", "Running pregame strategy actions")
 
     pregameResult := RunPregameStrategy(

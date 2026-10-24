@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Reads an existing strategy back into the builder without mixing parser code into the UI.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Reads supported strategy text into the editor without executing the imported file.
+; Unrecognized action shapes are counted so the import can tell the user what was skipped.
 
 ImportStrategyScript(*) {
     global MainGui, Entities, UpgradeActions, OutputEdit, StatusText
@@ -28,6 +28,7 @@ ImportStrategyScript(*) {
         return
     }
 
+    ; Replace editor state only after parsing found usable TowerSetup entries.
     HideMonkeyOverlay()
     Entities := parsed.entities
     UpgradeActions := parsed.actions
@@ -35,6 +36,7 @@ ImportStrategyScript(*) {
     ImportedEndRound := parsed.endRound
     WingmonkeyMKCheckbox.Value := parsed.wingmonkeyMK ? 1 : 0
 
+    ; Mode refresh normally clears imported round bounds; keep them while loading this file.
     IsImportingStrategy := true
     MapNameEdit.Value := parsed.map
     FunctionNameEdit.Value := parsed.functionName
@@ -42,6 +44,7 @@ ImportStrategyScript(*) {
 
     difficulty := parsed.difficulty
     mode := parsed.gameMode
+    ; Older scripts store these modes as difficulty names; the form keeps them under Hard.
     if difficulty = "Impoppable" {
         difficulty := "Hard"
         mode := "Impoppable"
@@ -85,6 +88,7 @@ ImportStrategyScript(*) {
     }
 }
 
+; Parse the supported script shapes as text; this is not a general AutoHotkey interpreter.
 ParseStrategyScript(text) {
     cleanText := RegExReplace(text, "m)^\s*;.*$", "")
 
@@ -243,6 +247,7 @@ ParseImportedStrategyActions(text) {
         actions
     )
 
+    ; Each helper was matched separately. Restore source order before assigning equal-time actions.
     SortImportedActionsByPosition(actions)
     return actions
 }
@@ -274,6 +279,7 @@ CollectImportedActions(text, pattern, kind, actions) {
                 action.overrideX := Integer(m[5])
                 action.overrideY := Integer(m[6])
             }
+        ; Spike targeting coordinates are a destination, rather than a tower-click override.
         } else if kind = "spikeTarget" {
             action.kind := "target"
             action.entity := m[3]

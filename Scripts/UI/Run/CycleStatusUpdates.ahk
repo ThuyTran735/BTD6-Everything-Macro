@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Refreshes the HUD text and progress while a run is active.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Refreshes cycle text and progress for individual runs and queued jobs.
+; The shutdown guard keeps late progress updates from redrawing a cancelled HUD.
 
 UpdateCycleStatusUI() {
     global CycleStatusGui
@@ -9,6 +9,7 @@ UpdateCycleStatusUI() {
 
     global CycleProgressText
     global CycleProgressBar
+    global CycleProgressBackground
 
     global RepeatRunTotal
     global RepeatRunCompleted
@@ -20,6 +21,7 @@ UpdateCycleStatusUI() {
     global QueueCompletedRuns
     global QueueCurrentRetryCount
     global CycleStatusClosing
+    global CollectionEventRunActive
 
 
     ; Once cancellation starts, stale monitor/timer work must not redraw the
@@ -33,6 +35,23 @@ UpdateCycleStatusUI() {
         return
     }
 
+
+    ; Continuous event runs have no percentage or final cycle. Show completed
+    ; runs directly, and keep all finite queue/manual calculations unchanged.
+    if CollectionEventRunActive && !QueueRunning {
+        CycleStatusText.Text := "CONTINUOUS"
+        if QueueCurrentRetryCount > 0 {
+            CycleStatusText.Text .= " - RETRY " . QueueCurrentRetryCount . " / " . GetQueueRetryLimit()
+        }
+        CycleProgressText.Text := RepeatRunCompleted . " RUN"
+            . (RepeatRunCompleted = 1 ? "" : "S") . " COMPLETED"
+        CycleProgressBar.Visible := false
+        CycleProgressBackground.Visible := false
+        return
+    }
+
+    CycleProgressBar.Visible := true
+    CycleProgressBackground.Visible := true
 
     if RepeatRunTotal < 1 {
         return

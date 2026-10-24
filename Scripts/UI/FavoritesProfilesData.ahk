@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for FavoritesProfilesData. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Stores favorites and queue profiles in UserData, including legacy profile migration.
+; These helpers own the saved data format; the window code only works with records.
 
 global FavoriteMaps := Map()
 global FavoriteExpScripts := Map()
@@ -68,6 +69,7 @@ MigrateLegacyQueueProfiles() {
     Loop Files legacyDirectory . "\*.ini", "F" {
         destination := newDirectory . "\" . A_LoopFileName
 
+        ; A profile already in the new folder takes priority over its legacy copy.
         if FileExist(destination) {
             continue
         }

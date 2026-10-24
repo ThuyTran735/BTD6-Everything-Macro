@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Builds and shows the small run-status HUD.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Draws the compact run HUD. Showing it also hands ownership back to the
+; position and click-guard timers; shutdown guards must stay in that sequence.
 
 CreateCycleStatusUI() {
     global CycleStatusGui
@@ -55,8 +55,7 @@ CreateCycleStatusUI() {
     CycleStatusGui.MarginY := 0
 
 
-    AddCustomWindowBorder(CycleStatusGui, hudWidth, hudHeight, 3)
-    AddUICard(CycleStatusGui, 8, 8, 404, 82)
+    AddCustomWindowBorder(CycleStatusGui, hudWidth, hudHeight, 1)
 
 
     ; Keep the run information together in one compact status block.
@@ -70,7 +69,7 @@ CreateCycleStatusUI() {
     CycleStatusText :=
         CycleStatusGui.Add(
             "Text",
-            "x20 y17 w248 h24 Center +0x200 c"
+            "x20 y12 w248 h24 Center +0x200 c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             "CYCLE 1 / 1"
@@ -87,7 +86,7 @@ CreateCycleStatusUI() {
     CycleProgressText :=
         CycleStatusGui.Add(
             "Text",
-            "x20 y42 w248 h18 Center +0x200 c"
+            "x20 y36 w248 h18 Center +0x200 c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "1 CYCLE LEFT"
@@ -105,7 +104,7 @@ CreateCycleStatusUI() {
 
     CycleStatusGui.Add(
         "Text",
-        "x20 y58 w248 h12 Center +0x200 c"
+        "x20 y56 w248 h14 Center +0x200 c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         "Emergency Stop: Ctrl + Shift + X"
@@ -139,7 +138,7 @@ CreateCycleStatusUI() {
     ; Quiet divider between run progress and the stop action.
     CycleStatusGui.Add(
         "Progress",
-        "x278 y18 w1 h62 c"
+        "x280 y16 w1 h66 c"
         . UIColorPanelBorder
         . " Background"
         . UIColorPanelBorder
@@ -152,9 +151,9 @@ CreateCycleStatusUI() {
         CreateDarkButton(
             CycleStatusGui,
             292,
-            26,
+            28,
             104,
-            46,
+            42,
             "CLOSE RUN",
             7
         )

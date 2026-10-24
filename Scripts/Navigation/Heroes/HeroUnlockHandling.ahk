@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Finishes selection and deals with heroes that are not unlocked.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Waits for hero details and checks the Unlock button before pressing Select.
+; A locked portrait routes to the fallback hero instead of assuming the account owns it.
 
 FinishHeroSelection(
     heroName

@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles normal on/off settings and keeps the launcher queue buttons in sync.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Save toggles immediately and reflect the new value on the button that was clicked.
 
 SetSettingsStatus(message) {
     global SettingsStatusText
@@ -45,6 +44,7 @@ ToggleRememberLauncherStateSetting(button, *) {
     enabled := !IsRememberLauncherStateEnabled()
     SetRememberLauncherStateEnabled(enabled)
 
+    ; Turning memory off also clears old selections so they cannot return later.
     if enabled {
         SaveLauncherState()
     }

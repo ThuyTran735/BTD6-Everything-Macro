@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Owns custom window hit testing, cards, borders, and border resizing.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Draws window frames and panels and makes the custom header draggable.
+; The right header inset stays available for help and other clickable controls.
 
 
 global UICustomChromeWindows := Map()
@@ -84,6 +84,8 @@ HandleCustomWindowHitTest(wParam, lParam, msg, hwnd) {
     right := NumGet(rect, 8, "Int")
 
 
+    ; WM_NCHITTEST packs signed screen coordinates into two 16-bit halves.
+    ; Restore their sign so dragging also works left of or above the main monitor.
     screenX := lParam & 0xFFFF
     screenY := (lParam >> 16) & 0xFFFF
 
@@ -148,6 +150,10 @@ AddUICard(
         . " c" . fillColor . " Background" . fillColor . " Disabled",
         100
     )
+
+    ; Keep the single theme-colored outline instead of nested native 3D frames.
+    border.Opt("-0x800000 -E0x200 -E0x20000")
+    fill.Opt("-0x800000 -E0x200 -E0x20000")
 
     return {Border: border, Fill: fill}
 }

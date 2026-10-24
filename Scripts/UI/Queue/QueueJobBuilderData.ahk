@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Refreshes map strategies and Monkey EXP scripts used by the builder dropdowns.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Rebuilds the available strategies when a map or tower group changes.
+; The dropdown text and backing script records must stay in the same order.
 
 RefreshQueueBuilderMapStrategies() {
     global QueueBuilderCategoryDropdown

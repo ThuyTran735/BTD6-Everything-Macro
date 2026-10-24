@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the SubMonkey part of the macro. Keep this focused so run bugs are easier to trace later.
+; Track Submerge separately from normal targeting so surfacing restores the previous mode.
 
 SetSubmerge(tower, shouldSubmerge := true) {
     LogStrategyAction(
@@ -33,6 +33,7 @@ SetSubmerge(tower, shouldSubmerge := true) {
     if !HasProp(tower, "targetingBeforeSubmerge")
         tower.targetingBeforeSubmerge := tower.targeting
 
+    ; PgDn toggles the state, so repeated requests must not send it again.
     if tower.submerged = shouldSubmerge
         return true
 

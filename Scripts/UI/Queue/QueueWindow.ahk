@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Builds and shows the Queue Manager window.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Builds the queue view. Job editing and execution stay in their own modules.
 
 ShowQueueManager(*) {
     global QueueGui
@@ -45,19 +44,17 @@ ShowQueueManager(*) {
 
 
     EnableCustomWindowChrome(QueueGui)
-    AddCustomWindowBorder(QueueGui, 620, 500)
-    AddUICard(QueueGui, 14, 76, 592, 298)
-    AddUICard(QueueGui, 14, 376, 592, 50)
-    AddUICard(QueueGui, 14, 430, 592, 56)
+    AddCustomWindowBorder(QueueGui, 620, 524)
+    AddUICard(QueueGui, 24, 88, 572, 300)
 
 
     AddUIOutlinedText(
         QueueGui,
         "MACRO QUEUE",
-        20,
-        18,
-        580,
-        34,
+        24,
+        24,
+        572,
+        28,
         13,
         "Center"
     )
@@ -80,14 +77,14 @@ ShowQueueManager(*) {
 
     QueueGui.Add(
         "Text",
-        "x20 y55 w580 h20 Center c"
+        "x24 y60 w572 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         "Jobs run from top to bottom and automatically continue to the next job"
     )
 
 
-    SetUIBodyBoldFont(
+    SetUIBodyFont(
         QueueGui,
         8,
         UIColorMutedText
@@ -97,7 +94,7 @@ ShowQueueManager(*) {
     QueueCountText :=
         QueueGui.Add(
             "Text",
-            "x20 y82 w580 h18 Center c"
+            "x40 y100 w540 h16 Center c"
             . UIColorMutedText
             . " BackgroundTrans",
             "0 JOBS  -  0 TOTAL RUNS"
@@ -107,9 +104,9 @@ ShowQueueManager(*) {
     QueueList :=
         CreateDarkList(
             QueueGui,
-            20,
-            110,
-            580,
+            40,
+            124,
+            540,
             252,
             [],
             36
@@ -119,10 +116,10 @@ ShowQueueManager(*) {
     moveUpButton :=
         CreateDarkButton(
             QueueGui,
-            20,
-            382,
-            108,
-            38,
+            24,
+            404,
+            104,
+            36,
             "MOVE UP",
             8
         )
@@ -131,10 +128,10 @@ ShowQueueManager(*) {
     moveDownButton :=
         CreateDarkButton(
             QueueGui,
-            138,
-            382,
-            108,
-            38,
+            140,
+            404,
+            104,
+            36,
             "MOVE DOWN",
             8
         )
@@ -144,9 +141,9 @@ ShowQueueManager(*) {
         CreateDarkButton(
             QueueGui,
             256,
-            382,
-            108,
-            38,
+            404,
+            104,
+            36,
             "EDIT JOB",
             8
         )
@@ -155,10 +152,10 @@ ShowQueueManager(*) {
     removeButton :=
         CreateDarkButton(
             QueueGui,
-            374,
-            382,
-            108,
-            38,
+            372,
+            404,
+            104,
+            36,
             "REMOVE",
             8
         )
@@ -167,10 +164,10 @@ ShowQueueManager(*) {
     clearButton :=
         CreateDarkButton(
             QueueGui,
-            492,
-            382,
+            488,
+            404,
             108,
-            38,
+            36,
             "CLEAR ALL",
             8
         )
@@ -179,9 +176,9 @@ ShowQueueManager(*) {
     QueueStartButton :=
         CreateDarkButton(
             QueueGui,
-            20,
-            436,
-            250,
+            24,
+            456,
+            248,
             44,
             "START QUEUE",
             9
@@ -191,9 +188,9 @@ ShowQueueManager(*) {
     profilesButton :=
         CreateDarkButton(
             QueueGui,
-            280,
-            436,
-            150,
+            284,
+            456,
+            144,
             44,
             "PROFILES",
             9
@@ -204,8 +201,8 @@ ShowQueueManager(*) {
         CreateDarkButton(
             QueueGui,
             440,
-            436,
-            160,
+            456,
+            156,
             44,
             "BACK",
             9
@@ -337,7 +334,7 @@ ShowQueueManager(*) {
 
 
     QueueGui.Show(
-        "Hide w620 h500"
+        "Hide w620 h524"
     )
 
 
@@ -350,7 +347,7 @@ ShowQueueManager(*) {
 
 
     QueueGui.Show(
-        "w620 h500 Center"
+        "w620 h524 Center"
     )
 }
 

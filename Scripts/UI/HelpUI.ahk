@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for Help. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Help badges share one popup; opening another badge replaces the current explanation.
 
 global UIHelpGui := ""
 global UIHelpBadges := []
@@ -122,9 +122,8 @@ CreateHelpBadgeForButton(
         )
 
 
-    ; Luckiest Guy's ? glyph needs a small optical baseline correction in
-    ; these compact boxes. Keep it fixed two pixels lower so the visible glyph
-    ; is centered inside the mini-button instead of bouncing with animation.
+    ; Luckiest Guy sits a little high at this size. Keep its two-pixel offset
+    ; fixed while the parent button animates beneath the help badge.
     badge.LockTextPosition(2)
 
 
@@ -323,16 +322,16 @@ ShowContextHelp(
 
 
     EnableCustomWindowChrome(UIHelpGui)
-    AddCustomWindowBorder(UIHelpGui, 520, 330)
+    AddCustomWindowBorder(UIHelpGui, 520, 354)
 
 
     AddUIOutlinedText(
         UIHelpGui,
         title,
         24,
-        20,
+        24,
         472,
-        34,
+        48,
         12,
         "Center"
     )
@@ -347,7 +346,7 @@ ShowContextHelp(
 
     UIHelpGui.Add(
         "Text",
-        "x36 y74 w448 h176 Left c"
+        "x24 y88 w472 h184 Left c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         body
@@ -357,10 +356,10 @@ ShowContextHelp(
     closeButton :=
         CreateDarkButton(
             UIHelpGui,
-            130,
-            270,
-            260,
-            44,
+            24,
+            288,
+            472,
+            42,
             "GOT IT",
             9
         )
@@ -385,7 +384,7 @@ ShowContextHelp(
 
 
     UIHelpGui.Show(
-        "Hide w520 h330"
+        "Hide w520 h354"
     )
 
 
@@ -395,7 +394,7 @@ ShowContextHelp(
 
 
     UIHelpGui.Show(
-        "w520 h330 Center"
+        "w520 h354 Center"
     )
 }
 

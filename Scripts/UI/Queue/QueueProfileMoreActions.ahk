@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles the MORE menu plus export/import/rename/delete actions.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Owns the extra profile tools and returns to the manager when they close.
+; File operations use the selected profile record rather than its display text alone.
 
 ShowQueueProfileMoreActions(*) {
     global QueueProfilesGui

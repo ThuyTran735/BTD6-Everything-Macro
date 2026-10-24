@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Launcher code is split into drawing, mode actions, run launching, and queued/repeat execution. The old LauncherUI path remains the entry point.
-; The split is organization-only; callers can keep including this file like before.
+; Keep this public include stable while the launcher window, mode actions, and
+; run lifecycle live in separate files below.
 
 #Include Launcher\LauncherWindow.ahk
 #Include Launcher\LauncherModeActions.ahk

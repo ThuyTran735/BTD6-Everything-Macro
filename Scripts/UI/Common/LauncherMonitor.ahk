@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Watches the child macro state and decides when the launcher should come back.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Watches child completion and decides whether to continue, retry, or return to the launcher.
+; Cancellation can interrupt this timer, so state checks around child results are deliberate.
 
 MonitorLauncherState() {
     global MacroRunning
@@ -26,13 +26,13 @@ MonitorLauncherState() {
 
     global LauncherGui
     global CycleStatusClosing
+    global CollectionEventRunActive
 
     global UIColorSuccess
     global UIColorError
 
 
-    ; Do not let the normal launcher appear on top
-    ; of the fake startup loading screen.
+    ; Keep the launcher hidden until the startup loading screen has finished.
     if StartupLoadingActive {
 
         if IsLauncherVisible() {
@@ -158,6 +158,10 @@ MonitorLauncherState() {
                     ? childResult.reason
                     : "CHILD SCRIPT FAILED"
 
+                ; An unusable event map is replaced within the same cycle.
+                ; It is neither a completed run nor a defeat-retry attempt.
+                if HandleCollectionEventCandidateUnavailable(reason)
+                    return
 
                 canRetry :=
                     IsQueueAutoRetryEnabled()
@@ -268,10 +272,9 @@ MonitorLauncherState() {
 
 
                 UpdateStatus(
-                    "RUN "
-                    . nextRun
-                    . " OF "
-                    . RepeatRunTotal,
+                    CollectionEventRunActive
+                        ? "EVENT RUN " . nextRun
+                        : "RUN " . nextRun . " OF " . RepeatRunTotal,
                     UIColorSuccess
                 )
 

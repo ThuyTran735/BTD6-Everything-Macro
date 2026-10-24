@@ -5,7 +5,8 @@
 #Include Scripts\UI\UI.ahk
 
 
-; v3 file note: Starts the launcher and wires the shared game/UI pieces together. Startup-only stuff belongs here.
+; Starts the launcher after the first-run warning and loading screen.
+; Background checks begin only after the launcher controls exist.
 
 ShowFirstRunWarningIfNeeded()
 

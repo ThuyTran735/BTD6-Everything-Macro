@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Gets the active round area and mode limits, including Glacial Trail checks.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Resolves OCR regions and round bounds from the active difficulty, mode, and overrides.
+; Modes with a /100 counter need the wider capture area even when their difficulty is Hard.
 
 GetRoundArea() {
     global RunConfig

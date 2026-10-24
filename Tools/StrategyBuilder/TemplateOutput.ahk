@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Turns the builder state into map-script text and handles copy/save/clear.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Turns editor state into a strategy script, with placements sorted before other tied actions.
+; Generation, copy, and save share the same output so the preview matches the saved file.
 
 GenerateTemplate(*) {
     global OutputEdit, StatusText
@@ -146,6 +146,7 @@ BuildTemplateText() {
         out .= ",`r`n"
         out .= "        startRound: 31,`r`n"
         out .= "        endRound: 60`r`n"
+    ; Keep imported custom round bounds unless the user changed the mode.
     } else if ImportedStartRound != "" || ImportedEndRound != "" {
         out .= ",`r`n"
         if ImportedStartRound != ""
@@ -167,6 +168,7 @@ BuildTemplateText() {
     }
     out .= "    )`r`n`r`n"
 
+    ; Merge placement rows and scheduled actions into fresh records; sorting must not reorder the editor.
     allActions := []
     for entity in Entities {
         placeDelay := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
@@ -264,6 +266,7 @@ BuildTemplateText() {
                 targetMode := EscapeAhkString(action.target)
                 targetEntity := FindEntityByName(action.entity)
 
+                ; Spike Factory targeting has its own helpers and its own destination coordinates.
                 if targetEntity && targetEntity.type = "SpikeFactory" {
                     if action.target = "Set Target" && HasProp(action, "targetX") {
                         out .= "        [" action.round ", " action.delay ", () => SetSpikeFactoryTarget(TowerSetup[" q entityName q "], " action.targetX ", " action.targetY ")]"
@@ -372,6 +375,7 @@ BuildEntityBlock(entity) {
     out .= "            upgrades: [0, 0, 0],`r`n"
     out .= "            targeting: " q targeting q
 
+    ; Submerge needs to remember the normal targeting mode for the next surface transition.
     if entity.type = "Sub" {
         out .= ",`r`n"
         out .= "            targetingBeforeSubmerge: " q targeting q ",`r`n"
@@ -385,7 +389,8 @@ BuildEntityBlock(entity) {
 }
 
 SortActions(actions) {
-    ; Stable insertion sort: round, delay, placement before upgrade.
+    ; Sort by round and delay, then put placements first at the same time.
+    ; Equal non-placement actions keep their entry order, which can change what the strategy does.
     i := 2
     while i <= actions.Length {
         current := actions[i]

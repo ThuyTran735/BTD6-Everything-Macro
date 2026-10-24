@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Runs the quick top-level check for playing, victory, or defeat.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Checks interruptions before deciding whether a run is still playing, won, or lost.
+; A dismissed popup leaves the run active; result handlers own the later screen transitions.
 
 CheckGameState() {
     global GameStatePatterns

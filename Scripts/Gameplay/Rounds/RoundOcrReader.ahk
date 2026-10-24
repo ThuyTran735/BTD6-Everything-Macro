@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Reads the round counter and runs the Glacial Trail fallback OCR pass.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Reads the visible round counter from the normal and shifted panel regions.
+; Strict OCR runs first; only Glacial Trail receives the more tolerant fallback pass.
 
 GetCurrentRound() {
     global RoundDigits
@@ -11,6 +11,7 @@ GetCurrentRound() {
         GetRoundArea()
 
 
+    ; An open right-side tower panel shifts the counter; try both known positions.
     for areaName in [
         "regular",
         "rightPanel"

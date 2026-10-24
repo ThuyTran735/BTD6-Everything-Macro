@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Chooses a fallback hero when the requested one cannot be used.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Falls back to Quincy when the requested hero is missing or locked.
+; Search the current list position first, then scroll upward toward the default hero.
 
 SelectFallbackHero(
     requestedHero

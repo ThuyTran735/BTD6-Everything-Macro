@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Checks whether BTD6 has dropped back to the home screen.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Recognizes the Home screen by its Play button.
+; A missing or empty capture means unknown, so it must not be treated as proof of Home.
 
 IsHomeScreenVisible() {
     global NavigationPatterns

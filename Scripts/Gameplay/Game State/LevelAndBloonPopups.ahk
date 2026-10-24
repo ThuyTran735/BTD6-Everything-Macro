@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles level-up, unlock, and new-bloon popups that can interrupt a run.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Clears level-up and first-seen-bloon messages, including their follow-up unlock screens.
+; Tower reselection belongs to the upgrade caller once these overlays have finished closing.
 
 HandleLevelUpPopup() {
     global GameStatePatterns

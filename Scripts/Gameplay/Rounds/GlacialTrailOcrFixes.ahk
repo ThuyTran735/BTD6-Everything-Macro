@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Contains only the weird Glacial Trail OCR cleanup rules so other maps stay normal.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Repairs confirmed Glacial Trail round-counter misreads using the next expected round.
+; The repairs stay map-specific so a valid counter on another map cannot be rewritten.
 
 NormalizeRoundOcrCandidate(candidate) {
     global LastRound

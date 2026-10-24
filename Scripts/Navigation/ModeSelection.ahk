@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Chooses difficulty/mode and checks whether a game mode is locked.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Selects difficulty and game mode from their captures, with separate locked-mode detection.
+; Lock checks require repeated evidence after the menu has had time to appear.
 
 SelectDifficulty(difficulty) {
     global NavigationPatterns
@@ -88,6 +88,7 @@ SelectGameMode(gameMode) {
             return true
         }
 
+        ; Ignore early animation frames, then require three consecutive lock matches.
         if A_Index >= 5 {
             if IsGameModeLocked(
                 gameMode

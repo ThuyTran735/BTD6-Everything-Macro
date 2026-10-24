@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Gets from the home screen to the requested map and handles map clicking.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Navigates from Home through hero, map, difficulty, and mode selection.
+; Map scans hide the launcher HUD and focus BTD6 so overlays cannot obscure the capture.
 
 NavigateToMap(
     category,
@@ -85,6 +85,9 @@ NavigateToMap(
             gameMode
         )
 
+        if IsCollectionEventRun()
+            return SetRunFailureReason("EVENT CANDIDATE UNAVAILABLE", mapName . " - Impoppable pattern was not found")
+
         return SetRunFailureReason("FAILED TO ENTER MODE", gameMode)
     }
 
@@ -105,7 +108,11 @@ OpenPlayMenu() {
     ; Clear Home-menu interruptions before trying Play.
     ; This returns immediately when no configured popup
     ; pattern is visible.
-    HandleHomeMenuInterruptions()
+    homeResult := HandleHomeMenuInterruptions()
+    if homeResult = "blocked"
+        return false
+    if homeResult = "pending"
+        return SetRunFailureReason("COLLECTION REWARDS BUSY", "Another handler still owns the reward screen")
 
     if NavigationPatterns.Has(
         "MapScreen"
@@ -267,7 +274,8 @@ TryClickCurrentMap(mapName) {
     }
 
     Loop 4 {
-        if FindText(
+        eventRun := IsCollectionEventRun()
+        match := eventRun ? FindCollectionEventMapPattern(mapPattern) : FindText(
             &X,
             &Y,
             0,
@@ -277,7 +285,14 @@ TryClickCurrentMap(mapName) {
             0,
             0,
             mapPattern
-        ) {
+        )
+        if match {
+            if eventRun {
+                if !WinActive("ahk_exe BloonsTD6.exe")
+                    return false
+                X := match.x
+                Y := match.y
+            }
             LogMessage(
                 "INFO",
                 "Map pattern found: "
@@ -301,6 +316,28 @@ TryClickCurrentMap(mapName) {
     return false
 }
 
+FindCollectionEventMapPattern(mapPattern) {
+    ; Event candidates can change between cycles. Check each card separately
+    ; so a matching medal on another map cannot masquerade as its thumbnail.
+    if !WinActive("ahk_exe BloonsTD6.exe")
+        return false
+    FindText().ScreenShot(320, 105, 1610, 750)
+    Loop 6 {
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            return false
+        area := GetCollectionEventMapArtRegion(A_Index)
+        matches := FindText(&x, &y, area.left, area.top, area.right, area.bottom,
+            0, 0, mapPattern, 0, 1)
+        if matches {
+            for match in matches {
+                if IsCollectionEventMapArtMatch(match)
+                    return match
+            }
+        }
+    }
+    return false
+}
+
 FindAndClickMap(
     category,
     mapName,
@@ -317,12 +354,15 @@ FindAndClickMap(
             . mapName
         )
 
-        RequestLauncherCycleStop()
+        if !IsCollectionEventRun()
+            RequestLauncherCycleStop()
 
         Sleep(1800)
         ToolTip()
 
-        return SetRunFailureReason("MAP NOT FOUND", mapName)
+        ; Failure logging keeps the first cause, so classify the skip here.
+        return SetRunFailureReason(
+            IsCollectionEventRun() ? "EVENT CANDIDATE UNAVAILABLE" : "MAP NOT FOUND", mapName)
     }
 
     if !NavigationPatterns.Has(
@@ -358,6 +398,9 @@ FindAndClickMap(
     ; Clicking the category icon cycles through
     ; that category's map pages and wraps around.
     Loop maxPageChanges {
+        if IsCollectionEventRun() && !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING MAP SEARCH")
+
         if !FindText(
             &X,
             &Y,
@@ -382,6 +425,8 @@ FindAndClickMap(
             return SetRunFailureReason("MAP CATEGORY CONTROL NOT FOUND", category)
         }
 
+        if IsCollectionEventRun() && !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING MAP SEARCH")
         Click(X, Y)
 
         Sleep(550)
@@ -401,10 +446,14 @@ FindAndClickMap(
         . " page changes."
     )
 
-    RequestLauncherCycleStop()
+    ; Event runs can try another installed strategy when this map is absent.
+    ; Category/focus failures still stop because changing maps cannot fix them.
+    if !IsCollectionEventRun()
+        RequestLauncherCycleStop()
 
     Sleep(2200)
     ToolTip()
 
-    return SetRunFailureReason("MAP NOT FOUND", mapName)
+    return SetRunFailureReason(
+        IsCollectionEventRun() ? "EVENT CANDIDATE UNAVAILABLE" : "MAP NOT FOUND", mapName)
 }

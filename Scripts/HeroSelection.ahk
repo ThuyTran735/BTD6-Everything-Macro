@@ -1,9 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\FindText.ahk
 
-; v3 file note: Hero selection is split into patterns, the main selection flow, fallback handling, and click helpers. The old file name stays as the public entry point.
-; The split is organization-only; callers can keep including this file like before.
+; Hero selection includes its own unlock and fallback handling, so callers only need this entry point when preparing a configured hero.
 
 #Include Navigation\Heroes\HeroPatterns.ahk
 #Include Navigation\Heroes\HeroSelectionFlow.ahk

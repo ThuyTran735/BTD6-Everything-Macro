@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for Mode. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; The picker changes launcher controls; each mode owns its own run action.
 
 ShowModePicker(*) {
     global ModePickerGui
@@ -23,7 +23,7 @@ ShowModePicker(*) {
 
 
     uiWidth := 440
-    uiHeight := 430
+    uiHeight := 494
 
 
     ModePickerGui := Gui(
@@ -40,17 +40,17 @@ ShowModePicker(*) {
     AddCustomWindowBorder(ModePickerGui, uiWidth, uiHeight)
 
     ; Three clear layers: mode selection, mode details, and actions.
-    AddUICard(ModePickerGui, 16, 84, 408, 164)
-    AddUICard(ModePickerGui, 16, 258, 408, 86)
-    AddUICard(ModePickerGui, 16, 354, 408, 60)
+    AddUICard(ModePickerGui, 24, 84, 392, 216)
+    AddUICard(ModePickerGui, 24, 312, 392, 86)
+    AddUICard(ModePickerGui, 24, 410, 392, 60)
 
 
     AddUIOutlinedText(
         ModePickerGui,
         "SELECT MODE",
-        20,
+        24,
         18,
-        400,
+        392,
         34,
         13,
         "Center"
@@ -66,7 +66,7 @@ ShowModePicker(*) {
 
     ModePickerGui.Add(
         "Text",
-        "x20 y55 w400 h20 Center c"
+        "x24 y55 w392 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         "Choose how the macro should run"
@@ -76,17 +76,18 @@ ShowModePicker(*) {
     modes := [
         "Default",
         "Monkey EXP Grind",
-        "Monkey Money Grind"
+        "Monkey Money Grind",
+        "Auto Collection Event"
     ]
 
 
     modeList :=
         CreateDarkList(
             ModePickerGui,
-            26,
-            94,
-            388,
-            144,
+            36,
+            96,
+            368,
+            192,
             modes,
             48
         )
@@ -100,6 +101,9 @@ ShowModePicker(*) {
     }
     else if CurrentMode = "Monkey Money Grind" {
         modeList.Choose(3)
+    }
+    else if CurrentMode = "Auto Collection Event" {
+        modeList.Choose(4)
     }
     else {
         modeList.Choose(1)
@@ -119,7 +123,7 @@ ShowModePicker(*) {
     modeDescriptionLine1 :=
         ModePickerGui.Add(
             "Text",
-            "x30 y278 w380 h20 Center c"
+            "x36 y330 w368 h20 Center c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             ""
@@ -129,7 +133,7 @@ ShowModePicker(*) {
     modeDescriptionLine2 :=
         ModePickerGui.Add(
             "Text",
-            "x30 y303 w380 h20 Center c"
+            "x36 y355 w368 h20 Center c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             ""
@@ -164,9 +168,9 @@ ShowModePicker(*) {
     useButton :=
         CreateDarkButton(
             ModePickerGui,
-            26,
-            364,
-            245,
+            36,
+            420,
+            232,
             40,
             "USE SELECTED",
             9
@@ -176,9 +180,9 @@ ShowModePicker(*) {
     cancelButton :=
         CreateDarkButton(
             ModePickerGui,
-            281,
-            364,
-            133,
+            280,
+            420,
+            124,
             40,
             "BACK",
             9
@@ -246,6 +250,12 @@ ShowModePicker(*) {
 
 UpdateModePickerDescription(modeList, line1Control, line2Control) {
     selectedMode := modeList.Text
+
+    if selectedMode = "Auto Collection Event" {
+        line1Control.Text := "Expert Impoppable, running until stopped."
+        line2Control.Text := "Marked map first; random supported fallback."
+        return
+    }
 
 
     if selectedMode = "Monkey EXP Grind" {
@@ -512,11 +522,11 @@ ApplyLauncherMode() {
     }
 
 
-    if CurrentMode
-        = "Monkey Money Grind" {
+    ; These modes have no manual map/tower fields. Event maps are selected
+    ; automatically for each cycle; Money Grind remains a placeholder.
+    if CurrentMode = "Monkey Money Grind" || CurrentMode = "Auto Collection Event" {
 
-        SubtitleText.Text :=
-            "Monkey Money Grind Mode"
+        SubtitleText.Text := CurrentMode
 
 
         CategoryLabel.Visible := false
@@ -528,13 +538,12 @@ ApplyLauncherMode() {
         HotkeyText.Visible := false
 
 
-        MonkeyExpTitle.Text :=
-            "MONKEY MONEY GRIND"
+        MonkeyExpTitle.Text := StrUpper(CurrentMode)
 
 
-        MonkeyExpDescription.Text :=
-            "Monkey Money Grind controls will go here.`n"
-            . "This mode is ready to be built next."
+        MonkeyExpDescription.Text := CurrentMode = "Auto Collection Event"
+            ? "Expert Impoppable | Runs until stopped`nMarked map first; random supported map otherwise."
+            : "Not configured yet.`nRun controls are unavailable."
 
 
         MonkeyExpTitle.Visible := true
@@ -555,17 +564,18 @@ ApplyLauncherMode() {
         MonkeyExpFavoriteButton.Visible := false
 
 
-        RunButton.Enabled := false
+        RunButton.Enabled := CurrentMode = "Auto Collection Event"
         if AddQueueButton {
-            AddQueueButton.Enabled := true
+            AddQueueButton.Enabled := CurrentMode != "Auto Collection Event"
         }
 
-        RunButton.Text :=
-            "MODE UNAVAILABLE"
+        RunButton.Text := CurrentMode = "Auto Collection Event"
+            ? "START EVENT" : "MODE UNAVAILABLE"
 
 
         UpdateStatus(
-            "MODE NOT CONFIGURED YET",
+            CurrentMode = "Auto Collection Event"
+                ? "EXPERT IMPOPPABLE READY" : "MODE NOT CONFIGURED YET",
             UIColorWarning
         )
 

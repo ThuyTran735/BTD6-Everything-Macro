@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs the small custom prompt used to choose how many cycles to run.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Shared run-count prompt for starting a strategy and adding or editing a job.
+; The caller receives zero on cancellation and a validated count on confirmation.
 
 ShowCycleInputPrompt(context := "run", initialValue := 1) {
     global CycleInputGui
@@ -28,7 +28,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 
     dialogWidth := 460
-    dialogHeight := 326
+    dialogHeight := 316
 
 
     isQueuePrompt := (context = "queue" || context = "editqueue")
@@ -67,10 +67,10 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     AddUIOutlinedText(
         CycleInputGui,
         actionTitle,
-        20,
-        18,
-        420,
-        30,
+        24,
+        24,
+        412,
+        28,
         12,
         "Center"
     )
@@ -79,7 +79,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     SetUIBodyFont(CycleInputGui, 9, UIColorSecondaryText)
     CycleInputGui.Add(
         "Text",
-        "x20 y52 w420 h20 Center c"
+        "x24 y60 w412 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         actionDescription
@@ -87,32 +87,32 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
 
 
     ; Run-count card.
-    AddUICard(CycleInputGui, 16, 82, 428, 138)
+    AddUICard(CycleInputGui, 24, 96, 412, 136)
     AddUIOutlinedText(
         CycleInputGui,
         "RUN COUNT",
-        30,
-        92,
-        400,
+        40,
+        108,
+        380,
         20,
         9,
         "Center"
     )
 
 
-    SetUIBodyFont(CycleInputGui, 8, UIColorAccent)
+    SetUIBodyFont(CycleInputGui, 8, UIColorSecondaryText)
     CycleInputGui.Add(
         "Text",
-        "x30 y117 w400 h18 Center c"
-        . UIColorAccent
+        "x40 y132 w380 h18 Center c"
+        . UIColorSecondaryText
         . " BackgroundTrans",
-        "WHOLE NUMBER  -  1 TO 1,000,000"
+        "Whole number from 1 to 1,000,000"
     )
 
 
     CycleInputGui.Add(
         "Progress",
-        "x30 y143 w400 h50 c"
+        "x40 y160 w380 h44 c"
         . UIColorInputBorder
         . " Background"
         . UIColorInputBorder
@@ -124,7 +124,7 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     SetUIBodyFont(CycleInputGui, 14, UIColorPrimaryText)
     CycleInputEdit := CycleInputGui.Add(
         "Edit",
-        "x32 y145 w396 h46 Center Limit7 c"
+        "x42 y162 w376 h40 Center Limit7 c"
         . UIColorInputText
         . " Background"
         . UIColorInputBackground,
@@ -139,22 +139,21 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     SetUIBodyFont(CycleInputGui, 8, UIColorError)
     CycleInputErrorText := CycleInputGui.Add(
         "Text",
-        "x30 y196 w400 h18 Center c"
+        "x40 y212 w380 h16 Center c"
         . UIColorError
         . " BackgroundTrans",
         ""
     )
 
 
-    ; Action card keeps the two choices aligned with the rest of the UI.
-    AddUICard(CycleInputGui, 16, 230, 428, 80)
+    ; Both choices share the same baseline and outer margin.
 
 
     runButton := CreateDarkButton(
         CycleInputGui,
-        30,
-        247,
-        194,
+        24,
+        248,
+        200,
         44,
         isEditQueuePrompt
         ? "SAVE CHANGES"
@@ -166,8 +165,8 @@ ShowCycleInputPrompt(context := "run", initialValue := 1) {
     cancelButton := CreateDarkButton(
         CycleInputGui,
         236,
-        247,
-        194,
+        248,
+        200,
         44,
         "CANCEL",
         8

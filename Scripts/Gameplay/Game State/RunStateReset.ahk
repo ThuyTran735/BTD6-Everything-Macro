@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Resets tower state and releases modifier keys between runs.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Clears the saved placement, upgrade, and targeting state before another run.
+; The strategy keeps its tower records, but their live game state must start fresh.
 
 ResetTowerSetup() {
     global TowerSetup
@@ -60,6 +60,7 @@ ResetTowerSetup() {
         }
 
 
+        ; Aim points from the previous run are no longer evidence of a configured mortar.
         if tower.type = "Mortar" {
 
             tower.targetSet := false
@@ -88,8 +89,9 @@ ResetTowerSetup() {
 }
 
 
-ReleaseMacroModifierKeys() {
-    SendEvent(
+; Release both physical sides so a stopped macro cannot leave later menu clicks modified.
+ReleaseMacroModifierKeys(releaseStoppedInputs := false) {
+    releaseKeys :=
         "{LAlt Up}"
         . "{RAlt Up}"
         . "{LCtrl Up}"
@@ -98,10 +100,50 @@ ReleaseMacroModifierKeys() {
         . "{RShift Up}"
         . "{LWin Up}"
         . "{RWin Up}"
-    )
+
+    ; Forced process termination skips the child's finally blocks. Only the
+    ; launcher stop path requests these extra releases, after that child exits.
+    if releaseStoppedInputs
+        releaseKeys := "{Blind}" . GetStoppedMacroInputReleases() . releaseKeys
+
+    SendEvent(releaseKeys)
 
 
     Sleep(
         50
     )
+}
+
+
+GetStoppedMacroInputReleases() {
+    global TowerHotkeys
+    global UpgradeHotkeys
+
+    keys := Map()
+    keys.CaseSense := "Off"
+    keys["LButton"] := true
+    keys["Esc"] := true
+    bindings := []
+    if IsSet(TowerHotkeys) && TowerHotkeys is Map
+        bindings.Push(TowerHotkeys)
+    if IsSet(UpgradeHotkeys) && UpgradeHotkeys is Map
+        bindings.Push(UpgradeHotkeys)
+
+    for hotkeys in bindings {
+        for bindingName, heldBinding in hotkeys {
+            if RegExMatch(heldBinding, "^\{([A-Za-z0-9]+)\}$", &match)
+                heldKey := match[1]
+            else if StrLen(heldBinding) = 1 && heldBinding != "{" && heldBinding != "}"
+                heldKey := heldBinding
+            else
+                continue
+            keys[heldKey] := true
+        }
+    }
+
+    ; Key-up events do not select a tower, buy an upgrade, or press Escape.
+    releases := ""
+    for heldKey, unused in keys
+        releases .= "{" . heldKey . " Up}"
+    return releases
 }

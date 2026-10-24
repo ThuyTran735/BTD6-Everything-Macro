@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Keeps Queue Job Builder globals and its simple open/edit entry points.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Shared controls and edit state for the queue-job window.
+; The edit index distinguishes replacing an existing job from appending a new one.
 
 
 global QueueBuilderGui := ""

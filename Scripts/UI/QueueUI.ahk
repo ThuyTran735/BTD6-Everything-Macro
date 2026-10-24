@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Queue Manager is split into state/window, list refresh, editing, profile navigation, and execution pieces. Existing callers still include QueueUI.ahk.
-; The split is organization-only; callers can keep including this file like before.
+; Loads the queue modules in one place for existing launcher callers.
+; State and drawing are separate from editing and execution so UI changes stay local.
 
 #Include Queue\QueueState.ahk
 #Include Queue\QueueWindow.ahk

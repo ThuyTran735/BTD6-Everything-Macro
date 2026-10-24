@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles profile summaries, notes scrolling, repeat count, and autosave.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keeps profile totals, notes scrolling, and repeat-count edits in sync.
+; Loading a different profile suppresses autosave until its controls are populated.
 
 CloneQueueProfileJob(job) {
     cloned := {
@@ -164,6 +164,7 @@ UpdateQueueProfileNotesScrollbar(*) {
         return
     }
 
+    ; These dimensions match the notes field in QueueProfileWindow.ahk.
     trackY := 223
     trackHeight := 38
     thumbHeight := Max(14, Floor(trackHeight * visibleLines / lineCount))

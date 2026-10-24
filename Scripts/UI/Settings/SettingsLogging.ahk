@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Handles logging settings, log export/open/delete, and the small Logs window.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Manage diagnostic files without mixing them with the separate Run History records.
 
 ToggleLoggingSetting(button, *) {
     enabled := !IsLoggingEnabled()
@@ -98,12 +97,11 @@ ShowLogsUI(*) {
 
 
     EnableCustomWindowChrome(LogsGui)
-    AddCustomWindowBorder(LogsGui, 500, 442)
-    AddUICard(LogsGui, 30, 88, 440, 84)
-    AddUICard(LogsGui, 30, 176, 440, 140)
-    AddUICard(LogsGui, 30, 314, 440, 50)
+    AddCustomWindowBorder(LogsGui, 500, 452)
+    AddUICard(LogsGui, 24, 88, 452, 92)
+    AddUICard(LogsGui, 24, 192, 452, 136)
 
-    AddUIOutlinedText(LogsGui, "LOGS", 20, 18, 460, 34, 13, "Center")
+    AddUIOutlinedText(LogsGui, "LOGS", 24, 20, 452, 32, 13, "Center")
 
     CreateHelpBadgeForHeader(
         LogsGui,
@@ -115,34 +113,34 @@ ShowLogsUI(*) {
     SetUIBodyFont(LogsGui, 9, UIColorSecondaryText)
     LogsGui.Add(
         "Text",
-        "x30 y58 w440 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y60 w452 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Run diagnostics and log file management"
     )
 
     SetUIBodyFont(LogsGui, 8, UIColorHeadingText)
-    LogsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "RUN LOGGING")
+    LogsGui.Add("Text", "x36 y100 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "RUN LOGGING")
 
     loggingEnabled := IsLoggingEnabled()
     loggingButton := CreateDarkButton(
-        LogsGui, 42, 120, 416, 44,
+        LogsGui, 36, 128, 428, 40,
         loggingEnabled ? "RUN LOGGING: ON" : "RUN LOGGING: OFF", 8
     )
 
     SetUIBodyFont(LogsGui, 8, UIColorHeadingText)
-    LogsGui.Add("Text", "x42 y184 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "LOG FILES")
+    LogsGui.Add("Text", "x36 y204 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "LOG FILES")
 
-    exportLogsButton := CreateDarkButton(LogsGui, 42, 208, 202, 44, "EXPORT LOGS", 8)
-    openLogsButton := CreateDarkButton(LogsGui, 256, 208, 202, 44, "OPEN LOG FOLDER", 8)
-    deleteLogsButton := CreateDarkButton(LogsGui, 42, 262, 416, 44, "DELETE ALL LOGS", 8)
+    exportLogsButton := CreateDarkButton(LogsGui, 36, 232, 208, 36, "EXPORT LOGS", 8)
+    openLogsButton := CreateDarkButton(LogsGui, 256, 232, 208, 36, "OPEN LOG FOLDER", 8)
+    deleteLogsButton := CreateDarkButton(LogsGui, 36, 280, 428, 36, "DELETE ALL LOGS", 8)
 
     SetUIBodyFont(LogsGui, 8, UIColorSecondaryText)
     LogsStatusText := LogsGui.Add(
         "Text",
-        "x42 y322 w416 h34 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x36 y340 w428 h32 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Each macro run creates its own log in UserData\\Logs."
     )
 
-    backButton := CreateDarkButton(LogsGui, 90, 376, 320, 42, "BACK TO SETTINGS", 8, "Default")
+    backButton := CreateDarkButton(LogsGui, 24, 388, 452, 40, "BACK TO SETTINGS", 8, "Default")
 
     loggingButton.OnEvent("Click", ToggleLoggingSetting.Bind(loggingButton))
     exportLogsButton.OnEvent("Click", ExportLogsFromSettings)
@@ -174,9 +172,9 @@ ShowLogsUI(*) {
     LogsGui.OnEvent("Close", CloseLogsAndReturnToSettings)
     LogsGui.OnEvent("Escape", CloseLogsAndReturnToSettings)
 
-    LogsGui.Show("Hide w500 h442")
+    LogsGui.Show("Hide w500 h452")
     ApplyDarkWindowStyle(LogsGui)
-    LogsGui.Show("w500 h442 Center")
+    LogsGui.Show("w500 h452 Center")
 }
 
 

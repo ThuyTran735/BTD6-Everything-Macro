@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Builds the main launcher window and wires its controls.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Build the launcher once, then let mode changes reuse its controls.
+; Keep selection, action, and status rows aligned when queue buttons are hidden.
 
 CreateLauncherUI() {
     global LauncherGui
@@ -97,9 +97,9 @@ CreateLauncherUI() {
     EnableCustomWindowChrome(LauncherGui, 72, 0)
     AddCustomWindowBorder(LauncherGui, GuiWidth, GuiHeight)
 
-    AddUICard(LauncherGui, 16, 92, 398, 166)
-    AddUICard(LauncherGui, 16, 270, 398, 106)
-    AddUICard(LauncherGui, 16, 388, 398, 70)
+    AddUICard(LauncherGui, 24, 92, 382, 166)
+    AddUICard(LauncherGui, 24, 270, 382, 106)
+    AddUICard(LauncherGui, 24, 388, 382, 70)
 
 
     AddUIOutlinedText(
@@ -169,9 +169,9 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT CATEGORY",
-            28,
+            36,
             104,
-            374,
+            358,
             20,
             8
         )
@@ -181,9 +181,9 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT MAP",
-            28,
+            36,
             171,
-            374,
+            358,
             20,
             8
         )
@@ -199,7 +199,7 @@ CreateLauncherUI() {
     HotkeyText :=
         LauncherGui.Add(
             "Text",
-            "x28 y234 w374 h18 Center c"
+            "x36 y234 w358 h18 Center c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "Run Hotkey   •   Ctrl + Shift + P"
@@ -210,9 +210,9 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "MONKEY EXP GRIND",
-            28,
+            36,
             102,
-            374,
+            358,
             22,
             10,
             "Center",
@@ -242,9 +242,9 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT TOWER TYPE",
-            28,
+            36,
             128,
-            374,
+            358,
             20,
             8,
             "Left",
@@ -256,9 +256,9 @@ CreateLauncherUI() {
         AddUIOutlinedText(
             LauncherGui,
             "SELECT TOWER",
-            28,
+            36,
             191,
-            374,
+            358,
             20,
             8,
             "Left",
@@ -271,9 +271,9 @@ CreateLauncherUI() {
     RunButton :=
         CreateDarkButton(
             LauncherGui,
-            28,
+            36,
             282,
-            queueButtonsEnabled ? 240 : 374,
+            queueButtonsEnabled ? 236 : 358,
             38,
             "SELECT SCRIPT",
             8
@@ -284,9 +284,9 @@ CreateLauncherUI() {
         AddQueueButton :=
             CreateDarkButton(
                 LauncherGui,
-                276,
+                280,
                 282,
-                126,
+                114,
                 38,
                 "ADD QUEUE",
                 8
@@ -299,9 +299,9 @@ CreateLauncherUI() {
     CloseButton :=
         CreateDarkButton(
             LauncherGui,
-            300,
+            302,
             403,
-            102,
+            92,
             40,
             "CLOSE",
             8
@@ -323,9 +323,9 @@ CreateLauncherUI() {
         QueueButton :=
             CreateDarkButton(
                 LauncherGui,
-                28,
+                36,
                 328,
-                116,
+                114,
                 38,
                 "QUEUE (0)",
                 8
@@ -338,9 +338,9 @@ CreateLauncherUI() {
     ModeButton :=
         CreateDarkButton(
             LauncherGui,
-            queueButtonsEnabled ? 152 : 28,
+            queueButtonsEnabled ? 158 : 36,
             328,
-            queueButtonsEnabled ? 116 : 183,
+            queueButtonsEnabled ? 114 : 175,
             38,
             "MODES",
             8
@@ -350,9 +350,9 @@ CreateLauncherUI() {
     SettingsButton :=
         CreateDarkButton(
             LauncherGui,
-            queueButtonsEnabled ? 276 : 219,
+            queueButtonsEnabled ? 280 : 219,
             328,
-            queueButtonsEnabled ? 126 : 183,
+            queueButtonsEnabled ? 114 : 175,
             38,
             "SETTINGS",
             8
@@ -440,7 +440,7 @@ CreateLauncherUI() {
     ; update text never render as mismatched opaque rectangles.
     StatusIndicator := LauncherGui.Add(
         "Progress",
-        "x28 y419 w8 h8 c" . UIColorSuccess
+        "x36 y412 w8 h8 c" . UIColorSuccess
         . " Background" . UIColorSuccess . " Disabled",
         100
     )
@@ -449,7 +449,7 @@ CreateLauncherUI() {
     SetUIBodyFont(LauncherGui, 9, UIColorSuccess)
     StatusText := LauncherGui.Add(
         "Text",
-        "x43 y414 w238 h18 Left +0x200 c" . UIColorSuccess,
+        "x51 y406 w234 h20 Left +0x200 c" . UIColorSuccess,
         "READY"
     )
 
@@ -457,7 +457,7 @@ CreateLauncherUI() {
     SetUIBodyFont(LauncherGui, 8, UIColorMutedText)
     UpdateCheckText := LauncherGui.Add(
         "Text",
-        "x43 y439 w238 h15 Left c" . UIColorMutedText . " Hidden",
+        "x51 y434 w234 h15 Left c" . UIColorMutedText . " Hidden",
         ""
     )
 
@@ -465,7 +465,7 @@ CreateLauncherUI() {
     SetUIBodyFont(LauncherGui, 8, UIColorAccent)
     UpdateLinkText := LauncherGui.Add(
         "Text",
-        "x194 y439 w92 h15 Left c" . UIColorAccent . " Hidden",
+        "x221 y434 w64 h15 Left c" . UIColorAccent . " Hidden",
         "Update"
     )
 
@@ -477,9 +477,9 @@ CreateLauncherUI() {
     MapDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            28,
+            36,
             194,
-            374,
+            358,
             initialMaps,
             1,
             5
@@ -489,9 +489,9 @@ CreateLauncherUI() {
     CategoryDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            28,
+            36,
             127,
-            374,
+            358,
             categories,
             1,
             5
@@ -501,9 +501,9 @@ CreateLauncherUI() {
     MonkeyExpTypeDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            28,
+            36,
             149,
-            374,
+            358,
             GetMonkeyExpTowerTypes(),
             1,
             5
@@ -513,9 +513,9 @@ CreateLauncherUI() {
     MonkeyExpScriptDropdown :=
         CreateDarkDropdown(
             LauncherGui,
-            28,
+            36,
             212,
-            374,
+            358,
             [
                 "No Monkey EXP scripts found"
             ],

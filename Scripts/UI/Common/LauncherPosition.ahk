@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Keeps launcher placement and its small positioning helpers together.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Places the launcher at the lower-left of the configured 1920x1080 game area.
+; Measured window dimensions keep the full window inside that area.
 
 PositionLauncher() {
     global LauncherGui

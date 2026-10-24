@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for UITheme. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Shared colors and fonts. Headings and buttons keep the bundled display
+; font; fields and explanatory text use Segoe UI.
 
 global UIFontHeading := LoadBundledUIHeadingFont()
 global UIFontBody := "Segoe UI"
@@ -24,10 +25,10 @@ global UIColorInputBackground := "10161D"
 global UIColorInputText := "F5F7FA"
 
 global UIColorControlTop := "19212B"
-global UIColorControlBottom := "171E27"
+global UIColorControlBottom := "19212B"
 
 global UIColorControlHoverTop := "222E3A"
-global UIColorControlHoverBottom := "1E2833"
+global UIColorControlHoverBottom := "222E3A"
 
 global UIColorControlActiveTop := "245C8D"
 global UIColorControlActiveBottom := "1A466D"
@@ -43,12 +44,12 @@ global UIColorControlSelected := "245A84"
 global UIColorControlSelectedHover := "2E6F9F"
 
 global UIColorControlText := "F5F7FA"
-global UIColorControlDisabledText := "697382"
+global UIColorControlDisabledText := "8995A5"
 
 global UIColorPrimaryText := "F4F7FB"
 global UIColorSecondaryText := "B3BFCC"
 global UIColorLabelText := "D8E0E8"
-global UIColorMutedText := "7D8B9C"
+global UIColorMutedText := "93A1B2"
 
 global UIColorHeadingText := "F4F7FB"
 global UIColorHeadingOutline := "0D1117"

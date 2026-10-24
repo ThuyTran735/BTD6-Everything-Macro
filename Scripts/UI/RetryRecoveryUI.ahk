@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for RetryRecovery. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Retry controls save immediately; the launcher and queue read the same preferences.
 
 global RetryRecoveryGui := ""
 global RetryLimitValueText := ""
@@ -128,7 +128,7 @@ ShowRetryRecoveryUI(*) {
     EnableCustomWindowChrome(RetryRecoveryGui)
     AddCustomWindowBorder(RetryRecoveryGui, 440, 386)
 
-    AddUIOutlinedText(RetryRecoveryGui, "RETRY / RECOVERY", 20, 18, 400, 34, 13, "Center")
+    AddUIOutlinedText(RetryRecoveryGui, "RETRY / RECOVERY", 24, 20, 392, 32, 13, "Center")
     CreateHelpBadgeForHeader(
         RetryRecoveryGui,
         440,
@@ -139,32 +139,32 @@ ShowRetryRecoveryUI(*) {
     SetUIBodyFont(RetryRecoveryGui, 9, UIColorSecondaryText)
     RetryRecoveryGui.Add(
         "Text",
-        "x34 y61 w372 h36 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "Retry failed queue cycles and defeated manual/EXP runs from a fresh process."
+        "x24 y64 w392 h40 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Restart failed queue cycles and defeated manual or EXP runs automatically."
     )
 
     enabled := IsQueueAutoRetryEnabled()
     autoRetryButton := CreateDarkButton(
         RetryRecoveryGui,
-        60,
-        114,
-        320,
-        46,
+        24,
+        120,
+        392,
+        40,
         enabled ? "AUTO RETRY: ON" : "AUTO RETRY: OFF",
         9
     )
     autoRetryButton.OnEvent("Click", ToggleQueueAutoRetrySetting.Bind(autoRetryButton))
 
-    AddUIOutlinedText(RetryRecoveryGui, "RETRY LIMIT", 65, 184, 190, 24, 9)
+    AddUIOutlinedText(RetryRecoveryGui, "RETRY LIMIT", 24, 184, 392, 20, 9, "Center")
 
-    minusButton := CreateDarkButton(RetryRecoveryGui, 212, 218, 54, 40, "-", 11)
+    minusButton := CreateDarkButton(RetryRecoveryGui, 128, 216, 56, 44, "-", 11)
     RetryLimitValueText := RetryRecoveryGui.Add(
         "Text",
-        "x274 y218 w54 h40 Center 0x200 c" . UIColorPrimaryText . " BackgroundTrans",
+        "x192 y216 w56 h44 Center 0x200 c" . UIColorPrimaryText . " BackgroundTrans",
         GetQueueRetryLimit()
     )
     RetryLimitValueText.SetFont("s11 Norm")
-    plusButton := CreateDarkButton(RetryRecoveryGui, 336, 218, 54, 40, "+", 11)
+    plusButton := CreateDarkButton(RetryRecoveryGui, 256, 216, 56, 44, "+", 11)
 
     minusButton.OnEvent("Click", AdjustQueueRetryLimit.Bind(-1))
     plusButton.OnEvent("Click", AdjustQueueRetryLimit.Bind(1))
@@ -172,11 +172,11 @@ ShowRetryRecoveryUI(*) {
     SetUIBodyFont(RetryRecoveryGui, 8, UIColorSecondaryText)
     RetryRecoveryGui.Add(
         "Text",
-        "x50 y270 w340 h24 Center c" . UIColorSecondaryText . " BackgroundTrans",
-        "VALID RANGE: 0-10 | 0 DISABLES RETRIES"
+        "x24 y272 w392 h24 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "Choose 0-10 retries. Set 0 to disable retries."
     )
 
-    closeButton := CreateDarkButton(RetryRecoveryGui, 60, 318, 320, 42, "BACK TO SETTINGS", 8, "Default")
+    closeButton := CreateDarkButton(RetryRecoveryGui, 24, 322, 392, 40, "BACK TO SETTINGS", 8, "Default")
     closeButton.OnEvent("Click", CloseRetryRecoveryAndReturnToSettings)
 
     CreateHelpBadgeForButton(

@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Keeps upgrade globals and timing/log helpers together.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Holds purchase timing limits and the timestamps used by upgrade logs.
+; Elapsed-time helpers keep diagnostics separate from the decisions to select and buy.
 
 global SellButtonPattern := "|<>*160$71.zk0zw3z0Ts1zy01zU1y0zk3zs03y01w1zU7zU07s03s3z0Dz00DU03k7y0Tw00T007UDw1zs3zw0kD0Ts3zk7zs3kC0zk7zU7zkDUQ1zUDzU0D0T0k3z0Tz00C001U7y0zz00Q0030Dw1zz00s00C0zs3zzU1k0zw1zk7zzw3UDzs03U0Dzw30Dzk0700T7k70D7U0C00y00C00D00Q01w00S00y00s03k01w01w01k07U03w03s03U0DU0Tw07kDz1zzk1zy0zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
 
@@ -54,6 +54,7 @@ CreateUpgradeActionTiming(tower, target) {
     roundTick := CurrentStrategyRoundDetectedTick
     roundTimestamp := CurrentStrategyRoundDetectedTimestamp
 
+    ; Direct helper calls may have no scheduled-round timestamp; begin timing at the call instead.
     if !roundTick {
         roundTick := A_TickCount
         roundTimestamp := GetLogTimestampMs()

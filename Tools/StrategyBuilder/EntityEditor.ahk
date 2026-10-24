@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles coordinate capture plus adding, editing, and deleting monkeys/heroes.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Handles placement entries and coordinate capture without running a strategy.
+; A cancelled batch remap restores every original position, including points captured earlier.
 
 CaptureCoordinatesInstant(*) {
     global XEdit, YEdit, StatusText
@@ -73,6 +73,7 @@ RemapAllPlacementCoordinates(*) {
     if result != "Yes"
         return
 
+    ; Keep a complete snapshot before changing the first point, so Esc cancels the whole batch.
     originalCoords := []
     for entity in Entities {
         originalCoords.Push({x: entity.x, y: entity.y})
@@ -289,6 +290,7 @@ UpdateSelectedEntity(*) {
         targeting: targeting
     }
 
+    ; Actions refer to the display name, so a rename must follow through to the schedule.
     if name != oldName {
         for action in UpgradeActions {
             if HasProp(action, "entity") && action.entity = oldName
@@ -317,7 +319,8 @@ DeleteSelectedEntity(*) {
     removedName := Entities[row].name
     Entities.RemoveAt(row)
 
-    ; Remove scheduled actions that belonged to the deleted monkey.
+    ; Work backwards so removing an action cannot skip the next matching row.
+    ; Global actions such as speed and banana collection have no monkey to remove.
     i := UpgradeActions.Length
     while i >= 1 {
         if HasProp(UpgradeActions[i], "entity") && UpgradeActions[i].entity = removedName

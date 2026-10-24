@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Add/Edit Queue Job is split into its window, selection refresh code, edit initialization, and final actions so it is easier to trace.
-; The split is organization-only; callers can keep including this file like before.
+; Loads the shared Add/Edit Queue Job window and its selection helpers.
+; State is included first so both new-job and edit-job entry points use the same controls.
 
 #Include Queue\QueueJobBuilderState.ahk
 #Include Queue\QueueJobBuilderWindow.ahk

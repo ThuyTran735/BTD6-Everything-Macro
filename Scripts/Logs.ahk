@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Logs part of the macro. Keep this focused so run bugs are easier to trace later.
+; Store a diagnostic log for each strategy process without letting logging failures interrupt gameplay. The launcher can record a stopped child by PID.
 
 global CurrentRunLogFile := ""
 global CurrentRunLogStarted := false
@@ -97,6 +97,7 @@ GetLogFileTimestamp() {
 
 
 SanitizeLogText(text) {
+    ; Keep each entry on one physical line even when an error contains newlines.
     text := text . ""
     text := StrReplace(text, "`r", " ")
     text := StrReplace(text, "`n", " | ")
@@ -204,6 +205,7 @@ LogStrategyRoundHeader(round) {
     if !CurrentRunLogStarted || CurrentRunLogFile = ""
         return false
 
+    ; Several actions can share a round; write its heading only once in succession.
     if CurrentLogRoundSection = round
         return true
 
@@ -392,6 +394,7 @@ HandleRunLogProcessExit(exitReason, exitCode) {
     global CurrentRunLogStarted
     global CurrentRunLogFinished
 
+    ; Normal completion already wrote its final result, so only note early exits.
     if !CurrentRunLogStarted || CurrentRunLogFinished {
         return
     }

@@ -1,11 +1,11 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the DailyChest part of the macro. Keep this focused so run bugs are easier to trace later.
+; Check for a daily chest on Home, then dismiss rewards until Play is visible.
 
 global DailyChestPatterns := Map(
     "Available", "|<>*125$55.U0000001zk0000000zs0000000Ts000000M60000000000000000y00000000zU0E030M0zs0800S20zw0401zkUzy0301zw0TzU001zz0Tzk000zzkDzs000Tzs7zw000Tzy3zy000Dzz1zz0007zzUzzU003zzsTzk001zzs7zs000Tzw3zs000Dzy1zs0007zz0Ts0401zzUDkDy00zzU1UDz007zU00DzU01zVs0Dzk00000UDzw000000Tzz0k0000zzzvy0003zzzU",
-
+    "AvailableHalloween", "|<>*93$68.zzzzzzU000Dzzzzzzz0003zzzzzzzz000zzzzzzzzs00Tzzzzzzzz00Dzzzzzzzzs0zzzzzzzzzzXzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzznzzzzzzzzzzsDzzzzzzzzzs3zzzzzzzzzy0zzzzzzzzzz0Dzzzzzzzzzk3zzzzzzzzzw0zzzzzzzzzzkDzzzzzzzzz03zzzzzzzzU00zzzzzzzk000Dzzzzzs00003zzzzw000000zzzy0000000DzzU0000000TzU00000007zs00000003zzk0000000zzzw000000Tzzzz000007zzzzzk0003zzzzzzw000zzzzzzzz00TzzzzzzzzkDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzs"
 )
 
 
@@ -13,15 +13,14 @@ CollectDailyChest(silent := false) {
     global DailyChestPatterns
 
 
-    if !DailyChestPatterns.Has("Available")
-        return false
+    availablePatterns := []
+    for patternName in ["Available", "AvailableHalloween"] {
+        if DailyChestPatterns.Has(patternName) && DailyChestPatterns[patternName] != "" {
+            availablePatterns.Push(DailyChestPatterns[patternName])
+        }
+    }
 
-
-    availablePattern :=
-        DailyChestPatterns["Available"]
-
-
-    if availablePattern = "" {
+    if availablePatterns.Length = 0 {
         ToolTip(
             "Daily Chest Available pattern "
             "has not been captured."
@@ -38,19 +37,27 @@ CollectDailyChest(silent := false) {
     Sleep(500)
 
 
-    ; If the chest is not available,
-    ; there is nothing to collect today.
-    if !FindText(
-        &X,
-        &Y,
-        0,
-        0,
-        A_ScreenWidth,
-        A_ScreenHeight,
-        0,
-        0,
-        availablePattern
-    ) {
+    ; Try normal first, then Halloween. Separate searches keep FindText's
+    ; exact-match-first behavior; combining patterns changes its tolerance.
+    chestFound := false
+    for availablePattern in availablePatterns {
+        if FindText(
+            &X,
+            &Y,
+            0,
+            0,
+            A_ScreenWidth,
+            A_ScreenHeight,
+            0,
+            0,
+            availablePattern
+        ) {
+            chestFound := true
+            break
+        }
+    }
+
+    if !chestFound {
         if !silent {
             ToolTip(
                 "Daily chest is not available."

@@ -3,8 +3,6 @@
 
 #Include ..\Scripts\IncludeAll.ahk
 
-; v3 file note: Quick manual test for DetectRound. It stays separate from the normal launcher.
-
 ; Diagnostic only. Does not run a strategy, place towers, or buy upgrades.
 ;
 ; The production Hard round boxes were found to be ~90 px too far left on the

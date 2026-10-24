@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Provides the small validated-read helpers used by strategy and recovery code.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Provides validated round reads for recovery and for scheduled strategy actions.
+; The strategy variant returns the last known round quickly when the counter is briefly hidden.
 
 GetValidatedRound() {
     global LastRound

@@ -1,16 +1,21 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Deals with locked upgrade paths and the unlock prompt.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Handles the locked-upgrade prompt after a purchase needs extra verification.
+; All lock and confirmation scans share one short time budget to keep normal upgrades responsive.
 
 HandleLockedUpgrade(
     tower,
     path,
-    &panelSide
+    &panelSide,
+    clickX := "",
+    clickY := ""
 ) {
     global UpgradePoints
     global UnlockUpgradePattern
     global ConfirmUpgradeUnlockPattern
+
+    if !IsTowerInputActive()
+        return "Failed"
 
 
     if UnlockUpgradePattern = "" {
@@ -112,6 +117,8 @@ HandleLockedUpgrade(
     }
 
 
+    if !IsTowerInputActive()
+        return "Failed"
     Click(
         X,
         Y
@@ -119,6 +126,9 @@ HandleLockedUpgrade(
 
 
     while A_TickCount < scanDeadline {
+
+        if !IsTowerInputActive()
+            return "Failed"
 
         if FindText(
             &UnlockX,
@@ -132,6 +142,8 @@ HandleLockedUpgrade(
             ConfirmUpgradeUnlockPattern
         ) {
 
+            if !IsTowerInputActive()
+                return "Failed"
             Click(
                 UnlockX,
                 UnlockY
@@ -143,13 +155,18 @@ HandleLockedUpgrade(
             )
 
 
+            if !IsTowerInputActive()
+                return "Failed"
             SendEscapeAndWait(350)
 
 
             panelResult :=
                 EnsureUpgradePanelOpen(
                     tower,
-                    &panelSide
+                    &panelSide,
+                    clickX,
+                    clickY,
+                    true
                 )
 
 
@@ -185,12 +202,17 @@ HandleLockedUpgrade(
     }
 
 
+    if !IsTowerInputActive()
+        return "Failed"
     SendEscapeAndWait(350)
 
 
     EnsureUpgradePanelOpen(
         tower,
-        &panelSide
+        &panelSide,
+        clickX,
+        clickY,
+        true
     )
 
 

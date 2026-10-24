@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Builds the Settings window and its controls.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Build Settings from the saved preferences; each action delegates to its own module.
 
 
 global SettingsGui := ""
@@ -54,15 +53,14 @@ ShowSettingsUI(*) {
 
 
     EnableCustomWindowChrome(SettingsGui)
-    AddCustomWindowBorder(SettingsGui, 500, 664)
-    AddUICard(SettingsGui, 30, 88, 440, 196)
-    AddUICard(SettingsGui, 30, 284, 440, 82)
-    AddUICard(SettingsGui, 30, 366, 440, 82)
-    AddUICard(SettingsGui, 30, 448, 440, 82)
-    AddUICard(SettingsGui, 30, 530, 440, 54)
-    AddUICard(SettingsGui, 30, 584, 440, 64)
+    ; Leave a visible gap between groups and keep status messages outside the cards.
+    AddCustomWindowBorder(SettingsGui, 500, 700)
+    AddUICard(SettingsGui, 24, 88, 452, 196)
+    AddUICard(SettingsGui, 24, 296, 452, 84)
+    AddUICard(SettingsGui, 24, 392, 452, 84)
+    AddUICard(SettingsGui, 24, 488, 452, 84)
 
-    AddUIOutlinedText(SettingsGui, "SETTINGS", 20, 18, 460, 34, 13, "Center")
+    AddUIOutlinedText(SettingsGui, "SETTINGS", 24, 20, 452, 32, 13, "Center")
 
     CreateHelpBadgeForHeader(
         SettingsGui,
@@ -74,75 +72,75 @@ ShowSettingsUI(*) {
     SetUIBodyFont(SettingsGui, 9, UIColorSecondaryText)
     SettingsGui.Add(
         "Text",
-        "x30 y58 w440 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y60 w452 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Launcher preferences and recovery"
     )
 
     SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
-    SettingsGui.Add("Text", "x42 y96 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "GENERAL")
+    SettingsGui.Add("Text", "x36 y100 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "GENERAL")
 
     confirmationsEnabled := AreThemedConfirmationsEnabled()
     confirmationsButton := CreateDarkButton(
-        SettingsGui, 42, 120, 202, 44,
+        SettingsGui, 36, 128, 208, 40,
         confirmationsEnabled ? "CONFIRMATIONS: ON" : "CONFIRMATIONS: OFF", 8
     )
 
     queueButtonsEnabled := AreQueueLauncherButtonsEnabled()
     queueButtonsButton := CreateDarkButton(
-        SettingsGui, 256, 120, 202, 44,
+        SettingsGui, 256, 128, 208, 40,
         queueButtonsEnabled ? "QUEUE BUTTONS: ON" : "QUEUE BUTTONS: OFF", 8
     )
 
     rememberStateEnabled := IsRememberLauncherStateEnabled()
     rememberStateButton := CreateDarkButton(
-        SettingsGui, 42, 174, 416, 44,
+        SettingsGui, 36, 180, 428, 40,
         rememberStateEnabled ? "REMEMBER LAST STATE: ON" : "REMEMBER LAST STATE: OFF", 8
     )
 
     ; Force Default so RUN HISTORY does not inherit the green RUN action style.
-    historyButton := CreateDarkButton(SettingsGui, 42, 228, 202, 44, "RUN HISTORY", 8, "Default")
-    retryButton := CreateDarkButton(SettingsGui, 256, 228, 202, 44, "RETRY / RECOVERY", 8)
+    historyButton := CreateDarkButton(SettingsGui, 36, 232, 208, 40, "RUN HISTORY", 8, "Default")
+    retryButton := CreateDarkButton(SettingsGui, 256, 232, 208, 40, "RETRY / RECOVERY", 8)
 
     SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
-    SettingsGui.Add("Text", "x42 y292 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "MACRO TOOLS")
+    SettingsGui.Add("Text", "x36 y308 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "MACRO TOOLS")
 
     dailyChestEnabled := IsPreRunDailyChestEnabled()
     dailyChestButton := CreateDarkButton(
-        SettingsGui, 42, 316, 202, 38,
-        dailyChestEnabled ? "OPEN DAILY CHEST: ON" : "OPEN DAILY CHEST: OFF", 7
+        SettingsGui, 36, 332, 208, 36,
+        dailyChestEnabled ? "OPEN DAILY CHEST: ON" : "OPEN DAILY CHEST: OFF", 8
     )
 
-    logsButton := CreateDarkButton(SettingsGui, 256, 316, 202, 38, "LOGS", 8, "Default")
+    logsButton := CreateDarkButton(SettingsGui, 256, 332, 208, 36, "LOGS", 8, "Default")
 
     SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
-    SettingsGui.Add("Text", "x42 y374 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "USER DATA")
+    SettingsGui.Add("Text", "x36 y404 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "USER DATA")
 
     userDataButton := CreateDarkButton(
-        SettingsGui, 42, 398, 416, 38,
-        "BACKUP / RESTORE USER DATA", 7, "Default"
+        SettingsGui, 36, 428, 428, 36,
+        "BACKUP / RESTORE USER DATA", 8, "Default"
     )
 
     SetUIHeadingFont(SettingsGui, 8, UIColorHeadingText)
-    SettingsGui.Add("Text", "x42 y456 w416 h18 c" . UIColorHeadingText . " BackgroundTrans", "UPDATES")
+    SettingsGui.Add("Text", "x36 y500 w428 h20 c" . UIColorHeadingText . " BackgroundTrans", "UPDATES")
 
     autoUpdatesEnabled := IsAutoUpdateCheckEnabled()
     autoUpdatesButton := CreateDarkButton(
-        SettingsGui, 42, 480, 202, 40,
-        autoUpdatesEnabled ? "AUTO UPDATE CHECK: ON" : "AUTO UPDATE CHECK: OFF", 7
+        SettingsGui, 36, 524, 208, 36,
+        autoUpdatesEnabled ? "AUTO UPDATE CHECK: ON" : "AUTO UPDATE CHECK: OFF", 8
     )
 
     checkUpdatesButton := CreateDarkButton(
-        SettingsGui, 256, 480, 202, 40,
-        "CHECK FOR UPDATES", 7, "Default"
+        SettingsGui, 256, 524, 208, 36,
+        "CHECK FOR UPDATES", 8, "Default"
     )
     SetUIBodyFont(SettingsGui, 8, UIColorSecondaryText)
     SettingsStatusText := SettingsGui.Add(
         "Text",
-        "x42 y538 w416 h38 Center c" . UIColorSecondaryText,
+        "x36 y584 w428 h36 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Launcher selections are stored only inside UserData."
     )
 
-    closeButton := CreateDarkButton(SettingsGui, 90, 595, 320, 42, "BACK TO LAUNCHER", 8, "Default")
+    closeButton := CreateDarkButton(SettingsGui, 24, 636, 452, 40, "BACK TO LAUNCHER", 8, "Default")
 
     confirmationsButton.OnEvent("Click", ToggleConfirmationSetting.Bind(confirmationsButton))
     queueButtonsButton.OnEvent("Click", ToggleQueueLauncherButtonsSetting.Bind(queueButtonsButton))
@@ -178,7 +176,7 @@ ShowSettingsUI(*) {
     )
     CreateHelpBadgeForButton(
         SettingsGui, dailyChestButton, "OPEN DAILY CHEST BEFORE EACH CYCLE",
-        "When ON, checks for and opens the Daily Chest before every map cycle. Reward screens use five clicks at screen position 583,388, spaced 350 ms apart."
+        "When ON, checks for the normal or Halloween Daily Chest before every map cycle. It opens the chest and dismisses reward screens until the home screen returns."
     )
     CreateHelpBadgeForButton(
         SettingsGui, logsButton, "LOGS",
@@ -204,7 +202,7 @@ ShowSettingsUI(*) {
     SettingsGui.OnEvent("Close", CloseSettingsAndReturnToLauncher)
     SettingsGui.OnEvent("Escape", CloseSettingsAndReturnToLauncher)
 
-    SettingsGui.Show("Hide w500 h664")
+    SettingsGui.Show("Hide w500 h700")
     ApplyDarkWindowStyle(SettingsGui)
-    SettingsGui.Show("w500 h664 Center")
+    SettingsGui.Show("w500 h700 Center")
 }

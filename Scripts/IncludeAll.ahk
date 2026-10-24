@@ -1,10 +1,10 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\FindText.ahk
 #Include Version.ahk
 
 
-; v3 file note: Handles the IncludeAll part of the macro. Keep this focused so run bugs are easier to trace later.
+; Shared strategy entry point. Map scripts replace the empty run configuration and tower setup before calling the runner included below.
 
 global RunConfig := {
     category: "",
@@ -42,6 +42,7 @@ global TowerSetup := Map()
 
 
 #Include HeroSelection.ahk
+#Include Collection Event\CollectionEventGeometry.ahk
 #Include NavigationLogic.ahk
 
 

@@ -1,22 +1,15 @@
 # BTD6 Everything Macro
-**Current version: v3.4.0**
+**Current version: v3.5.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
 ### Current release highlights
 
-- Added **automatic Banana Farm collection** for farm-based strategies.
-     - Strategies can enable collection at any scheduled round and delay with `EnableBananaCollection()`.
-     - Collection only runs while the strategy is idle and waiting for a future round, so placements, upgrades, abilities, targeting, navigation, and recovery keep priority.
-     - Each eligible Banana Farm is collected by briefly hovering the mouse over the Farm itself; no pickup grid or collection box is needed.
-     - Eligible Farms are visited one at a time for about **300 ms each**, with round and strategy-action checks between Farms so collection stops immediately when real work is due.
-     - If a Farm is near the Cycle HUD, the HUD is hidden before the collection hover using the same protection as tower placement/clicking.
-     - Monkey Bank and higher (`middle path >= 3`) and Marketplace and higher (`bottom path >= 3`) automatically stop being visited because they no longer need normal banana pickup.
-     - `DisableBananaCollection()` can stop collection later in a strategy when desired.
-     - Strategy Builder can add, import, and export banana-collection enable/disable actions using the normal round and delay fields.
-- Reorganized monkey-specific runtime logic into `Scripts/Monkey Logic/`.
-     - Banana Farm, Sub, Dartling, Heli, Mermonkey, Mortar, and Spike Factory logic now live together in the dedicated folder.
-- Renamed `Scripts/Gameplay/GameState/` to `Scripts/Gameplay/Game State/` and updated internal includes to match.
+- Added **Halloween daily chest recognition** alongside the normal chest pattern.
+- Cleaned up the dark UI with more consistent spacing and aligned controls across the launcher, settings, queue tools, dialogs, run HUD, and Strategy Builder. The original v3.4.0 font choices are preserved.
+- Added **Auto Collection Event** for **Expert maps on Impoppable only**, running continuously until stopped. It scans the Expert map pages for the Halloween bonus badge, prefers a marked map with an installed strategy, and falls back to a random supported Expert Impoppable map. Locked or unavailable Impoppable modes are skipped. The launcher explains this before starting; event mode has no run-count prompt.
+- Replaced generic code comments with practical notes on strategy format, timing, retries, state changes, and UI behavior.
+- Renamed the Sandbox test to `Test/BananaFarmCollectionTest.ahk`.
 
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
@@ -39,6 +32,8 @@ You can see which maps and modes are finished here:
 - Detects victory, defeat, and several menu popups
 - Retries failed queued runs and defeated manual / Monkey EXP runs when Auto Retry is enabled
 - Supports normal runs and grind modes from the launcher
+- Rescans the Halloween collection-event bonus between runs; unsupported maps are skipped, and event mode never runs a lower difficulty to unlock Impoppable
+- Checks all six map cards separately, pairing each right-edge event badge with the map in that same card
 - Supports favorites for maps, Monkey EXP scripts, and queue profiles
 - Supports reusable Queue Profiles that can be saved, loaded, updated, renamed, and deleted
 - Remembers the last launcher mode, its relevant selections, and the last successfully run Default-mode `.ahk` strategy between restarts when **REMEMBER LAST STATE** is enabled

@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Refreshes the queue list and launcher queue button.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Refreshes queue totals and chooses the launcher primary action.
+; An existing queue takes priority over the selected launcher mode.
 
 RefreshQueueManager() {
     global MacroJobQueue
@@ -45,6 +45,7 @@ RefreshQueueManager() {
     }
 
 
+    ; Rebuild the labels, then restore a valid row near the previous selection.
     QueueList.Delete()
 
 
@@ -149,6 +150,9 @@ UpdateQueueLauncherButton() {
         RunButton.Text :=
             "START EXP GRIND"
     }
+    else if CurrentMode = "Auto Collection Event" {
+        RunButton.Text := "START EVENT"
+    }
     else {
 
         RunButton.Text :=
@@ -165,6 +169,10 @@ UpdateQueueLauncherButton() {
         return
     }
 
+    if CurrentMode = "Auto Collection Event" {
+        RunButton.Enabled := DiscoverCollectionEventStrategies().Length > 0
+        return
+    }
 
     if CurrentMode = "Monkey EXP Grind" {
 

@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Strategy part of the macro. Keep this focused so run bugs are easier to trace later.
+; Execute round-zero setup first, then dispatch timed actions as validated rounds arrive.
 
 global IsPregame := false
 global CurrentStrategyTargetRound := 0
@@ -162,8 +162,8 @@ RunStrategy(actions) {
         MarkStrategyRoundDetected(targetRound)
 
 
-        ; If this action has an in-round delay,
-        ; wait for it.
+        ; Wait only while still on the requested round. A late action catches up
+        ; immediately instead of applying its delay to a later round.
         if (
             currentRound = targetRound
             && delayMs > 0
@@ -252,6 +252,7 @@ RunStrategy(actions) {
 
 
 WaitForRoundTime(targetMs) {
+    ; Measure from the round tracker, so earlier actions do not restart this delay.
 
     lastStateCheck :=
         A_TickCount

@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Prompts for run count and starts a selected map script.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Gather the run count and warnings before handing a manual strategy to the runner.
 
 PromptForRunCount(context := "run") {
     return ShowCycleInputPrompt(context)
@@ -100,6 +99,7 @@ LaunchMapScript(
     )
 
 
+    ; A manual run begins with clean queue and stop-request state.
     ClearQueueExecutionState()
     ClearCycleStopRequest()
 

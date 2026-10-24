@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 
 #Include ..\Lib\FindText.ahk
@@ -161,6 +161,7 @@ CopyPatternResults(*) {
     SetTimer(HidePatternTestToolTip, -1000)
 }
 
+; Highlighting moves the pointer and shows a label; it does not click or select the map.
 HighlightPatternMatch(listView, rowNumber) {
     global PatternTestGui
 

@@ -3,6 +3,7 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 
 InTheLoopAlternateBloonsRounds() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Beginner",
         map: "In The Loop",
@@ -14,6 +15,8 @@ InTheLoopAlternateBloonsRounds() {
         endRound: 80
     }
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Druid A", {
             type: "Druid",
@@ -105,6 +108,8 @@ InTheLoopAlternateBloonsRounds() {
         }
     )
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Druid A"])],
         [4, 0, () => PlaceTower(TowerSetup["Skywarden A"])],

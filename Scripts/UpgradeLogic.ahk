@@ -1,9 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\FindText.ahk
 
-; v3 file note: Upgrade logic is split by job now: timing, panel state, buying, waiting, and post-upgrade targeting. This file just keeps the old include path working.
-; The split is organization-only; callers can keep including this file like before.
+; Public upgrade entry point for strategies. The modules below share panel and timing state for detection, waiting, purchase, and targeting changes.
 
 #Include Gameplay\Upgrades\UpgradeState.ahk
 #Include Gameplay\Upgrades\UpgradePanelState.ahk

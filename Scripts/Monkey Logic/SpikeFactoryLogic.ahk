@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the SpikeFactory part of the macro. Keep this focused so run bugs are easier to trace later.
+; Handle Smart Spikes targeting modes and manual track points without losing the current mode.
 
 GetSpikeFactoryTargetingOrder(tower) {
     if tower.type != "SpikeFactory"
@@ -111,6 +111,7 @@ SetSpikeFactoryTargeting(tower, targetMode, targetX := "", targetY := "") {
     if !EnsureSpikeFactorySelected(tower)
         return false
 
+    ; Compute steps from the current upgrade-specific menu, including wraparound.
     profileLength := targetingOrder.Length
     forwardSteps := Mod(
         targetIndex - currentIndex + profileLength,

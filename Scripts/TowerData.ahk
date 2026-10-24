@@ -1,4 +1,4 @@
-﻿; v3 file note: Handles the TowerData part of the macro. Keep this focused so run bugs are easier to trace later.
+; Placement hotkeys match BTD6 defaults except the setup bindings: Mermonkey F6, Skywarden F7, and Desperado F8.
 
 global TowerHotkeys := Map(
     ; Heroes

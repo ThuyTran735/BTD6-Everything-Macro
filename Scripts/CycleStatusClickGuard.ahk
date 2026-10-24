@@ -18,6 +18,7 @@ GetCycleStatusClickGuardProcessId() {
 }
 
 WriteCycleStatusClickGuardFile(path, value) {
+    ; Replace a complete temporary file so the other process cannot read half a value.
     tempPath := path . "." . GetCycleStatusClickGuardProcessId() . ".tmp"
 
     try FileDelete(tempPath)

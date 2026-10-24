@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Mermonkey part of the macro. Keep this focused so run bugs are easier to trace later.
+; Validate the Allure Totem upgrade before placing or moving its manual target.
 
 EnsureMermonkeySelected(tower) {
     ClickMapPoint(tower.x, tower.y)

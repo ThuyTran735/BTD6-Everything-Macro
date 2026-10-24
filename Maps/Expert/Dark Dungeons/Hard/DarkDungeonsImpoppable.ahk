@@ -3,6 +3,7 @@
 #Include ..\..\..\..\Scripts\IncludeAll.ahk
 ; Credits to sYnce on YT for the help on rounds 6-100.
 DarkDungeonsImpoppable() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Expert",
         map: "Dark Dungeons",
@@ -14,6 +15,8 @@ DarkDungeonsImpoppable() {
         endRound: 100
     }
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Dart A", {
             type: "Dart",
@@ -285,6 +288,8 @@ DarkDungeonsImpoppable() {
         }
     )
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
     strategy := [
         [0, 0, () => PlaceTower(TowerSetup["Dart A"])],
         [0, 0, () => PlaceTower(TowerSetup["Dart B"])],
@@ -311,15 +316,17 @@ DarkDungeonsImpoppable() {
         [34, 0, () => UpgradeTower(TowerSetup["Dart D"], "300")],
         [35, 0, () => PlaceTower(TowerSetup["Tack A"])],
         [35, 0, () => UpgradeTower(TowerSetup["Tack A"], "204")],
-        [39, 12000, () => SetGameSpeed("Normal")],
+        [39, 11000, () => SetGameSpeed("Normal")],
         [40, 0, () => UpgradeTower(TowerSetup["Alchemist A"], "300")],
         [40, 0, () => UseAbility("1")],
         [41, 0, () => SetGameSpeed("Fast")],
         [41, 0, () => PlaceTower(TowerSetup["Ninja A"])],
         [41, 0, () => UpgradeTower(TowerSetup["Ninja A"], "020")],
+        [41, 0, () => SetGameSpeed("Normal")],
         [42, 0, () => UpgradeTower(TowerSetup["SpikeFactory B"], "102")],
         [42, 0, () => SetSpikeFactoryTarget(TowerSetup["SpikeFactory B"], 246, 126)],
         [42, 0, () => UpgradeTower(TowerSetup["Dart D"], "302")],
+        [42, 0, () => SetGameSpeed("Fast")],
         [43, 0, () => UseAbility("1")],
         [43, 0, () => UpgradeTower(TowerSetup["SpikeFactory B"], "202")],
         [43, 0, () => UpgradeTower(TowerSetup["Dart D"], "402")],
@@ -331,16 +338,20 @@ DarkDungeonsImpoppable() {
         [48, 0, () => UpgradeTower(TowerSetup["SpikeFactory B"], "302")],
         [48, 0, () => SetSpikeFactoryTarget(TowerSetup["SpikeFactory B"], 243, 335)],
         [49, 0, () => UpgradeTower(TowerSetup["Dart G"], "402")],
+        [49, 0, () => SetGameSpeed("Normal")],
         [50, 0, () => PlaceTower(TowerSetup["Village B"])],
         [50, 0, () => UpgradeTower(TowerSetup["Village B"], "200")],
         [50, 0, () => UpgradeTower(TowerSetup["Alchemist A"], "320")],
+        [50, 0, () => SetGameSpeed("Fast")],
         [51, 0, () => PlaceTower(TowerSetup["Alchemist B"])],
         [51, 0, () => UpgradeTower(TowerSetup["Village A"], "102")],
         [51, 0, () => UpgradeTower(TowerSetup["Alchemist B"], "300")],
         [52, 0, () => UpgradeTower(TowerSetup["Village B"], "300")],
         [52, 0, () => UpgradeTower(TowerSetup["Village A"], "202")],
+        [52, 0, () => SetGameSpeed("Normal")],
         [53, 0, () => PlaceTower(TowerSetup["Tack B"])],
         [53, 0, () => UpgradeTower(TowerSetup["Tack B"], "204")],
+        [53, 0, () => SetGameSpeed("Fast")],
         [55, 0, () => SellTower(TowerSetup["Ninja A"])],
         [55, 0, () => SellTower(TowerSetup["Dart A"])],
         [55, 0, () => SellTower(TowerSetup["Dart C"])],

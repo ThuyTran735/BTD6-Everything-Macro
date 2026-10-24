@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles scheduled upgrades, targeting, sells, abilities, and the action list.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Builds scheduled actions from the current form and keeps their list in insertion order.
+; Coordinate overrides select a moved tower; Spike Factory target points have a separate meaning.
 
 AddUpgradeAction(*) {
     global Entities, UpgradeActions, ActionEntityDDL, UpgradeEdit, UpgradeXEdit, UpgradeYEdit, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
@@ -45,6 +45,7 @@ AddUpgradeAction(*) {
         delay: delay
     }
 
+    ; Blank overrides use the placement point; one coordinate alone cannot select a tower.
     overrideXText := Trim(UpgradeXEdit.Value)
     overrideYText := Trim(UpgradeYEdit.Value)
 
@@ -88,6 +89,7 @@ AddTargetingAction(*) {
         return
     }
 
+    ; These tower types need their dedicated aiming helpers, not a normal targeting cycle.
     if selectedEntity.type = "Dartling" {
         MsgBox("Dartling Gunners use SetDartlingTargeting() / AimDartling() instead of SetTargeting().", "Strategy Builder", "Icon!")
         return
@@ -209,6 +211,7 @@ AddBananaCollectionDisableAction(*) {
 }
 
 
+; Collection toggles affect the whole run, so they do not need a selected monkey.
 AddBananaCollectionAction(enabled) {
     global UpgradeActions, UpgradeRoundEdit, UpgradeDelayEdit, StatusText
 
@@ -350,6 +353,7 @@ RefreshActionEntityDropdown(preferredName := "") {
     ClearTargetCoordinateInputs()
 }
 
+; A coordinate override belongs to one tower and must not carry into a different selection.
 OnActionEntityChanged(*) {
     RefreshActionTargetDropdown()
     RefreshUpgradeEditForSelectedEntity()
@@ -360,6 +364,7 @@ OnActionEntityChanged(*) {
 GetRememberedUpgradeForEntity(entityName) {
     global UpgradeActions
 
+    ; Reuse the most recently entered upgrade for this monkey as the next edit starting point.
     remembered := "000"
 
     for action in UpgradeActions {

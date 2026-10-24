@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Rebuilds launcher bits when needed and moves between Settings/history/retry screens.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keep screen transitions in one place so closing a child menu returns consistently.
 
 RebuildLauncherForQueueButtonSetting() {
     global LauncherGui
@@ -11,6 +10,7 @@ RebuildLauncherForQueueButtonSetting() {
     if MacroRunning
         return
 
+    ; Queue controls change the action-row widths, so rebuild instead of hiding them.
     try {
         if LauncherGui
             LauncherGui.Destroy()
@@ -46,6 +46,7 @@ CloseSettingsUI(*) {
     global SettingsUpdateCheckActive
     global SettingsUpdateCheckFrame
 
+    ; Stop delayed update callbacks before their status control is destroyed.
     SetTimer(AdvanceSettingsUpdateCheckAnimation, 0)
     SetTimer(RunSettingsUpdateCheck, 0)
     SettingsUpdateCheckActive := false

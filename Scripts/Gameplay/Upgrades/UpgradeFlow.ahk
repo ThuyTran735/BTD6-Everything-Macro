@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs the main UpgradeTower flow and decides what still needs to be bought.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Selects a tower, buys only the missing tiers, and closes the panel it opened.
+; Optional coordinates follow moving towers without changing their saved placement position.
 
 UpgradeTower(
     tower,
@@ -121,35 +121,19 @@ UpgradeTower(
         )
 
 
-    ; Select the requested tower fresh for every UpgradeTower() action.
-    ; There is no selected-tower cache and no proactive Esc/panel scan here.
+    ; A selection click can be dropped during lag. Wait for a tower panel
+    ; after selecting the requested position, before checking affordability.
     panelSide := false
-
-
-    ClickMapPoint(
-        clickX,
-        clickY
-    )
-
-
-    Sleep(
-        IsFastDeflationPregameUpgrade() ? 25 : 35
-    )
+    panelResult := EnsureUpgradePanelOpen(tower, &panelSide, clickX, clickY, true)
+    if panelResult = "Victory" || panelResult = "Defeat"
+        return panelResult
+    if panelResult = false
+        return SetRunFailureReason("UPGRADE FAILED", "Could not select the requested tower")
 
 
     MarkUpgradeMonkeySelected(
         upgradeTiming
     )
-
-
-    ; Start affordability polling immediately after selection. The saved tower
-    ; X still gives us a fast first guess; WaitForUpgrade() corrects the side
-    ; if BTD6 opened the panel on the opposite side.
-    panelSide :=
-        GetExpectedUpgradePanelSideFromX(
-            clickX
-        )
-
 
 
     while tower.upgrades[1] < targetTop {
@@ -167,7 +151,9 @@ UpgradeTower(
                 tower,
                 "Top",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -185,6 +171,8 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
+            if !IsTowerInputActive()
+                return false
             SendEscapeAndWait()
             return true
         }
@@ -200,7 +188,9 @@ UpgradeTower(
                 tower,
                 "Top",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -213,6 +203,13 @@ UpgradeTower(
             return "Defeat"
         }
 
+
+        if buyResult = "DeflationTimeout" {
+            if !IsTowerInputActive()
+                return false
+            SendEscapeAndWait()
+            return true
+        }
 
         if buyResult = false {
             return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Top path upgrade")
@@ -244,7 +241,9 @@ UpgradeTower(
                 tower,
                 "Middle",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -262,6 +261,8 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
+            if !IsTowerInputActive()
+                return false
             SendEscapeAndWait()
             return true
         }
@@ -277,7 +278,9 @@ UpgradeTower(
                 tower,
                 "Middle",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -290,6 +293,13 @@ UpgradeTower(
             return "Defeat"
         }
 
+
+        if buyResult = "DeflationTimeout" {
+            if !IsTowerInputActive()
+                return false
+            SendEscapeAndWait()
+            return true
+        }
 
         if buyResult = false {
             return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Middle path upgrade")
@@ -321,7 +331,9 @@ UpgradeTower(
                 tower,
                 "Bottom",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -339,6 +351,8 @@ UpgradeTower(
             ; In Deflation pregame, an unavailable upgrade should not
             ; block the rest of the setup. Close the panel and let the
             ; next scripted action run.
+            if !IsTowerInputActive()
+                return false
             SendEscapeAndWait()
             return true
         }
@@ -354,7 +368,9 @@ UpgradeTower(
                 tower,
                 "Bottom",
                 &panelSide,
-                stepTiming
+                stepTiming,
+                clickX,
+                clickY
             )
 
 
@@ -367,6 +383,13 @@ UpgradeTower(
             return "Defeat"
         }
 
+
+        if buyResult = "DeflationTimeout" {
+            if !IsTowerInputActive()
+                return false
+            SendEscapeAndWait()
+            return true
+        }
 
         if buyResult = false {
             return SetRunFailureReason("UPGRADE FAILED", "Failed to buy Bottom path upgrade")
@@ -385,6 +408,8 @@ UpgradeTower(
 
     ; This UpgradeTower() selected the tower itself, so close that known panel
     ; exactly once. Do not scan the screen or send an extra Esc later.
+    if !IsTowerInputActive()
+        return false
     SendEscapeAndWait()
 
 

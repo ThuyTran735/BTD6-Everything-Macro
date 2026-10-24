@@ -1,7 +1,6 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
-; v3 file note: Navigation is split into map selection, mode selection, prompts, and load helpers now. Keeping this wrapper means old includes do not need to change.
-; The split is organization-only; callers can keep including this file like before.
+; Load the complete Home-to-map navigation flow through one stable include. Patterns, selection clicks, prompts, and load waits stay separate below.
 
 #Include Navigation\NavigationPatterns.ahk
 #Include Navigation\MapNavigation.ahk

@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Moves the HUD around the right-side upgrade panel without mixing that math into drawing code.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keeps the HUD clear of upgrade panels, OCR areas, and strategy clicks.
+; Every delayed visibility update rechecks cancellation before touching the window.
 
 IsRightUpgradePanelOpen() {
     global SellButtonPattern

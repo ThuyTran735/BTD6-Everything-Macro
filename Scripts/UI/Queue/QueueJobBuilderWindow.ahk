@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Builds the Add/Edit Queue Job window.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Builds the shared job editor. The same controls serve new and existing jobs,
+; while the selection helpers preserve the correct script and queue position.
 
 OpenQueueJobBuilder(editIndex := 0) {
     global QueueBuilderGui
@@ -104,20 +104,17 @@ OpenQueueJobBuilder(editIndex := 0) {
     EnableCustomWindowChrome(QueueBuilderGui)
     AddCustomWindowBorder(QueueBuilderGui, uiWidth, uiHeight)
 
-    ; Match the launcher/settings visual hierarchy instead of leaving fields
-    ; floating directly on the window background.
-    AddUICard(QueueBuilderGui, 16, 82, 508, 80)
-    AddUICard(QueueBuilderGui, 16, 170, 508, 238)
-    AddUICard(QueueBuilderGui, 16, 418, 508, 66)
+    AddUICard(QueueBuilderGui, 24, 96, 492, 80)
+    AddUICard(QueueBuilderGui, 24, 188, 492, 228)
 
 
     AddUIOutlinedText(
         QueueBuilderGui,
         QueueBuilderIsEditing ? "EDIT QUEUE JOB" : "ADD QUEUE JOB",
-        20,
-        18,
-        500,
-        34,
+        24,
+        24,
+        492,
+        28,
         13,
         "Center"
     )
@@ -132,7 +129,7 @@ OpenQueueJobBuilder(editIndex := 0) {
 
     QueueBuilderGui.Add(
         "Text",
-        "x20 y55 w500 h20 Center c"
+        "x24 y60 w492 h20 Center c"
         . UIColorSecondaryText
         . " BackgroundTrans",
         QueueBuilderIsEditing
@@ -145,10 +142,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT JOB TYPE",
-            30,
-            92,
-            480,
-            22,
+            40,
+            108,
+            460,
+            20,
             9
         )
 
@@ -156,9 +153,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderJobTypeDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            116,
-            480,
+            40,
+            132,
+            460,
             [
                 "Map Script",
                 "Monkey EXP Grind"
@@ -184,10 +181,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT CATEGORY",
-            30,
-            182,
-            480,
-            22,
+            40,
+            200,
+            460,
+            20,
             9
         )
 
@@ -195,9 +192,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderCategoryDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            206,
-            480,
+            40,
+            224,
+            460,
             categories,
             1,
             5
@@ -218,10 +215,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT MAP",
-            30,
-            254,
-            480,
-            22,
+            40,
+            272,
+            460,
+            20,
             9
         )
 
@@ -229,9 +226,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderMapDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            278,
-            480,
+            40,
+            296,
+            460,
             firstMaps,
             1,
             5
@@ -252,10 +249,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT STRATEGY",
-            30,
-            326,
-            480,
-            22,
+            40,
+            344,
+            460,
+            20,
             9
         )
 
@@ -263,9 +260,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderStrategyDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            350,
-            480,
+            40,
+            368,
+            460,
             [
                 "No strategies found"
             ],
@@ -288,10 +285,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT TOWER TYPE",
-            30,
-            218,
-            480,
-            22,
+            40,
+            200,
+            460,
+            20,
             9,
             "Left",
             false
@@ -301,9 +298,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderExpTypeDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            242,
-            480,
+            40,
+            224,
+            460,
             GetMonkeyExpTowerTypes(),
             1,
             5
@@ -330,10 +327,10 @@ OpenQueueJobBuilder(editIndex := 0) {
         AddUIOutlinedText(
             QueueBuilderGui,
             "SELECT TOWER",
-            30,
-            298,
-            480,
-            22,
+            40,
+            272,
+            460,
+            20,
             9,
             "Left",
             false
@@ -343,9 +340,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     QueueBuilderExpScriptDropdown :=
         CreateDarkDropdown(
             QueueBuilderGui,
-            30,
-            322,
-            480,
+            40,
+            296,
+            460,
             [
                 "No Monkey EXP scripts found"
             ],
@@ -421,9 +418,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     addButton :=
         CreateDarkButton(
             QueueBuilderGui,
-            30,
-            430,
-            310,
+            24,
+            432,
+            320,
             44,
             QueueBuilderIsEditing ? "SAVE CHANGES" : "ADD TO QUEUE",
             9
@@ -433,8 +430,8 @@ OpenQueueJobBuilder(editIndex := 0) {
     cancelButton :=
         CreateDarkButton(
             QueueBuilderGui,
-            350,
-            430,
+            356,
+            432,
             160,
             44,
             "CANCEL",

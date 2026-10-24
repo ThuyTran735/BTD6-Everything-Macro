@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Dartling part of the macro. Keep this focused so run bugs are easier to trace later.
+; Keep Dartling mode changes separate from re-aiming an already locked barrel.
 
 GetDartlingTargetingOrder(tower) {
     if tower.type != "Dartling"

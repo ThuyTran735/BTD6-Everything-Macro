@@ -19,6 +19,7 @@ NormalizeUserDataPath(path) {
 
 
 IsFolderInsideCurrentUserData(path) {
+    ; The trailing separator keeps UserData-Backup from matching UserData.
     userDataPath := NormalizeUserDataPath(GetMacroUserDataFolder())
     candidatePath := NormalizeUserDataPath(path)
 
@@ -48,6 +49,7 @@ GetUniqueUserDataBackupFolder(parentFolder) {
 
 
 CopyUserDataTree(sourceFolder, destinationFolder) {
+    ; Merge matching paths; do not remove newer files that are absent from a backup.
     copiedFiles := 0
 
     if !DirExist(destinationFolder)
@@ -191,6 +193,7 @@ RequestImportUserDataFromSettings(*) {
         return
     }
 
+    ; Hold the selected folder until the confirmation callback runs.
     PendingUserDataImportFolder := sourceFolder
 
     ShowThemedConfirmation(
@@ -270,12 +273,10 @@ ShowUserDataTransferUI(*) {
 
     EnableCustomWindowChrome(UserDataTransferGui)
     AddCustomWindowBorder(UserDataTransferGui, 500, 478)
-    AddUICard(UserDataTransferGui, 30, 88, 440, 112)
-    AddUICard(UserDataTransferGui, 30, 200, 440, 118)
-    AddUICard(UserDataTransferGui, 30, 318, 440, 76)
-    AddUICard(UserDataTransferGui, 30, 394, 440, 62)
+    AddUICard(UserDataTransferGui, 24, 88, 452, 100)
+    AddUICard(UserDataTransferGui, 24, 200, 452, 132)
 
-    AddUIOutlinedText(UserDataTransferGui, "USER DATA", 20, 18, 460, 34, 13, "Center")
+    AddUIOutlinedText(UserDataTransferGui, "USER DATA", 24, 20, 452, 32, 13, "Center")
 
     CreateHelpBadgeForHeader(
         UserDataTransferGui,
@@ -287,49 +288,49 @@ ShowUserDataTransferUI(*) {
     SetUIBodyFont(UserDataTransferGui, 9, UIColorSecondaryText)
     UserDataTransferGui.Add(
         "Text",
-        "x30 y58 w440 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y60 w452 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Move your setup between macro versions"
     )
 
     SetUIHeadingFont(UserDataTransferGui, 8, UIColorHeadingText)
     UserDataTransferGui.Add(
         "Text",
-        "x42 y98 w416 h18 c" . UIColorHeadingText . " BackgroundTrans",
+        "x36 y100 w428 h20 c" . UIColorHeadingText . " BackgroundTrans",
         "WHAT GETS SAVED"
     )
 
     SetUIBodyFont(UserDataTransferGui, 8, UIColorSecondaryText)
     UserDataTransferGui.Add(
         "Text",
-        "x42 y122 w416 h62 c" . UIColorSecondaryText . " BackgroundTrans",
+        "x36 y128 w428 h48 c" . UIColorSecondaryText . " BackgroundTrans",
         "The whole UserData folder: settings, favorites, launcher state, queue profiles, run history, logs, and any future UserData files."
     )
 
     SetUIHeadingFont(UserDataTransferGui, 8, UIColorHeadingText)
     UserDataTransferGui.Add(
         "Text",
-        "x42 y210 w416 h18 c" . UIColorHeadingText . " BackgroundTrans",
+        "x36 y212 w428 h20 c" . UIColorHeadingText . " BackgroundTrans",
         "BACKUP / RESTORE"
     )
 
-    exportButton := CreateDarkButton(UserDataTransferGui, 42, 238, 202, 54, "EXPORT USER DATA", 8)
-    importButton := CreateDarkButton(UserDataTransferGui, 256, 238, 202, 54, "IMPORT USER DATA", 8, "Default")
+    exportButton := CreateDarkButton(UserDataTransferGui, 36, 240, 208, 40, "EXPORT USER DATA", 8)
+    importButton := CreateDarkButton(UserDataTransferGui, 256, 240, 208, 40, "IMPORT USER DATA", 8, "Default")
 
     SetUIBodyFont(UserDataTransferGui, 8, UIColorSecondaryText)
     UserDataTransferStatusText := UserDataTransferGui.Add(
         "Text",
-        "x42 y328 w416 h54 Center c" . UIColorSecondaryText,
+        "x36 y344 w428 h48 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Export creates a dated backup folder. Import merges it into this version and overwrites matching files."
     )
 
-    SetUIBodyFont(UserDataTransferGui, 7, UIColorMutedText)
+    SetUIBodyFont(UserDataTransferGui, 8, UIColorMutedText)
     UserDataTransferGui.Add(
         "Text",
-        "x42 y298 w416 h16 Center c" . UIColorMutedText . " BackgroundTrans",
+        "x36 y292 w428 h28 Center c" . UIColorMutedText . " BackgroundTrans",
         "Restart the macro after importing so every restored setting reloads."
     )
 
-    backButton := CreateDarkButton(UserDataTransferGui, 90, 404, 320, 42, "BACK TO SETTINGS", 8, "Default")
+    backButton := CreateDarkButton(UserDataTransferGui, 24, 414, 452, 40, "BACK TO SETTINGS", 8, "Default")
 
     exportButton.OnEvent("Click", ExportUserDataFromSettings)
     importButton.OnEvent("Click", RequestImportUserDataFromSettings)

@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for Confirm. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Keep confirmation callbacks separate from the dialog so canceling cannot run them.
 
 global UIConfirmGui := ""
 global UIConfirmCallback := ""
@@ -103,7 +103,7 @@ ShowThemedConfirmation(
         UIConfirmGui,
         title,
         24,
-        22,
+        24,
         422,
         34,
         12,
@@ -122,7 +122,7 @@ ShowThemedConfirmation(
 
     UIConfirmGui.Add(
         "Text",
-        "x34 y76 w402 h105 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y80 w422 h128 Center c" . UIColorSecondaryText . " BackgroundTrans",
         message
     )
 
@@ -130,10 +130,10 @@ ShowThemedConfirmation(
     confirmButton :=
         CreateDarkButton(
             UIConfirmGui,
-            34,
-            208,
-            194,
-            46,
+            24,
+            232,
+            205,
+            44,
             confirmText,
             8,
             "Danger"
@@ -143,10 +143,10 @@ ShowThemedConfirmation(
     backButton :=
         CreateDarkButton(
             UIConfirmGui,
-            242,
-            208,
-            194,
-            46,
+            241,
+            232,
+            205,
+            44,
             "GO BACK",
             8,
             "Default"
@@ -205,6 +205,7 @@ ShowThemedConfirmation(
     )
 
 
+    ; Keep the underlying menu still until this choice is finished.
     if ownerGui {
         try ownerGui.Opt("+Disabled")
     }

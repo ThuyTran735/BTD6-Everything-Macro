@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for LauncherState. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Store selections by name so adding maps or rearranging lists does not
+; restore the wrong item on the next launch.
 
 GetLauncherStateFilePath() {
     return A_ScriptDir . "\UserData\LauncherState.ini"
@@ -57,6 +58,7 @@ IsValidRememberedLauncherMode(modeName) {
         modeName = "Default"
         || modeName = "Monkey EXP Grind"
         || modeName = "Monkey Money Grind"
+        || modeName = "Auto Collection Event"
     )
 }
 
@@ -66,6 +68,7 @@ GetRememberedScriptIdentity(scriptPath) {
         return ""
     }
 
+    ; Relative paths survive moving or importing the whole macro folder.
     normalizedPath := StrReplace(Trim(scriptPath), "/", "\")
     scriptRoot := StrReplace(A_ScriptDir, "/", "\")
     rootPrefix := scriptRoot . "\"
@@ -199,6 +202,7 @@ RestoreLauncherState() {
         return false
     }
 
+    ; Missing or renamed entries fall back to an available selection below.
     savedMode := "Default"
     savedCategory := ""
     savedMap := ""

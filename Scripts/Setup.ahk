@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the Setup part of the macro. Keep this focused so run bugs are easier to trace later.
+; Confirm the fixed fullscreen layout before a strategy uses screen coordinates.
 
 IsBTD6Fullscreen() {
     gameWindow :=

@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Runs the small profile-name prompt and closes the profile windows cleanly.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Waits for a name or cancellation, then restores the profile manager.
 
 PromptQueueProfileName(promptText, defaultName := "") {
     global QueueProfilesGui
@@ -27,7 +26,7 @@ PromptQueueProfileName(promptText, defaultName := "") {
     QueueProfileNameFinished := false
 
     dialogWidth := 440
-    dialogHeight := 276
+    dialogHeight := 280
     ownerOption := ""
 
     if QueueProfilesGui {
@@ -47,28 +46,28 @@ PromptQueueProfileName(promptText, defaultName := "") {
     SetUIHeadingFont(QueueProfileNameGui, 13, UIColorPrimaryText)
     QueueProfileNameGui.Add(
         "Text",
-        "x20 y20 w400 h30 Center c" . UIColorPrimaryText . " BackgroundTrans",
+        "x24 y24 w392 h28 Center c" . UIColorPrimaryText . " BackgroundTrans",
         "QUEUE PROFILE NAME"
     )
 
     SetUIBodyFont(QueueProfileNameGui, 9, UIColorSecondaryText)
     QueueProfileNameGui.Add(
         "Text",
-        "x30 y60 w380 h38 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y64 w392 h36 Center c" . UIColorSecondaryText . " BackgroundTrans",
         promptText
     )
 
     QueueProfileNameGui.Add(
         "Progress",
-        "x29 y112 w382 h48 c" . UIColorInputBorder
+        "x24 y116 w392 h44 c" . UIColorInputBorder
         . " Background" . UIColorInputBorder . " Disabled",
         100
     )
 
-    SetUIBodyBoldFont(QueueProfileNameGui, 11, UIColorPrimaryText)
+    SetUIBodyFont(QueueProfileNameGui, 11, UIColorPrimaryText)
     QueueProfileNameEdit := QueueProfileNameGui.Add(
         "Edit",
-        "x31 y114 w378 h44 Center Limit80 c" . UIColorInputText
+        "x26 y118 w388 h40 Center Limit80 c" . UIColorInputText
         . " Background" . UIColorInputBackground,
         defaultName
     )
@@ -78,12 +77,12 @@ PromptQueueProfileName(promptText, defaultName := "") {
     SetUIBodyFont(QueueProfileNameGui, 8, UIColorError)
     QueueProfileNameErrorText := QueueProfileNameGui.Add(
         "Text",
-        "x20 y169 w400 h34 Center c" . UIColorError . " BackgroundTrans",
+        "x24 y172 w392 h28 Center c" . UIColorError . " BackgroundTrans",
         ""
     )
 
-    saveButton := CreateDarkButton(QueueProfileNameGui, 30, 211, 184, 44, "SAVE NAME", 8)
-    cancelButton := CreateDarkButton(QueueProfileNameGui, 226, 211, 184, 44, "CANCEL", 8, "Default")
+    saveButton := CreateDarkButton(QueueProfileNameGui, 24, 212, 190, 44, "SAVE NAME", 8)
+    cancelButton := CreateDarkButton(QueueProfileNameGui, 226, 212, 190, 44, "CANCEL", 8, "Default")
 
     CreateHelpBadgeForButton(
         QueueProfileNameGui,

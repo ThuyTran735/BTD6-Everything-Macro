@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for Loading. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Use the launcher dimensions for both startup animations so the window stays put.
 
 CreateStartupLoadingUI(
     headingText := "STARTING MACRO",
@@ -24,11 +24,8 @@ CreateStartupLoadingUI(
     global UIColorControlBorder
 
 
-    ; This screen originally used a 390 px layout inside the now-430 px
-    ; launcher, leaving every loading element 20 px left of center. Derive a
-    ; centered content column from GuiWidth so both startup loading sequences
-    ; remain centered if the main window width changes again.
-    contentWidth := 350
+    ; Share the launcher's 24 px gutters, even if its width changes later.
+    contentWidth := GuiWidth - 48
     contentX := Floor((GuiWidth - contentWidth) / 2)
 
 
@@ -65,7 +62,7 @@ CreateStartupLoadingUI(
         StartupLoadingGui,
         "BTD6 Everything Macro",
         contentX,
-        18,
+        20,
         contentWidth,
         35,
         14
@@ -74,14 +71,14 @@ CreateStartupLoadingUI(
 
     SetUIBodyFont(
         StartupLoadingGui,
-        7,
+        8,
         UIColorMutedText
     )
 
 
     StartupLoadingGui.Add(
         "Text",
-        "x" . (contentX + 1) . " y53 w205 h20 c"
+        "x" . contentX . " y56 w190 h20 c"
         . UIColorMutedText
         . " BackgroundTrans",
         "Made By @Thuy_"
@@ -99,7 +96,7 @@ CreateStartupLoadingUI(
 
     StartupLoadingGui.Add(
         "Text",
-        "x" . (contentX + 210) . " y53 w140 h20 Right c"
+        "x" . (contentX + 198) . " y56 w" . (contentWidth - 198) . " h20 Right c"
         . UIColorMutedText
         . " BackgroundTrans",
         subtitleText
@@ -108,7 +105,7 @@ CreateStartupLoadingUI(
 
     StartupLoadingGui.Add(
         "Text",
-        "x" . contentX . " y79 w" . contentWidth . " h1 0x10"
+        "x" . contentX . " y80 w" . contentWidth . " h1 0x10"
     )
 
 
@@ -116,7 +113,7 @@ CreateStartupLoadingUI(
         StartupLoadingGui,
         headingText,
         contentX,
-        108,
+        112,
         contentWidth,
         40,
         14,
@@ -134,7 +131,7 @@ CreateStartupLoadingUI(
     StartupLoadingMessage :=
         StartupLoadingGui.Add(
             "Text",
-            "x" . (contentX + 5) . " y177 w340 h28 Center c"
+            "x" . contentX . " y184 w" . contentWidth . " h24 Center c"
             . UIColorPrimaryText
             . " BackgroundTrans",
             "INITIALIZING..."
@@ -144,7 +141,7 @@ CreateStartupLoadingUI(
     StartupLoadingProgress :=
         StartupLoadingGui.Add(
             "Progress",
-            "x" . (contentX + 15) . " y225 w320 h14 Range0-100 c"
+            "x" . contentX . " y224 w" . contentWidth . " h12 Range0-100 c"
             . UIColorAccent
             . " Background"
             . UIColorControlBorder,
@@ -162,7 +159,7 @@ CreateStartupLoadingUI(
     StartupLoadingPercent :=
         StartupLoadingGui.Add(
             "Text",
-            "x" . (contentX + 15) . " y247 w320 h22 Center c"
+            "x" . contentX . " y248 w" . contentWidth . " h24 Center c"
             . UIColorSecondaryText
             . " BackgroundTrans",
             "0%"
@@ -178,7 +175,7 @@ CreateStartupLoadingUI(
 
     StartupLoadingGui.Add(
         "Text",
-        "x" . (contentX + 15) . " y294 w320 h22 Center c"
+        "x" . contentX . " y296 w" . contentWidth . " h24 Center c"
         . UIColorMutedText
         . " BackgroundTrans",
         helperText
@@ -194,7 +191,7 @@ CreateStartupLoadingUI(
 
     StartupLoadingGui.Add(
         "Text",
-        "x" . contentX . " y356 w" . contentWidth . " h20 Center c"
+        "x" . contentX . " y352 w" . contentWidth . " h24 Center c"
         . UIColorAccent
         . " BackgroundTrans",
         "PLEASE WAIT"

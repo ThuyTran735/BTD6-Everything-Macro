@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Owns Queue Profile globals and builds the main profile manager window.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Keeps the profile controls together; selection and storage live in separate modules.
 
 
 global QueueProfilesGui := ""
@@ -72,7 +71,7 @@ ShowQueueProfilesManager(*) {
     EnableCustomWindowChrome(QueueProfilesGui)
     AddCustomWindowBorder(QueueProfilesGui, 680, 490)
 
-    AddUIOutlinedText(QueueProfilesGui, "QUEUE PROFILES", 20, 18, 640, 34, 13, "Center")
+    AddUIOutlinedText(QueueProfilesGui, "QUEUE PROFILES", 24, 24, 632, 28, 13, "Center")
 
     CreateHelpBadgeForHeader(
         QueueProfilesGui,
@@ -84,23 +83,19 @@ ShowQueueProfilesManager(*) {
     SetUIBodyFont(QueueProfilesGui, 9, UIColorSecondaryText)
     QueueProfilesGui.Add(
         "Text",
-        "x20 y55 w640 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x24 y60 w632 h20 Center c" . UIColorSecondaryText . " BackgroundTrans",
         "Save, describe, repeat, and reuse complete queue setups"
     )
 
-    ; Match the card-based visual hierarchy used by the refreshed launcher,
-    ; Settings, Add Queue, and Modes screens without changing profile behavior.
-    AddUICard(QueueProfilesGui, 16, 82, 648, 92)
-    AddUICard(QueueProfilesGui, 16, 182, 648, 92)
-    AddUICard(QueueProfilesGui, 16, 280, 648, 84)
-    AddUICard(QueueProfilesGui, 16, 378, 648, 60)
-    AddUICard(QueueProfilesGui, 16, 444, 648, 30)
+    ; One panel groups the saved profile and its editable details.
+    ; Notes keep their fixed geometry used by the custom scrollbar.
+    AddUICard(QueueProfilesGui, 24, 88, 632, 280)
 
-    profileLabel := AddUIOutlinedText(QueueProfilesGui, "SELECT PROFILE", 40, 88, 600, 22, 9)
+    profileLabel := AddUIOutlinedText(QueueProfilesGui, "SELECT PROFILE", 40, 100, 600, 20, 9)
     QueueProfileDropdown := CreateDarkDropdown(
         QueueProfilesGui,
         40,
-        112,
+        124,
         600,
         ["No saved profiles"],
         1,
@@ -125,10 +120,10 @@ ShowQueueProfilesManager(*) {
         "Choose a saved Queue Profile.`n`nYou can review it, load it, update it, or use MORE for extra actions."
     )
 
-    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
+    SetUIBodyFont(QueueProfilesGui, 8, UIColorMutedText)
     QueueProfileSummaryText := QueueProfilesGui.Add(
         "Text",
-        "x40 y154 w600 h22 Center c" . UIColorMutedText . " BackgroundTrans",
+        "x40 y164 w600 h18 Center c" . UIColorMutedText . " BackgroundTrans",
         "NO PROFILE SELECTED"
     )
 
@@ -141,11 +136,11 @@ ShowQueueProfilesManager(*) {
         "Write notes about this profile.`n`nYour changes save automatically after you stop typing."
     )
 
-    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorMutedText)
+    SetUIBodyFont(QueueProfilesGui, 8, UIColorMutedText)
     QueueProfilesGui.Add(
         "Text",
         "x480 y195 w160 h18 Right c" . UIColorMutedText . " BackgroundTrans",
-        "SAVES AUTOMATICALLY"
+        "Saves automatically"
     )
 
     QueueProfilesGui.Add(
@@ -211,7 +206,7 @@ ShowQueueProfilesManager(*) {
         100
     )
 
-    SetUIBodyBoldFont(QueueProfilesGui, 11, UIColorPrimaryText)
+    SetUIBodyFont(QueueProfilesGui, 11, UIColorPrimaryText)
     QueueProfileRepeatEdit := QueueProfilesGui.Add(
         "Edit",
         "x93 y315 w72 h40 Center Limit2 c" . UIColorInputText
@@ -240,18 +235,18 @@ ShowQueueProfilesManager(*) {
         AdjustQueueProfileRepeat.Bind(1)
     )
 
-    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorSecondaryText)
+    SetUIBodyFont(QueueProfilesGui, 9, UIColorSecondaryText)
     QueueProfilesGui.Add(
         "Text",
         "x238 y323 w402 h24 c" . UIColorSecondaryText . " BackgroundTrans",
-        "VALID RANGE: 1-99  |  TOTALS UPDATE AUTOMATICALLY"
+        "1-99 repeats  |  Totals update automatically"
     )
 
-    loadButton := CreateDarkButton(QueueProfilesGui, 40, 386, 112, 44, "LOAD PROFILE", 7)
-    saveButton := CreateDarkButton(QueueProfilesGui, 162, 386, 112, 44, "SAVE CURRENT", 7)
-    updateButton := CreateDarkButton(QueueProfilesGui, 284, 386, 112, 44, "UPDATE", 8)
-    moreButton := CreateDarkButton(QueueProfilesGui, 406, 386, 112, 44, "MORE", 8)
-    closeButton := CreateDarkButton(QueueProfilesGui, 528, 386, 112, 44, "BACK", 8, "Default")
+    loadButton := CreateDarkButton(QueueProfilesGui, 24, 384, 116, 44, "LOAD PROFILE", 8)
+    saveButton := CreateDarkButton(QueueProfilesGui, 152, 384, 120, 44, "SAVE CURRENT", 8)
+    updateButton := CreateDarkButton(QueueProfilesGui, 284, 384, 116, 44, "UPDATE", 8)
+    moreButton := CreateDarkButton(QueueProfilesGui, 412, 384, 116, 44, "MORE", 8)
+    closeButton := CreateDarkButton(QueueProfilesGui, 540, 384, 116, 44, "BACK", 8, "Default")
 
     CreateHelpBadgeForButton(QueueProfilesGui, loadButton, "LOAD PROFILE", "Loads this profile into the queue.`n`nYour current queue is replaced, and the saved repeat amount is applied.")
     CreateHelpBadgeForButton(QueueProfilesGui, saveButton, "SAVE CURRENT", "Saves your current queue as a new Queue Profile.")
@@ -274,10 +269,10 @@ ShowQueueProfilesManager(*) {
     QueueProfilesGui.OnEvent("Close", CloseQueueProfilesAndReturnToQueue)
     QueueProfilesGui.OnEvent("Escape", CloseQueueProfilesAndReturnToQueue)
 
-    SetUIBodyBoldFont(QueueProfilesGui, 8, UIColorSuccess)
+    SetUIBodyFont(QueueProfilesGui, 8, UIColorSuccess)
     QueueProfileStatusText := QueueProfilesGui.Add(
         "Text",
-        "x40 y448 w600 h22 Center c" . UIColorSuccess . " BackgroundTrans",
+        "x24 y448 w632 h18 Center c" . UIColorSuccess . " BackgroundTrans",
         "READY"
     )
 

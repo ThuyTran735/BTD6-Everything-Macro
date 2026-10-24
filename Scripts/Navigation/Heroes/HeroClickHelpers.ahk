@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Small FindText click helpers used by the hero picker.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Tries the configured skin captures for one hero and clicks the first visible match.
+; The Select button uses the calibrated details-panel coordinate after that panel has settled.
 
 FindAndClickHero(patterns) {
     for pattern in patterns {

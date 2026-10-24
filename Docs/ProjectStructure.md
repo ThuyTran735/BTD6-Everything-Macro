@@ -1,4 +1,4 @@
-# Project structure (v3.4.0)
+# Project structure (v3.5.0)
 
 The big v2 files were split in v3 so debugging does not mean scrolling through 1,500-2,000 lines every time.
 
@@ -11,16 +11,23 @@ Files like `Scripts/RoundLogic.ahk`, `Scripts/UpgradeLogic.ahk`, `Scripts/GameSt
 - `Scripts/Gameplay/Rounds/` - round OCR, Glacial Trail cleanup, validation, recovery, and waiting.
 - `Scripts/Gameplay/Upgrades/` - upgrade timing, panel state/detection, buying, waiting, and locked-upgrade handling.
 - `Scripts/Monkey Logic/` - monkey/tower-specific behavior for Banana Farms, Subs, Dartling, Heli, Mermonkey, Mortar, and Spike Factory.
-- `Scripts/Gameplay/Game State/` - popups, victory/defeat, home-screen checks, and run reset.
+- `Scripts/Gameplay/Game State/` - popups, collection rewards, victory/defeat, home-screen checks, and run reset.
 - `Scripts/GameSpeedLogic.ahk` - tracked normal/fast game-speed changes used by scheduled strategy actions.
 - `Scripts/Navigation/` - map/mode navigation plus hero selection.
+- `Scripts/Collection Event/` - bonus-badge patterns, six-card scan regions, and Expert Impoppable map selection.
 - `Scripts/UI/Common/` - shared window chrome, launcher visibility, child-run IPC, and launcher monitoring.
 - `Scripts/UI/Controls/` - custom buttons, lists, and dropdowns.
-- `Scripts/UI/Launcher/` - launcher drawing and run/queue start logic.
+- `Scripts/UI/Launcher/` - launcher drawing, run/queue start logic, and the Auto Collection Event session.
 - `Scripts/UI/Queue/` - queue manager, queue job builder, and queue profile code.
 - `Scripts/UI/Run/` - the in-run HUD and run-count prompt.
 - `Scripts/UI/Settings/` - settings toggles, update checks, log controls, and UserData backup/restore.
 - `Tools/StrategyBuilder/` - Strategy Builder window, editors, import/export, overlays, and chrome.
+
+## Adding collection-event badges
+
+Add new badges to `CollectionEventBadgePatterns` in `Scripts/Collection Event/CollectionEventPatterns.ahk`. Each event has a name and an array of FindText captures. Put alternate appearances of the same badge in that event's array; add another entry for a new event.
+
+The scanner combines these captures automatically, so new badges do not need changes to map selection. Reopen `Main.ahk` after editing the catalog. Keep reward-screen Collect/Back patterns in `Scripts/Gameplay/Game State/CollectionRewardPatterns.ahk`; those buttons are handled separately from map badges.
 
 ## A couple rules worth keeping
 

@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Handles victory and defeat so the runner can finish or retry cleanly.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Moves through victory screens or restarts a defeated run.
+; These transitions release modifiers before clicks so held keys cannot change the menu action.
 
 HandleVictory() {
     global GameStatePatterns
@@ -59,8 +59,10 @@ HandleVictory() {
             )
 
 
+            ; Home may appear before its collection rewards finish loading.
+            ; Let that transition settle before checking popups or ending the run.
             Sleep(
-                700
+                3000
             )
 
 
@@ -72,6 +74,14 @@ HandleVictory() {
             HandleLoginNotNowPrompt(
                 3000
             )
+
+            ; Home promos can appear after the login prompt or a finished game.
+            ; Clear them even when this is the last requested cycle.
+            homeResult := HandleHomeMenuInterruptions()
+            if homeResult = "blocked"
+                return false
+            if homeResult = "pending"
+                return SetRunFailureReason("COLLECTION REWARDS BUSY", "Another handler still owns the reward screen")
 
 
             ReleaseMacroModifierKeys()

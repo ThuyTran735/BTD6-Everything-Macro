@@ -1,7 +1,8 @@
 ﻿#Requires AutoHotkey v2.0
 
 
-; v3 file note: UI code for MapDiscovery. Game automation should stay in the gameplay/navigation files instead of creeping in here.
+; Discover installed strategy files from their folders instead of maintaining a
+; second list of supported maps. Empty categories and maps stay out of the picker.
 
 GetConfiguredCategories() {
     global CategoryData
@@ -250,6 +251,7 @@ MapHasRunnableScripts(
 GetMapScripts(
     mapDirectory
 ) {
+    ; Always return all three keys so the difficulty picker can show empty states.
     scripts := Map(
         "Easy", [],
         "Medium", [],
@@ -483,6 +485,7 @@ GetMonkeyExpTowerTypes() {
 GetMonkeyExpScripts(
     towerType
 ) {
+    ; Only known tower groups may be used to build the script directory path.
     scripts := []
 
 
@@ -594,6 +597,7 @@ RefreshMonkeyExpScripts(
     }
 
 
+    ; Preserve the current choice after a refresh when that file still exists.
     selectedIndex :=
         FindTextIndex(
             names,

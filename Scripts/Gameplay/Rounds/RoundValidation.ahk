@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Validates round movement and keeps the tracker from jumping on noisy OCR.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Turns noisy counter reads into monotonic strategy time.
+; Repeated reads confirm progress; stale values and implausible jumps cannot release actions early.
 
 TrackRoundStart() {
     global LastRound
@@ -9,6 +9,7 @@ TrackRoundStart() {
     global RoundStartTick
 
 
+    ; Repeated OCR reads must not restart the elapsed-time clock for the same round.
     if LastTrackedRound != LastRound {
 
         LastTrackedRound :=

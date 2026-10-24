@@ -1,7 +1,7 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
-; v3 file note: Stores the round limits, OCR boxes, digit patterns, and tracker state.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Stores the round-counter capture regions, digit templates, and validation state.
+; Capture coordinates are calibrated for 1920x1080; tracker resets belong in RoundWait.
 
 global DifficultyRounds := Map(
     "Easy", 40,

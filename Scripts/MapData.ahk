@@ -1,6 +1,6 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
-; v3 file note: Handles the MapData part of the macro. Keep this focused so run bugs are easier to trace later.
+; Map-card FindText samples and page numbers used by navigation. Pages follow the in-game browser, not the order of strategy folders.
 
 global CategoryStartPages := Map(
     "Beginner", 1,

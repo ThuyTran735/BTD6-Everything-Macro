@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Loads individual queue jobs, advances the queue, and clears execution state.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Loads each job into the repeat-run state and advances after it finishes.
+; Queue progress is separate from per-job cycle progress so neither resets the other.
 
 LoadQueueJob(
     jobIndex

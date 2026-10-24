@@ -4,6 +4,7 @@
 
 
 MonkeyMeadowMilitaryOnly() {
+    ; Navigation and round bounds for this saved strategy.
     global RunConfig := {
         category: "Beginner",
         map: "Monkey Meadow",
@@ -17,6 +18,8 @@ MonkeyMeadowMilitaryOnly() {
     }
 
 
+    ; Named placement records. Helpers update placed, upgrades, and targeting during the run.
+    ; The X/Y values here remain the original placement points.
     global TowerSetup := Map(
         "Hero", {
             type: "Hero",
@@ -74,6 +77,8 @@ MonkeyMeadowMilitaryOnly() {
     )
 
 
+    ; Entries are [round, delay in milliseconds, action] and run in the written order.
+    ; Round 0 is the setup before the match starts.
     strategy := [
         ; Round 0 = before Round 1 starts.
 

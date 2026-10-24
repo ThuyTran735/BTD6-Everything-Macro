@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; v3 file note: Saves, loads, updates, and duplicates Queue Profiles.
-; Split out in v3.0.0 so this part is easier to find without scrolling forever.
+; Connects profile save/load actions to the persistent profile helpers.
+; Loading applies the repeat count; updating keeps the existing profile metadata.
 
 SaveCurrentQueueProfile(*) {
     global MacroJobQueue
@@ -31,6 +31,7 @@ SaveCurrentQueueProfile(*) {
         return
     }
 
+    ; Read the saved file back before reporting success to the user.
     savedJobs := ReadQueueProfileJobs(savedPath)
     if savedJobs.Length != MacroJobQueue.Length {
         SetQueueProfileStatus("PROFILE SAVE VERIFY FAILED", UIColorError)
@@ -72,6 +73,7 @@ LoadSelectedQueueProfile(*) {
     repeatCount := GetQueueProfileRepeatCount(record.path)
     expanded := []
 
+    ; Clone each pass so later edits cannot change multiple jobs through one object.
     Loop repeatCount {
         for job in jobs {
             expanded.Push(CloneQueueProfileJob(job))

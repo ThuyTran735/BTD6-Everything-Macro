@@ -1,7 +1,7 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
-; v3 file note: Handles the GameModeUnlock part of the macro. Keep this focused so run bugs are easier to trace later.
+; Resolve a locked mode prerequisite to another strategy for the same map.
 
 global GameModePrerequisites := Map(
     ; Easy
@@ -244,6 +244,7 @@ TryRunPrerequisiteMode(gameMode) {
     )
 
 
+    ; Wait for the child to finish; the caller then checks whether the mode unlocked.
     RunWait(command)
 
 

@@ -1,11 +1,11 @@
 ﻿# BTD6 Everything Macro
-**Current version: v3.6.0**
+**Current version: v3.6.1**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.6.0)
+### Current release highlights (v3.6.1)
 
-- Added Impoppable Workshop script.
+- Automatically dismisses the optional Monkey Teams notice after mode confirmation, before placing towers. Startup checks wait for the notice to clear, with up to three click attempts if needed.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

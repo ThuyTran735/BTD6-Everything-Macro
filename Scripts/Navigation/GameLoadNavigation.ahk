@@ -1,6 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 
-; Waits for the in-game Settings button before returning control to the strategy.
+; Waits for the in-game Settings button and clears optional startup notices.
 ; The shared pattern helpers report failure to callers rather than choosing another menu path.
 
 WaitForGameLoad(
@@ -26,26 +26,34 @@ WaitForGameLoad(
     startTime :=
         A_TickCount
 
-    Loop {
-        if PatternExists(
-            pattern
-        ) {
-            ; Settings can appear before the map finishes its opening animation.
-            Sleep(1000)
+    readySince := 0
 
-            return true
+    Loop {
+        if A_TickCount - startTime >= timeout {
+            ToolTip("Game failed to load.")
+            return false
         }
 
-        if (
-            A_TickCount
-            - startTime
-            >= timeout
-        ) {
-            ToolTip(
-                "Game failed to load."
-            )
-
+        ; Settings remains visible behind Monkey Teams. Check the notice first,
+        ; including during the settling period, before allowing any placements.
+        promptResult := HandleMonkeyTeamsPrompt()
+        if promptResult = false
             return false
+        if promptResult = "handled"
+            readySince := 0
+
+        settingsVisible := PatternExists(pattern)
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING GAME LOAD")
+        if settingsVisible {
+            if !readySince
+                readySince := A_TickCount
+            ; Poll throughout the original one-second load delay: the notice
+            ; may animate in after Settings first becomes readable.
+            if A_TickCount - readySince >= 1000
+                return true
+        } else {
+            readySince := 0
         }
 
         Sleep(200)

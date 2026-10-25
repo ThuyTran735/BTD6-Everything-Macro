@@ -1,6 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 
-; Handles optional save warnings and the required confirmation screen for special modes.
+; Handles optional save/startup notices and required confirmations for special modes.
 ; A save prompt may never appear; a requested mode confirmation must be found to continue.
 
 HandleSavePrompt(
@@ -74,6 +74,42 @@ HandleSavePrompt(
         }
 
         Sleep(50)
+    }
+}
+
+FindMonkeyTeamsPrompt() {
+    global NavigationPatterns
+    ; This OK belongs near the bottom of the central startup notice. Restrict
+    ; the search so unrelated controls elsewhere cannot dismiss a menu.
+    matches := FindText(&x, &y, 800, 680, 1120, 850, 0, 0,
+        NavigationPatterns["Monkey Teams OK"])
+    return matches ? matches[1] : false
+}
+
+HandleMonkeyTeamsPrompt() {
+    global NavigationPatterns
+    if !NavigationPatterns.Has("Monkey Teams OK") || NavigationPatterns["Monkey Teams OK"] = ""
+        return SetRunFailureReason("STARTUP PROMPT PATTERN MISSING", "Monkey Teams OK")
+
+    clicked := false
+    Loop 4 {
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING GAME LOAD")
+        match := FindMonkeyTeamsPrompt()
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING GAME LOAD")
+        if !match
+            return clicked ? "handled" : "clear"
+        ; The fourth pass only verifies that the third click cleared it.
+        if A_Index = 4
+            return SetRunFailureReason("MONKEY TEAMS PROMPT BLOCKED", "OK remained visible after three attempts")
+
+        LogMessage("INFO", "Dismissing Monkey Teams startup notice")
+        if !WinActive("ahk_exe BloonsTD6.exe")
+            return SetRunFailureReason("BTD6 LOST FOCUS DURING GAME LOAD")
+        ClickMapPatternMatch(match.x, match.y)
+        clicked := true
+        Sleep(500)
     }
 }
 

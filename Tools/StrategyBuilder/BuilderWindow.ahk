@@ -20,6 +20,7 @@ global BuilderEditingActionIndex := 0
 global BuilderEditingAction := false
 global BuilderEditingEntity := false
 global BuilderView := "Monkeys"
+global BuilderViewReady := false
 global BuilderGroups := Map("Monkeys", [], "Actions", [], "Export", [])
 global BuilderActionFields := Map()
 global BuilderLayoutItems := []
@@ -260,9 +261,13 @@ BuildGui() {
 }
 
 ShowBuilderView(view, *) {
-    global BuilderView, BuilderGroups, BuilderTabs, MainGui, UIDarkActiveDropdown
+    global BuilderView, BuilderViewReady, BuilderGroups, BuilderTabs, MainGui, UIDarkActiveDropdown
     if IsObject(UIDarkActiveDropdown)
         UIDarkActiveDropdown.Close()
+    ; Clicking the selected tab should only animate that button. Re-showing
+    ; all of its controls repaints the entire form for no visible change.
+    if BuilderViewReady && BuilderView = view
+        return
     BeginBuilderLayout()
     try {
     BuilderView := view
@@ -275,6 +280,7 @@ ShowBuilderView(view, *) {
     }
     if view = "Actions"
         RefreshBuilderActionForm()
+    BuilderViewReady := true
     } finally EndBuilderLayout()
 }
 

@@ -321,6 +321,7 @@ CloseAllSecondaryMenus() {
     try DestroyQueueJobBuilder(false)
     try CloseQueueProfilesManager()
     try CloseSettingsUI()
+    try CloseLogsUI()
     try CloseUserDataTransferUI()
     try CloseRunHistoryUI()
     try CloseRetryRecoveryUI()

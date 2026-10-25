@@ -18,7 +18,7 @@ PromptQueueProfileName(promptText, defaultName := "") {
     global UIColorInputBackground
     global UIColorInputText
 
-    CloseQueueProfileNamePrompt()
+    CloseQueueProfileNamePrompt(false)
     CloseAllDarkDropdowns()
     CloseContextHelp()
 
@@ -169,21 +169,25 @@ QueueProfileNameChanged(*) {
 }
 
 
-CloseQueueProfileNamePrompt() {
+CloseQueueProfileNamePrompt(restoreOwner := true) {
     global QueueProfilesGui
     global QueueProfileNameGui
     global QueueProfileNameEdit
     global QueueProfileNameErrorText
+    global QueueProfileNameFinished
+
+    hadPrompt := IsObject(QueueProfileNameGui)
+    QueueProfileNameFinished := true
 
     try {
         if QueueProfileNameGui
             QueueProfileNameGui.Destroy()
     }
 
-    if QueueProfilesGui {
-        try QueueProfilesGui.Show("w680 h490 Center")
-        try WinActivate("ahk_id " . QueueProfilesGui.Hwnd)
-    }
+    ; Closing the manager also calls this cleanup. Never resurrect the owner
+    ; for a frame when no prompt existed or the whole manager is closing.
+    if hadPrompt && restoreOwner
+        RestoreExistingUIWindow(QueueProfilesGui)
 
     QueueProfileNameGui := ""
     QueueProfileNameEdit := ""
@@ -214,7 +218,7 @@ CloseQueueProfilesManager(*) {
     global QueueProfileRecords
 
     CloseQueueProfileMoreActions()
-    CloseQueueProfileNamePrompt()
+    CloseQueueProfileNamePrompt(false)
     CloseAllDarkDropdowns()
 
     try {

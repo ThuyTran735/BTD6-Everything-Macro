@@ -34,6 +34,7 @@ class DarkButton {
         this.Height := height
 
         this.FontSize := fontSize
+        this.FontName := UIFontHeading
 
         this.AutoStyle := (style = "")
         this.Style := this.AutoStyle
@@ -220,7 +221,8 @@ class DarkButton {
         get => this.TextControl.Text
 
         set {
-            this.TextControl.Text := value
+            if !(this.TextControl.Text == value)
+                this.TextControl.Text := value
 
             if this.AutoStyle {
                 newStyle := GetDarkButtonStyleForText(value)
@@ -247,6 +249,8 @@ class DarkButton {
         get => this.IsEnabled
 
         set {
+            if this.IsEnabled = !!value
+                return
             this.IsEnabled := value
 
             this.ActionPending := false
@@ -261,6 +265,8 @@ class DarkButton {
         get => this._Visible
 
         set {
+            if this._Visible = !!value
+                return
             this._Visible := value
 
 
@@ -389,7 +395,15 @@ class DarkButton {
         }
 
         this.LastTextColor := color
-        this.TextControl.SetFont("Norm c" . color)
+        this.TextControl.SetFont("s" this.FontSize " Norm c" color, this.FontName)
+    }
+
+
+    SetCaptionFont(fontName, fontSize) {
+        this.FontName := fontName
+        this.FontSize := fontSize
+        this.TextControl.SetFont("s" fontSize " Norm c" this.LastTextColor, fontName)
+        return this
     }
 
 
@@ -771,6 +785,11 @@ class DarkButton {
             return
         }
 
+        ; A completed press may leave a blue/green/red face behind. Restore
+        ; the normal face before applying hover accents; unchanged layers are
+        ; cached, so ordinary hover transitions still avoid repainting them.
+        this.RestoreFace()
+
         accentColor := UIColorAccent
         hoverHighlight := UIColorControlHoverHighlight
         hoverBorder := BlendUIColors(UIColorControlBorder, UIColorAccent, 0.48)
@@ -808,6 +827,24 @@ class DarkButton {
         ; it down, but rapid hover transitions no longer move/redraw a large
         ; transparent text layer.
         this.SetTextOffset(0)
+    }
+
+
+    RestoreFace() {
+        global UIColorControlTop, UIColorControlBottom, UIColorSuccess, UIColorError
+        topColor := UIColorControlTop
+        bottomColor := UIColorControlBottom
+        if this.Style = "ToggleOn" {
+            topColor := BlendUIColors(topColor, UIColorSuccess, 0.58)
+            bottomColor := BlendUIColors(bottomColor, UIColorSuccess, 0.44)
+        }
+        else if this.Style = "ToggleOff" {
+            topColor := BlendUIColors(topColor, UIColorError, 0.58)
+            bottomColor := BlendUIColors(bottomColor, UIColorError, 0.44)
+        }
+        SetUIProgressColor(this.Top, topColor)
+        if !this.IsFlatFace
+            SetUIProgressColor(this.Bottom, bottomColor)
     }
 
 
@@ -874,12 +911,6 @@ class DarkButton {
         )
 
 
-        SetUIProgressColor(
-            this.Border,
-            UIColorControlBorder
-        )
-
-
         if this.IsEnabled {
 
             restTop := UIColorControlTop
@@ -940,6 +971,8 @@ class DarkButton {
             this.ApplyTextColor(UIColorControlText)
         }
         else {
+
+            SetUIProgressColor(this.Border, UIColorControlBorder)
 
             SetUIProgressColor(
                 this.Top,

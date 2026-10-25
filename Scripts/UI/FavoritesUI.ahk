@@ -20,10 +20,7 @@ CreateFavoriteButton(
         9
     )
 
-    try button.TextControl.SetFont(
-        "s10 Norm",
-        "Segoe UI Symbol"
-    )
+    button.SetCaptionFont("Segoe UI Symbol", 10)
 
     return button
 }

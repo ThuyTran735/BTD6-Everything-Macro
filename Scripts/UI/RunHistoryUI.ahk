@@ -175,6 +175,9 @@ ShowRunHistoryUI(*) {
     global UIColorSuccess
     global UIColorError
 
+    if ActivateExistingUIWindow(RunHistoryGui)
+        return
+
     CloseAllSecondaryMenus()
     CloseContextHelp()
     CloseAllDarkDropdowns()

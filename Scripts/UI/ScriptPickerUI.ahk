@@ -15,6 +15,11 @@ ShowScriptPicker(
     global UIColorBackground
     global UIColorSecondaryText
 
+    if IsObject(ScriptPickerState)
+        && ScriptPickerState.mapDirectory = mapDirectory
+        && ScriptPickerState.action = action
+        && ActivateExistingUIWindow(ScriptPickerGui)
+        return
 
     CloseAllDarkDropdowns()
     CloseAllSecondaryMenus()

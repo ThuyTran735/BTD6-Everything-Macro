@@ -80,6 +80,9 @@ class DarkList {
             100
         )
 
+        this.Border.Opt("-0x800000 -E0x200 -E0x20000")
+        this.Background.Opt("-0x800000 -E0x200 -E0x20000")
+
 
         this.Rows := []
 
@@ -125,6 +128,8 @@ class DarkList {
                 . " Disabled",
                 100
             )
+
+            rowBackground.Opt("-0x800000 -E0x200 -E0x20000")
 
 
             guiObject.SetFont(
@@ -735,11 +740,9 @@ class DarkList {
                     itemIndex
 
 
-                row.Text.Text :=
-                    "   "
-                    . this.Items[
-                        itemIndex
-                    ]
+                caption := "   " . this.Items[itemIndex]
+                if !(row.Text.Text == caption)
+                    row.Text.Text := caption
 
 
                 if (
@@ -783,12 +786,6 @@ class DarkList {
                 }
 
 
-                row.Text.SetFont(
-                    "c"
-                    . UIColorControlText
-                )
-
-
                 row.Background.Visible :=
                     this._Visible
 
@@ -800,7 +797,8 @@ class DarkList {
 
                 row.ItemIndex := 0
 
-                row.Text.Text := ""
+                if row.Text.Text != ""
+                    row.Text.Text := ""
 
                 row.Background.Visible :=
                     false

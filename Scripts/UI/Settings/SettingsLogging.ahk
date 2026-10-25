@@ -82,6 +82,9 @@ ShowLogsUI(*) {
     if MacroRunning
         return
 
+    if ActivateExistingUIWindow(LogsGui)
+        return
+
     CloseSettingsUI()
     CloseContextHelp()
     CloseAllDarkDropdowns()

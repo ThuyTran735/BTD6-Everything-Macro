@@ -57,6 +57,9 @@ ShowQueueProfilesManager(*) {
         return
     }
 
+    if ActivateExistingUIWindow(QueueProfilesGui)
+        return
+
     CloseAllDarkDropdowns()
     CloseContextHelp()
     CloseAllSecondaryMenus()

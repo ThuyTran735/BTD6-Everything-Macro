@@ -212,18 +212,27 @@ ResizeStrategyBuilderChrome(guiObject, minMax, width, height) {
     global BuilderWindowBorder, BuilderLayoutItems
     if minMax = -1
         return
+    if HasProp(guiObject, "BuilderLayoutWidth")
+        && guiObject.BuilderLayoutWidth = width && guiObject.BuilderLayoutHeight = height
+        return
     CloseBuilderDropdowns()
-    dx := width - 1040
-    dy := height - 744
-    for item in BuilderLayoutItems {
-        x := item.x + dx * item.ax
-        y := item.y + dy * item.ay
-        w := item.w + dx * item.aw
-        h := item.h + dy * item.ah
-        item.control.Move(x, y, w, h)
-    }
-    ResizeStrategyBuilderBorder(BuilderWindowBorder, width, height)
-    DllCall("RedrawWindow", "Ptr", guiObject.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x585)
+    ; Move the layered controls together. Painting every intermediate position
+    ; exposes the panel below them and produces flashes while dragging an edge.
+    BeginBuilderLayout()
+    try {
+        dx := width - 1040
+        dy := height - 744
+        for item in BuilderLayoutItems {
+            x := item.x + dx * item.ax
+            y := item.y + dy * item.ay
+            w := item.w + dx * item.aw
+            h := item.h + dy * item.ah
+            item.control.Move(x, y, w, h)
+        }
+        ResizeStrategyBuilderBorder(BuilderWindowBorder, width, height)
+        guiObject.BuilderLayoutWidth := width
+        guiObject.BuilderLayoutHeight := height
+    } finally EndBuilderLayout()
 }
 
 CloseBuilderDropdowns(*) {
@@ -253,6 +262,23 @@ EndBuilderLayout() {
         BuilderRedrawPaused := false
     }
 }
+
+PauseBuilderListRedraw(control) {
+    ; Rebuild rows without showing an empty table between Delete and Add.
+    ; Hidden views must stay hidden; WM_SETREDRAW(1) would otherwise show them.
+    repaint := !!DllCall("IsWindowVisible", "Ptr", control.Hwnd, "Int")
+    if repaint
+        SendMessage(0xB, 0, 0, control)
+    return repaint
+}
+
+ResumeBuilderListRedraw(control, repaint) {
+    if !repaint
+        return
+    SendMessage(0xB, 1, 0, control)
+    DllCall("RedrawWindow", "Ptr", control.Hwnd, "Ptr", 0, "Ptr", 0, "UInt", 0x185)
+}
+
 StyleBuilderNativeControls(guiObject) {
     ; Keep native keyboard navigation and the controls' existing event handlers.
     ; Older Windows themes can fall back to their usual control appearance.

@@ -189,6 +189,7 @@ UpdateStatus(
     global StatusText
     global StatusIndicator
     global UIColorSuccess
+    global UIFontBody
 
 
     if !StatusText {
@@ -201,12 +202,17 @@ UpdateStatus(
     }
 
 
-    try StatusText.Move(51, 406, 234, 20)
+    StatusText.GetPos(&x, &y, &width, &height)
+    if x != 51 || y != 406 || width != 234 || height != 20
+        StatusText.Move(51, 406, 234, 20)
     try SetUIProgressColor(StatusIndicator, color)
 
-
-    StatusText.SetFont("c" . color)
-    StatusText.Text := text
+    if !StatusText.HasOwnProp("LastStatusColor") || StatusText.LastStatusColor != color {
+        StatusText.SetFont("s9 Norm c" color, UIFontBody)
+        StatusText.LastStatusColor := color
+    }
+    if !(StatusText.Text == text)
+        StatusText.Text := text
 }
 
 

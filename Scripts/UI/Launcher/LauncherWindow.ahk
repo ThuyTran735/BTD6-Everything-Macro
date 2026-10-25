@@ -13,7 +13,7 @@ UpdateLauncherActionLayout() {
 
     ; Event mode chooses its next map every cycle. Queue jobs stay saved in
     ; memory for the other modes, but have no controls on this screen.
-    showQueue := CurrentMode != "Auto Collection Event" && IsObject(AddQueueButton)
+    showQueue := CurrentMode != "Auto Collection Event" && AreQueueLauncherButtonsEnabled()
     for button in [AddQueueButton, QueueButton, LauncherAddQueueHelpBadge, LauncherQueueHelpBadge] {
         if IsObject(button) && button.Visible != showQueue
             button.Visible := showQueue
@@ -342,20 +342,18 @@ CreateLauncherUI() {
         )
 
 
-    if queueButtonsEnabled {
-        AddQueueButton :=
-            CreateDarkButton(
-                LauncherGui,
-                280,
-                282,
-                114,
-                38,
-                "ADD QUEUE",
-                8
-            )
-    } else {
-        AddQueueButton := ""
-    }
+    ; Keep optional controls alive so the setting can toggle their layout
+    ; without replacing the launcher and losing its current selections.
+    AddQueueButton :=
+        CreateDarkButton(
+            LauncherGui,
+            280,
+            282,
+            114,
+            38,
+            "ADD QUEUE",
+            8
+        )
 
 
     CloseButton :=
@@ -376,25 +374,21 @@ CreateLauncherUI() {
     )
 
 
-    if queueButtonsEnabled {
-        AddQueueButton.OnEvent(
-            "Click",
-            QueueCurrentSelection
-        )
+    AddQueueButton.OnEvent(
+        "Click",
+        QueueCurrentSelection
+    )
 
-        QueueButton :=
-            CreateDarkButton(
-                LauncherGui,
-                36,
-                328,
-                114,
-                38,
-                "QUEUE (0)",
-                8
-            )
-    } else {
-        QueueButton := ""
-    }
+    QueueButton :=
+        CreateDarkButton(
+            LauncherGui,
+            36,
+            328,
+            114,
+            38,
+            "QUEUE (0)",
+            8
+        )
 
 
     ModeButton :=
@@ -421,12 +415,10 @@ CreateLauncherUI() {
         )
 
 
-    if queueButtonsEnabled {
-        QueueButton.OnEvent(
-            "Click",
-            ShowQueueManager
-        )
-    }
+    QueueButton.OnEvent(
+        "Click",
+        ShowQueueManager
+    )
 
 
     SettingsButton.OnEvent(
@@ -450,24 +442,19 @@ CreateLauncherUI() {
     )
 
 
-    if queueButtonsEnabled {
-        LauncherAddQueueHelpBadge := CreateHelpBadgeForButton(
-            LauncherGui,
-            AddQueueButton,
-            "ADD QUEUE",
-            "Adds a new job to your queue.`n`nChoose the job type and script, then choose how many times it should run."
-        )
+    LauncherAddQueueHelpBadge := CreateHelpBadgeForButton(
+        LauncherGui,
+        AddQueueButton,
+        "ADD QUEUE",
+        "Adds a new job to your queue.`n`nChoose the job type and script, then choose how many times it should run."
+    )
 
-        LauncherQueueHelpBadge := CreateHelpBadgeForButton(
-            LauncherGui,
-            QueueButton,
-            "QUEUE",
-            "Opens the Queue Manager.`n`nJobs run from top to bottom. You can edit their order, remove jobs, clear the queue, or start it."
-        )
-    } else {
-        LauncherAddQueueHelpBadge := ""
-        LauncherQueueHelpBadge := ""
-    }
+    LauncherQueueHelpBadge := CreateHelpBadgeForButton(
+        LauncherGui,
+        QueueButton,
+        "QUEUE",
+        "Opens the Queue Manager.`n`nJobs run from top to bottom. You can edit their order, remove jobs, clear the queue, or start it."
+    )
 
 
     LauncherModeHelpBadge := CreateHelpBadgeForButton(

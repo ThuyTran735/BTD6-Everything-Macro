@@ -63,6 +63,9 @@ class DarkDropdown {
 
         this.HoveredSlot := 0
         this.MainHovered := false
+        this.LastTextColor := UIColorControlText
+        this.FontName := UIFontBody
+        this.FontSize := 10
 
 
         this.Border := guiObject.Add(
@@ -147,10 +150,10 @@ class DarkDropdown {
             . " y"
             . y
             . " w"
-            . width
+            . Max(1, width - 38)
             . " h"
             . this.Height
-            . " +0x200 BackgroundTrans",
+            . " +0x200 +0x4000 BackgroundTrans",
             ""
         )
 
@@ -615,174 +618,62 @@ class DarkDropdown {
 
     Open() {
         global UIDarkActiveDropdown
-
-        if this.Items.Length <= 1 {
+        if !this.IsEnabled || !this._Visible || this.Items.Length <= 1
             return
-        }
+        if !DllCall("IsWindowVisible", "Ptr", this.Gui.Hwnd)
+            || !DllCall("IsWindowEnabled", "Ptr", this.Gui.Hwnd)
+            return
 
-
-        ; Enforce one popup globally at the Open() layer, not only from
-        ; Toggle(). This also covers any future/programmatic Open() calls and
-        ; guarantees dropdown popups can never overlap each other.
-        if IsObject(UIDarkActiveDropdown) {
-            try {
-                if (
-                    UIDarkActiveDropdown.PopupGui.Hwnd != this.PopupGui.Hwnd
-                    && UIDarkActiveDropdown.IsOpen
-                ) {
-                    UIDarkActiveDropdown.Close()
-                }
-            }
-        }
-
-
+        CloseOtherDarkDropdowns(this)
         UIDarkActiveDropdown := this
         this.IsOpen := true
-
-
         this.EnsureSelectedVisible()
-
-
         this.RefreshRows()
 
-
-        visibleRows :=
-            Min(
-                this.Items.Length,
-                this.MaxVisibleRows
-            )
-
-
-        if visibleRows < 1 {
-            visibleRows := 1
-        }
-
-
-        popupHeight :=
-            (
-                visibleRows
-                * this.RowHeight
-            )
-            + 2
-
-
-        this.UpdateScrollbar(
-            popupHeight
-        )
-
-
-        this.PopupBackground.Move(
-            1,
-            1,
-            this.Width - 2,
-            popupHeight - 2
-        )
-
-
-        contentWidth :=
-            this.GetContentWidth()
-
-
+        popupHeight := Min(this.Items.Length, this.MaxVisibleRows) * this.RowHeight + 2
+        this.UpdateScrollbar(popupHeight)
+        this.PopupBackground.Move(1, 1, this.Width - 2, popupHeight - 2)
+        contentWidth := this.GetContentWidth()
         for row in this.Rows {
-            row.Background.Move(
-                ,
-                ,
-                contentWidth,
-                this.RowHeight
-            )
-
-            row.Text.Move(
-                ,
-                ,
-                contentWidth,
-                this.RowHeight
-            )
+            row.Background.Move(,, contentWidth, this.RowHeight)
+            row.Text.Move(,, contentWidth, this.RowHeight)
+            row.Background.Visible := row.ItemIndex > 0
+            row.Text.Visible := row.ItemIndex > 0
         }
 
+        ; Layout units scale with DPI; Win32 screen coordinates do not. Anchor
+        ; to the actual trigger so the menu stays aligned at 125% and 150%.
+        rect := Buffer(16, 0)
+        if !DllCall("GetWindowRect", "Ptr", this.MainText.Hwnd, "Ptr", rect, "Int") {
+            this.Close()
+            return
+        }
+        scale := DllCall("GetDpiForWindow", "Ptr", this.PopupGui.Hwnd, "UInt") / 96
+        screenX := NumGet(rect, 0, "Int")
+        screenY := NumGet(rect, 12, "Int") + Round(4 * scale)
+        pixelHeight := Round(popupHeight * scale)
+        pixelWidth := Round(this.Width * scale)
 
-        point := Buffer(
-            8,
-            0
-        )
-
-
-        NumPut(
-            "Int",
-            this.X,
-            point,
-            0
-        )
-
-
-        NumPut(
-            "Int",
-            this.Y
-                + this.Height
-                + 4,
-            point,
-            4
-        )
-
-
-        DllCall(
-            "ClientToScreen",
-            "Ptr",
-            this.Gui.Hwnd,
-            "Ptr",
-            point.Ptr
-        )
-
-
-        screenX :=
-            NumGet(
-                point,
-                0,
-                "Int"
-            )
-
-
-        screenY :=
-            NumGet(
-                point,
-                4,
-                "Int"
-            )
-
-
-        this.PopupGui.Show(
-            "NA x"
-            . screenX
-            . " y"
-            . screenY
-            . " w"
-            . this.Width
-            . " h"
-            . popupHeight
-        )
-
-
-        for row in this.Rows {
-
-            if row.ItemIndex > 0 {
-
-                row.Background.Visible := true
-                row.Text.Visible := true
-            }
-            else {
-
-                row.Background.Visible := false
-                row.Text.Visible := false
-            }
+        ; Lower fields open upward; menus near an edge stay on their monitor.
+        monitor := DllCall("MonitorFromWindow", "Ptr", this.Gui.Hwnd, "UInt", 2, "Ptr")
+        monitorInfo := Buffer(40, 0)
+        NumPut("UInt", 40, monitorInfo)
+        if DllCall("GetMonitorInfoW", "Ptr", monitor, "Ptr", monitorInfo, "Int") {
+            workLeft := NumGet(monitorInfo, 20, "Int")
+            workTop := NumGet(monitorInfo, 24, "Int")
+            workRight := NumGet(monitorInfo, 28, "Int")
+            workBottom := NumGet(monitorInfo, 32, "Int")
+            screenX := Max(workLeft, Min(screenX, workRight - pixelWidth))
+            if screenY + pixelHeight > workBottom
+                screenY := NumGet(rect, 4, "Int") - pixelHeight - Round(4 * scale)
+            screenY := Max(workTop, Min(screenY, workBottom - pixelHeight))
         }
 
-
-        this.Arrow.Text :=
-            "▲"
-
-
+        this.PopupGui.Show("NA x" screenX " y" screenY " w" this.Width " h" popupHeight)
+        if this.Arrow.Text != "▲"
+            this.Arrow.Text := "▲"
         this.RefreshMainVisual()
     }
-
 
     Close() {
         global UIDarkActiveDropdown
@@ -809,8 +700,8 @@ class DarkDropdown {
         this.ScrollThumb.Visible := false
 
 
-        this.Arrow.Text :=
-            "▼"
+        if this.Arrow.Text != "▼"
+            this.Arrow.Text := "▼"
 
 
         this.RefreshMainVisual()
@@ -1136,11 +1027,9 @@ class DarkDropdown {
                     itemIndex
 
 
-                row.Text.Text :=
-                    "   "
-                    . this.Items[
-                        itemIndex
-                    ]
+                caption := "   " . this.Items[itemIndex]
+                if !(row.Text.Text == caption)
+                    row.Text.Text := caption
 
 
                 if (
@@ -1178,17 +1067,12 @@ class DarkDropdown {
                         UIColorPopupBackground
                     )
                 }
-
-
-                row.Text.SetFont(
-                    "c"
-                    . UIColorControlText
-                )
             }
             else {
 
                 row.ItemIndex := 0
-                row.Text.Text := ""
+                if row.Text.Text != ""
+                    row.Text.Text := ""
 
                 row.Background.Visible := false
                 row.Text.Visible := false
@@ -1377,16 +1261,7 @@ class DarkDropdown {
             )
 
 
-            this.MainText.SetFont(
-                "c"
-                . UIColorControlDisabledText
-            )
-
-
-            this.Arrow.SetFont(
-                "c"
-                . UIColorControlDisabledText
-            )
+            this.ApplyTextColor(UIColorControlDisabledText)
 
 
             return
@@ -1452,16 +1327,25 @@ class DarkDropdown {
         }
 
 
-        this.MainText.SetFont(
-            "c"
-            . UIColorControlText
-        )
+        this.ApplyTextColor(UIColorControlText)
+    }
 
 
-        this.Arrow.SetFont(
-            "c"
-            . UIColorControlText
-        )
+    ApplyTextColor(color) {
+        if this.LastTextColor = color
+            return
+        this.MainText.SetFont("s" this.FontSize " Norm c" color, this.FontName)
+        this.Arrow.SetFont("s" this.FontSize " Norm c" color, this.FontName)
+        this.LastTextColor := color
+    }
+
+
+    SetCaptionFont(fontName, fontSize) {
+        this.FontName := fontName
+        this.FontSize := fontSize
+        this.MainText.SetFont("s" fontSize " Norm c" this.LastTextColor, fontName)
+        this.Arrow.SetFont("s" fontSize " Norm c" this.LastTextColor, fontName)
+        return this
     }
 
 

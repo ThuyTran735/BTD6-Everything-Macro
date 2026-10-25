@@ -9,25 +9,10 @@ SetSettingsStatus(message) {
         if !SettingsStatusText
             return
 
-        ; Clear and repaint first so a shorter status message cannot leave
-        ; transparent remnants of the previous text behind.
-        SettingsStatusText.Text := ""
-        DllCall(
-            "RedrawWindow",
-            "Ptr", SettingsStatusText.Hwnd,
-            "Ptr", 0,
-            "Ptr", 0,
-            "UInt", 0x85
-        )
-
-        SettingsStatusText.Text := message
-        DllCall(
-            "RedrawWindow",
-            "Ptr", SettingsStatusText.Hwnd,
-            "Ptr", 0,
-            "Ptr", 0,
-            "UInt", 0x85
-        )
+        ; This label has an opaque background; a single update clears the old
+        ; message without displaying a blank frame between animation ticks.
+        if SettingsStatusText.Text != message
+            SettingsStatusText.Text := message
     }
 }
 

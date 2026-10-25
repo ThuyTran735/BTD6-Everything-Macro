@@ -45,6 +45,9 @@ OpenQueueJobBuilder(editIndex := 0) {
     }
 
 
+    if QueueBuilderEditIndex = editIndex && ActivateExistingUIWindow(QueueBuilderGui)
+        return
+
     CloseAllSecondaryMenus()
 
     QueueBuilderEditIndex := editIndex

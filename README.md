@@ -1,16 +1,24 @@
-﻿# BTD6 Everything Macro
-**Current version: v3.5.6**
+# BTD6 Everything Macro
+**Current version: v3.5.7**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.5.6)
+### Current release highlights (v3.5.7)
+
+- Fixed button captions and **?** badges disappearing after hover or clicks, stuck pressed colors, and light borders flashing on dark controls.
+- Reduced unnecessary repainting across launcher modes, lists, settings, queue windows, and Strategy Builder tabs/resizing. Reopening menus preserves their existing windows; toggling queue controls keeps launcher selections.
+- Fixed dropdown positioning at display scaling and screen edges, arrow overlap, and popups remaining visible after their owner closes or hides.
+- Removed the opaque first frame from Builder monkey labels and fixed clipped queued-retry HUD text. The existing dark theme, fonts, and button animations are retained.
+- Completed a UI regression audit at 125% display scaling. See [UIVisualTestReport.txt](Docs/UIVisualTestReport.txt) for coverage and limits.
+
+### Previous release highlights (v3.5.6)
 
 - Added **Undo / Redo** in Strategy Builder with **Ctrl+Z / Ctrl+Y** for placements, actions, edits, and deletions.
 - Added **Save / Discard / Cancel** before closing, clearing, or importing over unsaved work. **Save draft / Ctrl+S** keeps unfinished fields as well as saved rows.
 - Added local draft recovery after an unexpected close. Editable drafts and generated `.ahk` exports stay inside **UserData/StrategyBuilder**, which is excluded from Git and included in UserData backups.
 - Fixed window growth after coordinate capture and remapping, and kept dropdowns from covering help dialogs. Case-only monkey renames now update linked actions.
 
-### Previous release highlights (v3.5.5)
+### v3.5.5 highlights
 
 - Fixed Strategy Builder growing wider and taller when closing **?** help popups. Help now returns focus without changing the window size or position.
 - Added **TOOLS → Name function from map + mode** in Strategy Builder. It follows existing names such as `DarkCastleImpoppable` and uses the difficulty for Standard modes, such as `MonkeyMeadowEasy`.

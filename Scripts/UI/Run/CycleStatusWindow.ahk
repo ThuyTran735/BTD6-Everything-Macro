@@ -218,6 +218,9 @@ ShowCycleStatusUI() {
     hudX := GetCycleStatusTargetX(hudWidth)
     hudY := 8
 
+    ; Prepare continuous/count/retry text while hidden, so a new run never
+    ; flashes the placeholder CYCLE 1 / 1 frame first.
+    UpdateCycleStatusUI()
 
     CycleStatusGui.Show(
         "NA x"
@@ -233,9 +236,6 @@ ShowCycleStatusUI() {
 
     CycleStatusLastX := hudX
     CycleStatusLastY := hudY
-
-
-    UpdateCycleStatusUI()
 
 
     ; Panel detection uses FindText and can take longer than normal UI hover

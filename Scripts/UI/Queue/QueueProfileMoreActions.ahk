@@ -10,6 +10,9 @@ ShowQueueProfileMoreActions(*) {
     global UIColorSecondaryText
     global UIColorMutedText
 
+    if ActivateExistingUIWindow(QueueProfileMoreGui)
+        return
+
     CloseQueueProfileMoreActions()
     if QueueProfilesGui {
         try QueueProfilesGui.Hide()
@@ -111,10 +114,7 @@ RunQueueProfileMoreAction(callback, *) {
 ShowQueueProfilesAfterMoreActions() {
     global QueueProfilesGui
 
-    if QueueProfilesGui {
-        try QueueProfilesGui.Show("w680 h490 Center")
-        try WinActivate("ahk_id " . QueueProfilesGui.Hwnd)
-    }
+    RestoreExistingUIWindow(QueueProfilesGui)
 }
 
 

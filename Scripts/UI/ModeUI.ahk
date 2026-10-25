@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 
 ; The picker changes launcher controls; each mode owns its own run action.
@@ -11,6 +11,9 @@ ShowModePicker(*) {
     global UIColorSecondaryText
     global UIColorPrimaryText
 
+
+    if ActivateExistingUIWindow(ModePickerGui)
+        return
 
     CloseAllDarkDropdowns()
     CloseAllSecondaryMenus()
@@ -337,6 +340,14 @@ SelectLauncherMode(
 
 
 ApplyLauncherMode() {
+    global LauncherGui
+    updatingGui := LauncherGui
+    BeginUIUpdate(updatingGui)
+    try ApplyLauncherModeControls()
+    finally EndUIUpdate(updatingGui)
+}
+
+ApplyLauncherModeControls() {
     global CurrentMode
 
     global SubtitleText

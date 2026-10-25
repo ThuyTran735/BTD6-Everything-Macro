@@ -1,4 +1,4 @@
-﻿# Project structure (v3.5.6)
+﻿# Project structure (v3.5.7)
 
 The big v2 files were split in v3 so debugging does not mean scrolling through 1,500-2,000 lines every time.
 

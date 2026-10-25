@@ -34,8 +34,10 @@ ShowMonkeyOverlay() {
 
         overlayX := entity.x - 10
         overlayY := entity.y - 13
+        ; Set the color key before the first frame. Showing an opaque window
+        ; first briefly flashes a dark rectangle over the map.
+        WinSetTransColor("010203", overlay.Hwnd)
         overlay.Show("NA x" overlayX " y" overlayY " w195 h26")
-        WinSetTransColor("010203", "ahk_id " overlay.Hwnd)
         MonkeyOverlayWindows.Push(overlay)
     }
 

@@ -4,6 +4,7 @@
 ; Keep this entry point stable for the screens that use those helpers.
 
 #Include Common\WindowChrome.ahk
+#Include Common\WindowUpdates.ahk
 #Include Common\LauncherPosition.ahk
 #Include Common\LauncherVisibility.ahk
 #Include Common\ControlThemeHelpers.ahk

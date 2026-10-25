@@ -13,6 +13,9 @@ UIControlContainsScreenPoint(
         return false
     }
 
+    if !DllCall("IsWindowVisible", "Ptr", controlHwnd)
+        return false
+
 
     ; Cursor coordinates and this rectangle are both physical screen pixels.
     ; Mixing them with GUI layout coordinates would shift hit areas under DPI scaling.
@@ -195,6 +198,7 @@ UICustomControlMouseWheel(
     hwnd
 ) {
     global UIDarkLists
+    global UIDarkActiveDropdown
 
 
     cursorPoint := Buffer(
@@ -234,6 +238,13 @@ UICustomControlMouseWheel(
             wParam >> 16
         )
         & 0xFFFF
+
+    ; A popup may overlap a list below it. Leave that wheel message for the
+    ; dropdown hook instead of scrolling the covered list first.
+    if IsSet(UIDarkActiveDropdown) && IsObject(UIDarkActiveDropdown)
+        && UIDarkActiveDropdown.PopupContainsScreenPoint(mouseX, mouseY) {
+        return
+    }
 
 
     if delta > 0x7FFF {
@@ -388,20 +399,15 @@ SetUIProgressColor(
     progressControl,
     color
 ) {
-    static colorCache := Map()
-
     try {
-        hwnd := progressControl.Hwnd
         normalizedColor := StrUpper(color)
 
         if (
-            colorCache.Has(hwnd)
-            && colorCache[hwnd] = normalizedColor
+            progressControl.HasOwnProp("LastUIProgressColor")
+            && progressControl.LastUIProgressColor = normalizedColor
         ) {
             return
         }
-
-        colorCache[hwnd] := normalizedColor
 
         ; Keep AutoHotkey in charge of Progress styling. Direct PBM color
         ; messages can make themed Progress controls fall back to a flat gray
@@ -413,7 +419,27 @@ SetUIProgressColor(
             . normalizedColor
         )
 
-        progressControl.Value := 100
-        progressControl.Redraw()
+        ; Applying Progress colors can restore its native static edge. Keep
+        ; every layer flat so rows and button halves do not acquire pale seams.
+        style := DllCall("GetWindowLongPtr", "Ptr", progressControl.Hwnd, "Int", -16, "Ptr")
+        extended := DllCall("GetWindowLongPtr", "Ptr", progressControl.Hwnd, "Int", -20, "Ptr")
+        if (style & 0x800000) || (extended & 0x20200)
+            progressControl.Opt("-0x800000 -E0x200 -E0x20000")
+
+        ; The control is already filled. Setting its value and forcing another
+        ; redraw exposed intermediate frames behind transparent labels. Keep
+        ; the cache on this control too: Windows can reuse a destroyed HWND.
+        progressControl.LastUIProgressColor := normalizedColor
+
+        ; Repaint the affected stack together. Invalidating only a background
+        ; Progress can paint over sibling labels and ? badges until the next
+        ; mouse move. Queue one parent-region repaint, including its children,
+        ; so overlapping text is painted after the changed background.
+        parentHwnd := DllCall("GetParent", "Ptr", progressControl.Hwnd, "Ptr")
+        rect := Buffer(16, 0)
+        if parentHwnd && DllCall("GetWindowRect", "Ptr", progressControl.Hwnd, "Ptr", rect) {
+            DllCall("MapWindowPoints", "Ptr", 0, "Ptr", parentHwnd, "Ptr", rect, "UInt", 2)
+            DllCall("RedrawWindow", "Ptr", parentHwnd, "Ptr", rect, "Ptr", 0, "UInt", 0x81)
+        }
     }
 }

@@ -22,6 +22,9 @@ ShowQueueManager(*) {
     }
 
 
+    if ActivateExistingUIWindow(QueueGui)
+        return
+
     CloseAllDarkDropdowns()
     CloseAllSecondaryMenus()
     CloseContextHelp()

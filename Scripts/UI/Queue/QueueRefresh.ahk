@@ -4,6 +4,14 @@
 ; An existing queue takes priority over the selected launcher mode.
 
 RefreshQueueManager() {
+    global QueueGui
+    updatingGui := QueueGui
+    BeginUIUpdate(updatingGui)
+    try RefreshQueueManagerControls()
+    finally EndUIUpdate(updatingGui)
+}
+
+RefreshQueueManagerControls() {
     global MacroJobQueue
     global QueueGui
     global QueueList

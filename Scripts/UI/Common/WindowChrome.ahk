@@ -36,6 +36,7 @@ EnableCustomWindowChrome(
 
     if !UICustomChromeHitTestReady {
         OnMessage(0x84, HandleCustomWindowHitTest) ; WM_NCHITTEST
+        OnMessage(0x82, ForgetCustomWindowChrome) ; WM_NCDESTROY
         UICustomChromeHitTestReady := true
     }
 }
@@ -104,15 +105,31 @@ HandleCustomWindowHitTest(wParam, lParam, msg, hwnd) {
     clientY := screenY - top
     windowWidth := right - left
 
+    ; Header dimensions are GUI layout units; hit-test coordinates are screen
+    ; pixels. Scale the reserved button area with the rest of the window.
+    scale := DllCall("GetDpiForWindow", "Ptr", rootHwnd, "UInt") / 96
+    dragHeight := Round(chrome.DragHeight * scale)
+    rightInset := Round(chrome.RightInset * scale)
+
 
     if (
         clientY >= 0
-        && clientY < chrome.DragHeight
+        && clientY < dragHeight
         && clientX >= 0
-        && clientX < windowWidth - chrome.RightInset
+        && clientX < windowWidth - rightInset
     ) {
         return 2 ; HTCAPTION - drag the borderless window.
     }
+}
+
+
+ForgetCustomWindowChrome(wParam, lParam, msg, hwnd) {
+    global UICustomChromeWindows
+    ; Do not let a recycled HWND inherit another dialog's draggable header.
+    ; ExitApp can release globals before Windows finishes destroying controls.
+    if IsSet(UICustomChromeWindows) && IsObject(UICustomChromeWindows)
+        && UICustomChromeWindows.Has(hwnd)
+        UICustomChromeWindows.Delete(hwnd)
 }
 
 

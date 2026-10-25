@@ -10,15 +10,12 @@ RebuildLauncherForQueueButtonSetting() {
     if MacroRunning
         return
 
-    ; Queue controls change the action-row widths, so rebuild instead of hiding them.
-    try {
-        if LauncherGui
-            LauncherGui.Destroy()
-    }
-
-    LauncherGui := ""
-    CreateLauncherUI()
-    ShowLauncher(true)
+    ; The controls already exist. Keep selections, position, and focus while
+    ; laying out the final button arrangement in one paint.
+    updatingGui := LauncherGui
+    BeginUIUpdate(updatingGui)
+    try UpdateLauncherActionLayout()
+    finally EndUIUpdate(updatingGui)
 }
 
 

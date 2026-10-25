@@ -155,7 +155,19 @@ PollDarkDropdowns() {
                 "Int"
             )
         ) {
+            if IsObject(UIDarkActiveDropdown) && UIDarkActiveDropdown = dropdown
+                UIDarkActiveDropdown := ""
             continue
+        }
+
+        ; Owned tool windows can outlive a hidden/disabled owner visually.
+        ; Close the menu when switching views, minimizing, or opening a modal.
+        if dropdown.IsOpen && (
+            !DllCall("IsWindowVisible", "Ptr", guiHwnd)
+            || !DllCall("IsWindowEnabled", "Ptr", guiHwnd)
+            || DllCall("IsIconic", "Ptr", guiHwnd)
+        ) {
+            dropdown.Close()
         }
 
         ; Do not permanently unregister a valid dropdown because of a single

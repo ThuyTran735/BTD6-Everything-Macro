@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 ; Backs up and restores the whole UserData folder so updating the macro does not mean setting everything up again.
 
@@ -262,6 +262,9 @@ ShowUserDataTransferUI(*) {
     global UIColorHeadingText
 
     if MacroRunning
+        return
+
+    if ActivateExistingUIWindow(UserDataTransferGui)
         return
 
     CloseSettingsUI()

@@ -562,18 +562,23 @@ DeleteSelectedUpgradeCore(*) {
 RefreshEntityList() {
     global EntityLV, Entities
 
-    EntityLV.Delete()
-    for entity in Entities {
-        heroDisplay := entity.type = "Hero" ? entity.heroName : "-"
-        placeDelay := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
-        EntityLV.Add("", entity.name, entity.type, heroDisplay, entity.x, entity.y, entity.placeRound, placeDelay, entity.targeting)
-    }
+    repaint := PauseBuilderListRedraw(EntityLV)
+    try {
+        EntityLV.Delete()
+        for entity in Entities {
+            heroDisplay := entity.type = "Hero" ? entity.heroName : "-"
+            placeDelay := HasProp(entity, "placeDelay") ? entity.placeDelay : 0
+            EntityLV.Add("", entity.name, entity.type, heroDisplay, entity.x, entity.y, entity.placeRound, placeDelay, entity.targeting)
+        }
+    } finally ResumeBuilderListRedraw(EntityLV, repaint)
 }
 
 RefreshActionList() {
     global ActionLV, UpgradeActions
     global BuilderActionSaveButton
 
+    repaint := PauseBuilderListRedraw(ActionLV)
+    try {
     ActionLV.Delete()
     for action in UpgradeActions {
         kind := HasProp(action, "kind") ? action.kind : "upgrade"
@@ -608,6 +613,7 @@ RefreshActionList() {
     BuilderActionSaveButton.Text := editIndex ? "Save changes" : "Add action"
     if editIndex
         ActionLV.Modify(editIndex, "Select Focus")
+    } finally ResumeBuilderListRedraw(ActionLV, repaint)
 }
 
 RefreshActionEntityDropdown(preferredName := "") {

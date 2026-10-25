@@ -5,6 +5,21 @@
 
 UpdateCycleStatusUI() {
     global CycleStatusGui
+    updatingGui := CycleStatusGui
+    ; The click-guard timer may hide this window. Finish this small paint
+    ; transaction before yielding so restoring redraw cannot undo its hide.
+    previousCritical := A_IsCritical
+    Critical("On")
+    try {
+        BeginUIUpdate(updatingGui)
+        try UpdateCycleStatusControls()
+        finally EndUIUpdate(updatingGui)
+    }
+    finally Critical(previousCritical)
+}
+
+UpdateCycleStatusControls() {
+    global CycleStatusGui
     global CycleStatusText
 
     global CycleProgressText
@@ -123,13 +138,6 @@ UpdateCycleStatusUI() {
             . RepeatRunTotal
 
 
-        if QueueCurrentRetryCount > 0 {
-            CycleStatusText.Text .=
-                "  -  RETRY "
-                . QueueCurrentRetryCount
-                . " / "
-                . GetQueueRetryLimit()
-        }
 
 
         if QueueTotalRuns = -1 {
@@ -179,13 +187,6 @@ UpdateCycleStatusUI() {
             . RepeatRunTotal
 
 
-        if QueueCurrentRetryCount > 0 {
-            CycleStatusText.Text .=
-                "  -  RETRY "
-                . QueueCurrentRetryCount
-                . " / "
-                . GetQueueRetryLimit()
-        }
 
 
         if cyclesLeft = 1 {
@@ -201,6 +202,11 @@ UpdateCycleStatusUI() {
         }
     }
 
+
+    ; Keep retry details on the body line so long queue/cycle counts do not
+    ; wrap the compact heading into a clipped second line.
+    if QueueCurrentRetryCount > 0
+        CycleProgressText.Text .= " | RETRY " . QueueCurrentRetryCount . " / " . GetQueueRetryLimit()
 
     if progress < 0 {
 

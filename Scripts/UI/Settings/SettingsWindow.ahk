@@ -136,7 +136,7 @@ ShowSettingsUI(*) {
     SetUIBodyFont(SettingsGui, 8, UIColorSecondaryText)
     SettingsStatusText := SettingsGui.Add(
         "Text",
-        "x36 y584 w428 h36 Center c" . UIColorSecondaryText . " BackgroundTrans",
+        "x36 y584 w428 h36 Center c" . UIColorSecondaryText . " Background" . UIColorBackground,
         "Launcher selections are stored only inside UserData."
     )
 

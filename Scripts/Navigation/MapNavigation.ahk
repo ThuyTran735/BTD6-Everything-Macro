@@ -267,32 +267,18 @@ TryClickCurrentMap(mapName) {
             mapName
         ].pattern
 
-    ; Keep the live navigation scan in the same state as MapPatternTest.ahk:
-    ; BTD6 focused and the launcher HUD out of the captured screen.
+    ; Keep BTD6 focused and the launcher HUD out of the captured cards.
     if !PrepareMapPatternScan() {
         return false
     }
 
     Loop 4 {
-        eventRun := IsCollectionEventRun()
-        match := eventRun ? FindCollectionEventMapPattern(mapPattern) : FindText(
-            &X,
-            &Y,
-            0,
-            0,
-            A_ScreenWidth,
-            A_ScreenHeight,
-            0,
-            0,
-            mapPattern
-        )
+        match := FindMapCardPattern(mapPattern)
         if match {
-            if eventRun {
-                if !WinActive("ahk_exe BloonsTD6.exe")
-                    return false
-                X := match.x
-                Y := match.y
-            }
+            if !WinActive("ahk_exe BloonsTD6.exe")
+                return false
+            X := match.x
+            Y := match.y
             LogMessage(
                 "INFO",
                 "Map pattern found: "
@@ -316,9 +302,10 @@ TryClickCurrentMap(mapName) {
     return false
 }
 
-FindCollectionEventMapPattern(mapPattern) {
-    ; Event candidates can change between cycles. Check each card separately
-    ; so a matching medal on another map cannot masquerade as its thumbnail.
+FindMapCardPattern(mapPattern) {
+    ; Map patterns describe the artwork, not the surrounding UI. Search each
+    ; card separately so controls, gaps, and medals cannot count as a map.
+    ; Normal and collection runs must use the same bounds here.
     if !WinActive("ahk_exe BloonsTD6.exe")
         return false
     FindText().ScreenShot(320, 105, 1610, 750)

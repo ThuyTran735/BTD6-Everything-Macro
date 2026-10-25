@@ -235,7 +235,7 @@ global MapData := Map(
     "Bloody Puddles", {
         category: "Expert",
         page: 16,
-        pattern: "|<>*49$29.0Tzzx4DzzwkTzzs0Tzzk0zzzU0Tzz00Tzy00zzw00Tzs00Tzk00TzU00Tz000Ty000Tw000Ts000Tk000TU000T0000y0000w0000s0001k0001U00030000200006"
+        pattern: "|<>*45$37.0007zy0007zy0003zz0003zzU001zzk001zzs001yzs001wTw003wTy001zzy001zzy001zzz003zzzU03zzzU03zzzU07zzzU0DzzzU1zzzzk0zzzzU0Tzzrk0DzzXk07zznk03zzzU01zzzk00zzzU00E"
     },
 
     "Workshop", {

@@ -1,14 +1,19 @@
 ﻿# BTD6 Everything Macro
-**Current version: v3.5.8**
+**Current version: v3.5.9**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.5.8)
+### Current release highlights (v3.5.9)
+
+- Normal runs now use the same six-card map artwork scan as Collection Event. Matches on controls, gaps, or medals no longer skip category navigation and cause difficulty selection to fail.
+- Adjusted Bloody Puddles Impoppable script.
+
+### Previous release highlights (v3.5.8)
 
 - Strategy Builder now lets you choose any folder when saving drafts or exporting .ahk files. The save dialogs still default to UserData; saved exports adjust their IncludeAll path to the chosen location.
 - Added a Bloody Puddles Impoppable script.
 
-### Previous release highlights (v3.5.7)
+### v3.5.7 highlights
 
 - Fixed button captions and **?** badges disappearing after hover or clicks, stuck pressed colors, and light borders flashing on dark controls.
 - Reduced unnecessary repainting across launcher modes, lists, settings, queue windows, and Strategy Builder tabs/resizing. Reopening menus preserves their existing windows; toggling queue controls keeps launcher selections.

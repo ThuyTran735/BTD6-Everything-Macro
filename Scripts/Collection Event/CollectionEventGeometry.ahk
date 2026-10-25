@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-; Shared by bonus selection and event-only map clicks. The small map captures
+; Shared by bonus selection and all map clicks. The small map captures
 ; belong to thumbnail artwork, never the similar shapes in the medal strip.
 
 GetCollectionEventCardRegions() {

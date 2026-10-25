@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
-; Drafts contain editor data, never executable AutoHotkey. Keep them beside the
-; launcher's other local settings so a UserData backup also includes unfinished work.
+; Drafts contain editor data, never executable AutoHotkey. UserData is the
+; default save location; recovery stays there even when a draft is saved elsewhere.
 InitializeBuilderPersistence() {
     global BuilderPersistenceReady, BuilderSavedState, BuilderLastRecoveryText
     global BuilderExitApproved, BuilderRecoveryWarning
@@ -45,6 +45,14 @@ GetBuilderDataFolder(section := "") {
     projectRoot := RegExReplace(A_ScriptDir, "i)\\Tools$")
     folder := projectRoot "\UserData\StrategyBuilder"
     return section = "" ? folder : folder "\" section
+}
+
+GetBuilderDefaultSavePath(section, fileName) {
+    folder := GetBuilderDataFolder(section)
+    ; A read-only default folder must not prevent choosing another destination.
+    ; The actual write still reports failures without discarding the editor.
+    try DirCreate(folder)
+    return folder "\" fileName
 }
 
 EnsureBuilderDataFolders() {
@@ -129,32 +137,22 @@ SaveBuilderDraft(*) {
     global FunctionNameEdit, StatusText, MainGui
     BuilderFlushHistory()
     state := CaptureBuilderState()
-    try EnsureBuilderDataFolders()
-    catch as err {
-        MsgBox("Could not create the local draft folder.`n`n" err.Message, "Strategy Builder", "Iconx")
-        return false
-    }
     defaultName := SanitizeFileName(FunctionNameEdit.Value)
     if defaultName = ""
         defaultName := "UnfinishedStrategy"
     MainGui.Opt("-AlwaysOnTop")
-    path := FileSelect("S", GetBuilderDataFolder("Drafts") "\" defaultName ".btd6draft",
-        "Save editable draft in UserData", "Strategy Builder Draft (*.btd6draft)")
+    path := FileSelect("S", GetBuilderDefaultSavePath("Drafts", defaultName ".btd6draft"),
+        "Save editable draft", "Strategy Builder Draft (*.btd6draft)")
     if path = ""
         return false
     if !RegExMatch(path, "i)\.btd6draft$")
         path .= ".btd6draft"
-    if !IsBuilderLocalSavePath(path, "Drafts") {
-        MsgBox("Save drafts inside this local folder so they stay out of GitHub:`n`n"
-            GetBuilderDataFolder("Drafts"), "Strategy Builder - Local drafts", "Icon!")
-        return false
-    }
     if !ConfirmBuilderFileOverwrite(path)
         return false
     try {
         WriteBuilderDraftFile(path, state)
         MarkBuilderSaved(state)
-        StatusText.Text := "Draft saved locally, including unfinished fields: " path
+        StatusText.Text := "Draft saved, including unfinished fields: " path
         return true
     } catch as err {
         MsgBox("Could not save the draft. Your work is still open.`n`n" err.Message,
@@ -169,19 +167,6 @@ ConfirmBuilderFileOverwrite(path) {
     SplitPath(path, &name)
     return AskBuilderChoice("Replace local file", "A local file named " name " already exists.`n`nReplace it with the current strategy?",
         ["Replace", "Cancel"], "Cancel") = "Replace"
-}
-
-IsBuilderLocalSavePath(path, section) {
-    ; Normalize '..' segments before checking the selected directory.
-    target := Buffer(32768 * 2, 0)
-    count := DllCall("GetFullPathNameW", "Str", path, "UInt", 32768, "Ptr", target, "Ptr", 0, "UInt")
-    if count = 0 || count >= 32768
-        return false
-    fullPath := StrGet(target)
-    root := GetBuilderDataFolder(section) "\"
-    ; A single save folder keeps relative #Include paths in exported scripts correct.
-    SplitPath(fullPath, , &parent)
-    return StrLower(parent "\") = StrLower(root)
 }
 
 BuilderDraftChanged(*) {

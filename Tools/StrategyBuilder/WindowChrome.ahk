@@ -434,7 +434,7 @@ ShowBuilderHelp(*) {
     BuilderHelpGui.SetFont("s10 Norm cD8E0E8", "Segoe UI")
     help := "MONKEYS" . Chr(10) . "Add placements, or double-click a row to edit it. New starts another entry. Row options edits or deletes the selection."
     help .= Chr(10) . Chr(10) . "ACTIONS / HISTORY" . Chr(10) . "Schedule an action by round and delay. Double-click to edit. Ctrl+Z undoes changes; Ctrl+Y redoes them."
-    help .= Chr(10) . Chr(10) . "SAVE / EXPORT" . Chr(10) . "Ctrl+S saves the editable draft, including unfinished fields. Saves stay in UserData. Export checks and creates .ahk code. Recovery can restore work after an unexpected close."
+    help .= Chr(10) . Chr(10) . "SAVE / EXPORT" . Chr(10) . "Ctrl+S saves the editable draft, including unfinished fields. Save dialogs start in UserData; you can choose another folder. Export creates .ahk code. Recovery stays in UserData for unexpected closes."
     help .= Chr(10) . Chr(10) . "TOOLS / CAPTURE" . Chr(10) . "Tools names the function, shows labels, remaps points, or clears the strategy. Capture: F2 placement, F3 tower, F5 target, F6 clicks. Esc cancels capture."
     BuilderHelpGui.AddText("x24 y70 w492 h362", help)
     BuilderHelpGui.SetFont("s10 Norm", BuilderHeadingFont)

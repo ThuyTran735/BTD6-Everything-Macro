@@ -1,5 +1,5 @@
 ﻿BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
-v3.5.7
+v3.5.8
 
 Strategy Builder turns placements and scheduled actions into a map script.
 Start with the map details, add your monkeys, then add what they should do.
@@ -261,21 +261,28 @@ Open EXPORT:
 Copy and Save always use the current saved entries, even if you generated
 an older preview earlier. Fix any reported validation issue, then try again.
 
-Builder saves stay in the local UserData folder:
+Save dialogs start in these UserData folders by default:
   UserData\StrategyBuilder\Drafts\YourStrategy.btd6draft
   UserData\StrategyBuilder\Exports\YourStrategy.ahk
 
-Choose a filename in those folders. Exported .ahk code only includes rows
-added to the lists; SAVE DRAFT also keeps fields you have not added yet.
-Generated exports have an include path for their local Exports folder.
-COPY still produces code for Maps\Category\Map Name\Difficulty. If you move
-a local export into Maps yourself, adjust its IncludeAll path for that depth.
-Builder does not add these personal files to the shared strategy catalog.
+You can choose any other folder in either Save dialog. Exported .ahk code
+only includes rows added to the lists; SAVE DRAFT also keeps fields you have
+not added yet.
+
+SAVE .AHK adjusts the IncludeAll path for the folder you choose. It uses a
+relative path inside this project, or an absolute path when saved elsewhere.
+The preview updates to show the saved code. GENERATE and COPY use the usual
+Maps\Category\Map Name\Difficulty layout.
+Exports still need this project's shared library. If you move the project or
+move a file that uses a relative path, save it again or update IncludeAll.
+Saving outside Maps does not add the script to the launcher's strategy list.
 
 The entire UserData folder is ignored by Git. Settings > User Data > Export
-backs up Builder drafts and exports along with your other settings. Close
-Strategy Builder before importing a UserData backup, then reopen it; importing
-is blocked while the Builder is open to protect the restored files. Older
+backs up drafts and exports stored there along with your other settings.
+Files saved elsewhere are not in those backups or automatically ignored
+by Git. Close Strategy Builder before importing a UserData backup, then
+reopen it; importing is blocked while the Builder is open to protect the
+restored files. Older
 backups without StrategyBuilder data still work and keep newer local files.
 
 When closing or replacing unsaved work:
@@ -283,7 +290,8 @@ When closing or replacing unsaved work:
   DISCARD - continues without saving the current changes.
   CANCEL  - keeps editing. Cancelling a save or a failed write also stays open.
 
-Draft recovery runs in the background. After an unexpected close, reopen
+Draft recovery always stays in UserData\StrategyBuilder\Recovery, even if
+you save elsewhere. After an unexpected close, reopen
 Builder and choose Restore to resume the unfinished editor. Discard removes
 the recovery copy; Later keeps it for manual import and starts a new editor.
 Recovery is separate from named saved drafts and does not include Undo history.
@@ -335,7 +343,7 @@ CHANGES. There should still be two action rows, in the same order.
 
 Open EXPORT, click GENERATE, and check the placement and both actions.
 Use SAVE DRAFT for the editable copy, then SAVE .AHK to create
-UserData\StrategyBuilder\Exports\MonkeyMeadowPractice.ahk.
+UserData\StrategyBuilder\Exports\MonkeyMeadowPractice.ahk (the default folder).
 You can return with IMPORT to edit the saved strategy later.
 
 For hand-written helpers and the full strategy format, see MapScriptGuide.txt

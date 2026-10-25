@@ -3,7 +3,7 @@
 ; These prompts own their buttons and return a decision, leaving the caller to
 ; save or replace data. Closing a prompt never means discarding work.
 AskBuilderSaveChanges(reason) {
-    return AskBuilderChoice("UNSAVED WORK", "Save your work before " . reason . "?`n`nSave keeps the complete editable draft, including unfinished form entries, in UserData\StrategyBuilder. Discard continues without saving these changes.", ["Save", "Discard", "Cancel"], "Cancel")
+    return AskBuilderChoice("UNSAVED WORK", "Save your work before " . reason . "?`n`nSave keeps the complete draft, including unfinished fields. You can choose any folder; UserData is the default. Discard continues without saving these changes.", ["Save", "Discard", "Cancel"], "Cancel")
 }
 
 AskBuilderChoice(title, message, choices, defaultChoice := "Cancel") {

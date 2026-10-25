@@ -10,7 +10,7 @@ GetBuilderHelpText(label, group := "") {
         case "import", "import .ahk":
             return "Open an existing .ahk strategy to edit its placements and supported actions. Import also opens saved .btd6draft files. Before replacing unsaved work, you can Save, Discard, or Cancel. The file is read as text; it is never run. If an action is unsupported, the builder tells you what was skipped."
         case "save draft":
-            return "Save the complete editable strategy in UserData\StrategyBuilder\Drafts, including unfinished fields. Ctrl+S does the same. Import can reopen a draft. Save .ahk exports playable code separately; it only includes rows added to the lists."
+            return "Save the complete editable strategy, including unfinished fields. The dialog starts in UserData\StrategyBuilder\Drafts; you can choose any folder. Ctrl+S does the same. Import reopens a draft. Save .ahk exports only rows added to the lists."
         case "tools":
             return "Name function from map + mode fills the Function field, for example DarkCastleImpoppable. Standard uses the difficulty, such as MonkeyMeadowEasy. Tools also has Undo (Ctrl+Z), Redo (Ctrl+Y), Save draft (Ctrl+S), monkey labels, F4 coordinate remapping, and Clear. Press Esc during remapping to restore the original points."
         case "?", "help", "strategy builder":
@@ -112,7 +112,7 @@ GetBuilderHelpText(label, group := "") {
         case "copy":
             return "Regenerate the strategy from the latest saved editor entries, validate it, and copy the complete .ahk code to the clipboard. A stale preview is not reused."
         case "save .ahk":
-            return "Regenerate and validate the strategy, then save the .ahk file under UserData\StrategyBuilder\Exports. Save changes in any row you are editing first. The file is created without running the strategy."
+            return "Regenerate and validate the strategy, then choose where to save the .ahk file. The dialog defaults to UserData\StrategyBuilder\Exports. The include path adjusts to your chosen folder. Save any row you are editing first. Saving does not run the strategy."
         case "got it":
             return "Close this explanation and return to the builder."
     }

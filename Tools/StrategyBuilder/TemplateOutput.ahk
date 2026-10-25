@@ -1,7 +1,7 @@
 ﻿#Requires AutoHotkey v2.0
 
 ; Turns editor state into a strategy script, with placements sorted before other tied actions.
-; Generation, copy, and save share the same output so the preview matches the saved file.
+; Save adjusts the shared-library include for the selected destination.
 
 GenerateTemplate(*) {
     global OutputEdit, StatusText
@@ -36,40 +36,61 @@ SaveTemplate(*) {
     OutputEdit.Value := template
 
     defaultName := SanitizeFileName(FunctionNameEdit.Value) ".ahk"
-    try EnsureBuilderDataFolders()
-    catch as err {
-        MsgBox("Could not create the local export folder.`n`n" err.Message, "Strategy Builder", "Iconx")
-        return false
-    }
-    defaultPath := GetBuilderDataFolder("Exports") "\" defaultName
+    defaultPath := GetBuilderDefaultSavePath("Exports", defaultName)
 
     MainGui.Opt("-AlwaysOnTop")
-    path := FileSelect("S", defaultPath, "Save generated strategy in UserData", "AutoHotkey Script (*.ahk)")
+    path := FileSelect("S", defaultPath, "Save generated strategy", "AutoHotkey Script (*.ahk)")
     if path = ""
         return false
 
     if !RegExMatch(path, "i)\.ahk$")
         path .= ".ahk"
-    if !IsBuilderLocalSavePath(path, "Exports") {
-        MsgBox("Save generated scripts inside this local folder so they stay out of GitHub:`n`n"
-            GetBuilderDataFolder("Exports"), "Strategy Builder - Local exports", "Icon!")
-        return false
-    }
     if !ConfirmBuilderFileOverwrite(path)
         return false
 
     try {
-        ; UserData/StrategyBuilder/Exports is one level shallower than a map's
-        ; normal strategy folder. Keep the local export runnable from here.
-        exported := StrReplace(template, "#Include ..\..\..\..\Scripts\IncludeAll.ahk",
-            "#Include ..\..\..\Scripts\IncludeAll.ahk")
+        exported := BuildSavedTemplateText(template, path)
         WriteBuilderFileAtomic(path, exported)
-        StatusText.Text := "Script exported locally. Save draft also keeps unfinished fields: " path
+        OutputEdit.Value := exported
+        StatusText.Text := "Script exported. Save draft also keeps unfinished fields: " path
         return true
     } catch as err {
         MsgBox("Could not save the file.`n`n" err.Message, "Strategy Builder", "Iconx")
         return false
     }
+}
+
+BuildSavedTemplateText(template, path) {
+    includePath := GetBuilderExportIncludePath(path)
+    ; Include directives treat a space followed by ';' as a comment, even
+    ; inside quotes. Other path characters keep their literal spelling here.
+    includePath := StrReplace(includePath, ";", Chr(96) ";")
+    return StrReplace(template, "#Include ..\..\..\..\Scripts\IncludeAll.ahk",
+        "#Include " Chr(34) includePath Chr(34), true,, 1)
+}
+
+GetBuilderExportIncludePath(path) {
+    ; Keep exports inside the project portable with the project folder.
+    ; Elsewhere, an absolute include lets the export find this installation
+    ; without depending on how deeply the chosen folder happens to be nested.
+    target := Buffer(32768 * 2, 0)
+    count := DllCall("GetFullPathNameW", "Str", path, "UInt", 32768,
+        "Ptr", target, "Ptr", 0, "UInt")
+    if count = 0 || count >= 32768
+        throw Error("The selected save path could not be resolved.")
+    SplitPath(StrGet(target),, &folder)
+    root := RegExReplace(A_ScriptDir, "i)\\Tools$")
+    includePath := "Scripts\IncludeAll.ahk"
+    if folder = root
+        return includePath
+    prefix := root "\"
+    if StrLower(SubStr(folder, 1, StrLen(prefix))) = StrLower(prefix) {
+        relativeFolder := SubStr(folder, StrLen(prefix) + 1)
+        Loop StrSplit(relativeFolder, "\").Length
+            includePath := "..\" includePath
+        return includePath
+    }
+    return prefix includePath
 }
 
 ClearAll(*) {

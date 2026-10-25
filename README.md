@@ -1,59 +1,11 @@
 ﻿# BTD6 Everything Macro
-**Current version: v3.5.9**
+**Current version: v3.6.0**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.5.9)
+### Current release highlights (v3.6.0)
 
-- Normal runs now use the same six-card map artwork scan as Collection Event. Matches on controls, gaps, or medals no longer skip category navigation and cause difficulty selection to fail.
-- Adjusted Bloody Puddles Impoppable script.
-
-### Previous release highlights (v3.5.8)
-
-- Strategy Builder now lets you choose any folder when saving drafts or exporting .ahk files. The save dialogs still default to UserData; saved exports adjust their IncludeAll path to the chosen location.
-- Added a Bloody Puddles Impoppable script.
-
-### v3.5.7 highlights
-
-- Fixed button captions and **?** badges disappearing after hover or clicks, stuck pressed colors, and light borders flashing on dark controls.
-- Reduced unnecessary repainting across launcher modes, lists, settings, queue windows, and Strategy Builder tabs/resizing. Reopening menus preserves their existing windows; toggling queue controls keeps launcher selections.
-- Fixed dropdown positioning at display scaling and screen edges, arrow overlap, and popups remaining visible after their owner closes or hides.
-- Removed the opaque first frame from Builder monkey labels and fixed clipped queued-retry HUD text. The existing dark theme, fonts, and button animations are retained.
-- Completed a UI regression audit at 125% display scaling. See [UIVisualTestReport.txt](Docs/UIVisualTestReport.txt) for coverage and limits.
-
-### v3.5.6 highlights
-
-- Added **Undo / Redo** in Strategy Builder with **Ctrl+Z / Ctrl+Y** for placements, actions, edits, and deletions.
-- Added **Save / Discard / Cancel** before closing, clearing, or importing over unsaved work. **Save draft / Ctrl+S** keeps unfinished fields as well as saved rows.
-- Added local draft recovery after an unexpected close. Editable drafts and generated `.ahk` exports stay inside **UserData/StrategyBuilder**, which is excluded from Git and included in UserData backups.
-- Fixed window growth after coordinate capture and remapping, and kept dropdowns from covering help dialogs. Case-only monkey renames now update linked actions.
-
-### v3.5.5 highlights
-
-- Fixed Strategy Builder growing wider and taller when closing **?** help popups. Help now returns focus without changing the window size or position.
-- Added **TOOLS → Name function from map + mode** in Strategy Builder. It follows existing names such as `DarkCastleImpoppable` and uses the difficulty for Standard modes, such as `MonkeyMeadowEasy`.
-
-### v3.5.4 highlights
-
-- Fixed Strategy Builder's right-click menus, **ROW OPTIONS**, and **TOOLS** failing to open.
-- Restored the full clickable area of Builder buttons while keeping their animations and separate **?** help buttons.
-- **NEW** now clearly reports when the monkey form is ready for another entry. Saved rows stay unchanged.
-- Added **Repeat clicks** to Strategy Builder: schedule a set number of left clicks at one coordinate, with a chosen interval between clicks.
-- Removed queue buttons from **Auto Collection Event** and expanded its remaining controls. Event runs ignore pending queue jobs; those jobs stay available when you switch back to another mode.
-- Fast-speed actions now verify the game's Fast icon with FindText, retrying Space with a 250 ms wait if the icon is missing.
-
-### v3.5.3 highlights
-
-- Added an Expert [Infernal - Impoppable](Maps/Expert/Infernal/Hard/InfernalImpoppable.ahk) strategy for rounds **6-100**.
-- Added Expert map-detection patterns for **Bloody Puddles, Workshop, Quad, and Muddy Puddles**.
-- Updated Infernal's map-detection pattern and corrected **Inferno** to **Infernal** in map data and the Ace EXP strategy.
-
-### v3.5.2 highlights
-
-- Rebuilt **Strategy Builder** around Monkeys, Actions, and Export views, with a cleaner dark layout and fewer buttons on each screen.
-- Added direct editing for scheduled actions. One action-type form shows the fields you need and keeps edited actions in their original order.
-- Added checks for placement coordinates, timing, upgrade paths, and actions scheduled before placement or after selling. Copy and Save always generate fresh code from the current strategy.
-- Strategy Builder now writes the correct starting and ending rounds for each mode, including **6-100 for Impoppable and CHIMPS**, while keeping round 0 for pregame setup.
+- Added Impoppable Workshop script.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 

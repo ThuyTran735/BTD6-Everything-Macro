@@ -1,11 +1,14 @@
 ﻿# BTD6 Everything Macro
-**Current version: v3.6.1**
+**Current version: v3.6.2**
 
 The app version used by the macro and update checker is defined in `Scripts/Version.ahk`. The version shown in this README is maintained manually when a release is published.
 
-### Current release highlights (v3.6.1)
+### Current release highlights (v3.6.2)
 
-- Automatically dismisses the optional Monkey Teams notice after mode confirmation, before placing towers. Startup checks wait for the notice to clear, with up to three click attempts if needed.
+- Normal tower and Spike Factory targeting now hold and separate each Tab press, with more time after selecting a tower, to reduce missed targeting inputs on slower setups.
+- These targeting actions stop with `TARGETING FAILED` when their focus checks detect that BTD6 is no longer active.
+
+The targeting update passed syntax checks and isolated simulated-input tests. The reported Hyper-V failure still needs an in-game retest; the macro does not visually confirm the resulting targeting mode.
 
 A work-in-progress AutoHotkey macro for Bloons TD 6. It can pick a map, load a strategy, place and upgrade towers, watch the current round, handle wins/losses, and get back to the menu for another run.
 
@@ -21,7 +24,7 @@ You can see which maps and modes are finished here:
 - Lets you choose a category, map, and mode from the launcher
 - Places towers and buys upgrades
 - Supports automatic Banana Farm collection while strategies are idle and waiting for rounds
-- Handles normal targeting plus coordinate-based Dartling, Heli, Mermonkey, and Mortar special targeting
+- Handles normal targeting, Spike Factory targeting modes, and coordinate-based Dartling, Heli, Mermonkey, Mortar, and Spike Factory special targeting
 - Handles tower abilities
 - Reads the current round
 - Detects victory, defeat, and several menu popups
@@ -127,7 +130,7 @@ Leave every other hotkey at its default. Different bindings can make the macro p
 BTD6 can also get into a bad keyboard/focus state after **Alt+Tab** or **Tab**.
 
 - Do **not** use Alt+Tab or Tab while BTD6 is being used with the macro.
-- If you need to click another application, press the **Windows key** first, then switch to the other application from there.
+- Stop the active run with **Ctrl + Shift + X** before using another application in the same Windows session. Then press the **Windows key** to switch applications. Input helpers can stop the run when BTD6 loses focus.
 - If you accidentally use Alt+Tab or Tab, completely close and restart BTD6 before running the macro again.
 - Use the macro at your own risk. The macro author is not responsible for bans, suspensions, lost progress, or other action taken against your game account from using it.
 
@@ -136,6 +139,12 @@ The launcher shows this setup/warning screen before continuing. It appears on ea
 The warning preference is versioned. Existing installs that hid an older warning will see this updated version once so they can choose whether to hide it again.
 
 Expert Impoppable strategies have a separate Monkey Knowledge warning. These strategies were built and tested with all Monkey Knowledge researched/unlocked, so running them without full Monkey Knowledge may change the expected cash, costs, cooldowns, or bonuses and can cause a loss. The warning appears before an Expert Impoppable run (or before a queue containing one) unless you check **Don't show this warning again** and continue.
+
+## Targeting input timing
+
+Normal targeting (`SetTargeting`) and Spike Factory mode changes (`SetSpikeFactoryTargeting`) use a held tower click, wait **250 ms** after selection, then hold each Tab for **100 ms** and leave it released for **150 ms** before the next input. The final release gap also runs before closing the panel or setting a manual target point. Existing strategies use these timings automatically; restart the macro after updating its files.
+
+These helpers track the expected mode after sending the inputs. An action log such as `targeting -> Smart` records a request, not a visual check of the game. Keep BTD6 active during the run. The separate Dartling and Heli mode-switch routines have their own timing.
 
 ## Special targeting towers
 Some towers use a map coordinate instead of normal First / Last / Close / Strong targeting. The macro has dedicated helpers for these towers.
@@ -172,7 +181,15 @@ RetargetMortar(TowerSetup["Mortar A"], 750, 600)
 
 Mortar uses a fixed map target instead of the normal targeting modes.
 
-All four special-target systems use the same input timing: **Page Down -> 300 ms -> click -> 250 ms -> close the upgrade panel -> 100 ms**. This keeps the targeting reliable and prevents an old upgrade panel from interfering with the next tower placement or upgrade action.
+### Spike Factory
+```ahk
+SetSpikeFactoryTargeting(TowerSetup["SpikeFactory A"], "Smart")
+SetSpikeFactoryTarget(TowerSetup["SpikeFactory A"], 750, 600)
+```
+
+Start Spike Factories with `targeting: "Normal"`. Bottom-path tier 2 (xx2 Smart Spikes) unlocks `Close`, `Smart`, `Set Target`, and `Automatic`. The forward cycle is **Normal -> Close -> Smart -> Set Target -> Automatic -> Normal**. Normal to Smart therefore needs exactly two Tab presses. `SetSpikeFactoryTarget` selects Set Target and uses the supplied map coordinate for the spikes.
+
+The shared manual-point action used by these towers is **Page Down -> 300 ms -> click -> 250 ms -> close the upgrade panel -> 300 ms**. This sequence allows the aim action and panel-close animation to settle. Selecting the tower and switching its targeting mode happen before this shared action.
 
 ## Running the macro
 1. Start BTD6 and wait until you are on the main menu.
@@ -295,6 +312,16 @@ Reset the BTD6 hotkeys to their defaults, then set Mermonkey to `F6`, Skywarden 
 
 ### Round or button detection stops working
 BTD6 updates can change parts of the UI. The matching FindText pattern may need to be captured again after a game update.
+
+### A tower ends on the wrong targeting mode
+Check the mode displayed on the tower's panel, not just the action log. For example, a Spike Factory left on Close after a Smart request has not reached the intended mode. Stop the macro with **Ctrl + Shift + X** before inspecting or changing towers manually. Restart the macro after installing the targeting update, then retry the strategy from the beginning.
+
+When reporting a repeatable failure, include the map/mode, round, macro version, run log from `UserData/Logs`, and a screenshot or short recording showing the affected tower's upgrades and targeting. Do not add an extra Tab to a strategy as a workaround: it would overshoot on runs where both intended presses register.
+
+### Actions are slower in Hyper-V or another virtual machine
+Include whether the game and macro both run inside the VM, the connection type (Basic Session, Enhanced Session, or another remote desktop app), whether the viewer stays visible or is minimized/disconnected, and the in-game FPS. Also include the VM's CPU/RAM allocation and graphics setup if known.
+
+Compare the same strategy with the VM visible and the host otherwise idle. If possible, compare a run directly on the host with the same macro and game settings, and send both logs. Longer action times can include cash waits and slower game progression; they do not by themselves prove that an action started late within its round. Another script working in the VM is useful comparison evidence, so identify that script and whether it used the same map/mode.
 
 ## Notes
 - This macro sends normal mouse and keyboard input; it does not edit BTD6 files.

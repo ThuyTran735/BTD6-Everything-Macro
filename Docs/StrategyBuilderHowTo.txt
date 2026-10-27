@@ -1,5 +1,5 @@
 ﻿BTD6 EVERYTHING MACRO - STRATEGY BUILDER HOW-TO
-v3.6.1
+v3.6.2
 
 Strategy Builder turns placements and scheduled actions into a map script.
 Start with the map details, add your monkeys, then add what they should do.
@@ -117,6 +117,19 @@ Targeting
   and both coordinates are required. Use F5 CAPTURE for this point.
   Dartling, Heli, and Mortar aiming need their dedicated script helpers;
   they are not normal targeting changes in this form.
+
+  Normal and Spike Factory targeting automatically use the shared runtime
+  timing: a held selection click, 250 ms to let the panel open, then each
+  Tab held for 100 ms followed by a 150 ms released gap. You do not need
+  duplicate Targeting rows or additional Delay values to separate Tabs.
+  Round and Delay still control when the action is scheduled. The next
+  strategy action waits for this targeting action to finish.
+
+  Spike Factory modes other than Normal require bottom-path tier 2 or
+  higher. Normal -> Close -> Smart takes two forward targeting presses.
+  The macro tracks the expected result without reading the displayed mode;
+  check the tower's panel when testing your strategy. Focus loss detected
+  during these actions stops the run with TARGETING FAILED.
 
 Sell
   Choose the monkey or hero to sell. Optional X/Y works like the Upgrade

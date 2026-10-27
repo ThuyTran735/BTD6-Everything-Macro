@@ -267,14 +267,22 @@ Moving-map example:
 
 The optional X/Y values are only used to click/select the tower. They do not change the tower's saved placement coordinates.
 
-The targeting system:
-     - Clicks the tower.
-     - Waits 250 ms for the panel animation.
-     - Uses Tab forward.
-     - Uses Ctrl+Tab backward.
-     - Chooses the shorter direction.
-     - Tracks current targeting.
-     - Closes the panel afterward.
+The normal targeting system:
+     - Returns immediately if the requested mode matches the stored expected mode.
+     - Otherwise selects the tower with a held click and waits 250 ms for the panel.
+     - Cycles forward with Tab; it does not use Ctrl+Tab or choose a shorter direction.
+     - Holds each Tab for 100 ms, then leaves it released for 150 ms, including
+       after the final press.
+     - Updates the expected targeting mode after the input sequence finishes.
+     - Closes the panel with Esc and waits 300 ms.
+     - Stops with TARGETING FAILED if a focus check fails; it does not replay
+       a partially sent sequence.
+
+The stored mode is an expected state. An ACTION log records the request before
+inputs are sent. Neither confirms the mode displayed in the game. When testing
+a strategy, check the tower panel if the result differs from what was requested.
+These Tab timings also apply to Spike Factory mode changes, but not to the
+separate Heli or Dartling mode-switch helpers.
 
 
 8. SNIPER ELITE TARGETING
@@ -701,7 +709,7 @@ AimDartling() behavior:
        requested point and switches it to Locked targeting.
      - If it is already Locked, the macro uses PgDn, waits 300 ms, clicks the
        requested screen position, waits 250 ms, closes the upgrade panel,
-       then waits 100 ms before continuing.
+       then waits 300 ms before continuing.
 
 Retarget an already-locked Dartling explicitly:
 
@@ -761,7 +769,7 @@ LockHeliInPlace() behavior:
      - Selects the Heli base if needed.
      - Switches Follow Mouse / Pursuit to Lock in Place.
      - Uses PgDn, waits 300 ms, clicks the requested screen position,
-       waits 250 ms, closes the upgrade panel, then waits 100 ms.
+       waits 250 ms, closes the upgrade panel, then waits 300 ms.
      - Stores the lock point in tower.lockX / tower.lockY.
 
 Retarget an already-locked Heli:
@@ -807,7 +815,7 @@ PlaceMermonkeyTotem() behavior:
      - Selects the Mermonkey if needed.
      - Presses PgDn to activate BTD6 Manual Targeting.
      - Waits 300 ms, clicks the requested screen coordinate, then waits 250 ms.
-     - Closes the upgrade panel and waits another 100 ms before continuing.
+     - Closes the upgrade panel and waits another 300 ms before continuing.
      - Stores the last totem position on the tower object.
 
 Move the totem later with:
@@ -865,8 +873,42 @@ Mortar target-point behavior:
      - Waits 300 ms after PgDn.
      - Clicks the requested screen coordinate.
      - Waits 250 ms after the click.
-     - Closes the upgrade panel and waits another 100 ms.
+     - Closes the upgrade panel and waits another 300 ms.
      - Stores the latest point in tower.targetX / tower.targetY.
+
+SPIKE FACTORY TARGETING
+----------------------
+
+Spike Factories should start with targeting: "Normal".
+Use SetSpikeFactoryTargeting(), not normal SetTargeting().
+
+After the bottom path reaches tier 2 (xx2 or higher), the forward cycle is:
+     Normal -> Close -> Smart -> Set Target -> Automatic -> Normal
+
+Before xx2, only Normal is available. Example after placing the tower:
+
+[25, 0, () => UpgradeTower(TowerSetup["SpikeFactory A"], "002")],
+[26, 0, () => SetSpikeFactoryTargeting(TowerSetup["SpikeFactory A"], "Smart")],
+
+Normal to Smart uses exactly two forward Tab presses. Selection waits 250 ms
+after the held click; each Tab is held for 100 ms and released for 150 ms,
+including after the final press. The expected mode is updated after the input
+sequence completes; the macro does not visually verify it. Do not add an extra
+Tab to compensate for a missed input, since it would overshoot on a successful run.
+
+For a manual track point, use:
+
+SetSpikeFactoryTarget(TowerSetup["SpikeFactory A"], targetX, targetY)
+
+To move it later:
+
+RetargetSpikeFactory(TowerSetup["SpikeFactory A"], targetX, targetY)
+
+Use a valid track point within the tower's range. Entering Set Target with a
+point includes another 250 ms settle before the shared manual action:
+PgDn -> 300 ms -> click -> 250 ms -> Esc -> 300 ms.
+Retargeting an already-directed Spike Factory keeps Set Target without cycling.
+
 
 GAME SPEED CHANGES
 

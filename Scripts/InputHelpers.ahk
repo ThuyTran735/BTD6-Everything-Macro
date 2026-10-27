@@ -38,6 +38,37 @@ SendGameKey(hotkey, holdMs := 80) {
     return IsTowerInputActive()
 }
 
+SelectTowerForTargeting(x, y) {
+    if !ClickTowerPoint(x, y)
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus while selecting the tower")
+
+    ; Allow the panel to open before sending its first targeting key.
+    Sleep(250)
+    if !IsTowerInputActive()
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before targeting")
+
+    return true
+}
+
+SendTargetingSteps(stepCount) {
+    ; Keep both key-down and key-up visible across multiple frames. A delay
+    ; after an instantaneous Send alone does not make the press last longer.
+    Loop stepCount {
+        if !SendGameKey("{Tab}", 100)
+            return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus during a targeting key")
+
+        ; Include the last release gap before Escape or a manual aim action.
+        Sleep(150)
+        if !IsTowerInputActive()
+            return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus after a targeting key")
+    }
+
+    ; Also check focus for a zero-step request. The displayed mode is not read.
+    if !IsTowerInputActive()
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before completing targeting")
+    return true
+}
+
 ClickTowerPoint(x, y) {
     ; The existing ClickMapPoint holdMs controls HUD visibility, not the
     ; mouse button. Tower actions need an actual press that lasts a few frames.

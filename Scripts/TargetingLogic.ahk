@@ -270,8 +270,8 @@ SetTargeting(tower, targetMode, overrideX := "", overrideY := "") {
             : tower.y
 
 
-    ClickMapPoint(clickX, clickY)
-    Sleep(250)
+    if !SelectTowerForTargeting(clickX, clickY)
+        return false
 
 
     profileLength := targetingOrder.Length
@@ -286,15 +286,16 @@ SetTargeting(tower, targetMode, overrideX := "", overrideY := "") {
 
     ; Always cycle forward through targeting modes.
     ; Reverse targeting (Ctrl+Tab) is intentionally not used here.
-    Loop forwardSteps {
-        Send("{Tab}")
-        Sleep(30)
-    }
+    if !SendTargetingSteps(forwardSteps)
+        return false
 
 
+    ; Track the expected mode only after all inputs finish. No visual readback.
     tower.targeting := targetMode
 
 
+    if !IsTowerInputActive()
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before closing the targeting panel")
     SendEscapeAndWait()
 
 

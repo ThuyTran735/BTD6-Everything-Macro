@@ -48,10 +48,7 @@ NormalizeSpikeFactoryTargetingState(tower) {
 
 
 EnsureSpikeFactorySelected(tower) {
-    ClickMapPoint(tower.x, tower.y)
-    Sleep(35)
-
-    return true
+    return SelectTowerForTargeting(tower.x, tower.y)
 }
 
 
@@ -118,11 +115,10 @@ SetSpikeFactoryTargeting(tower, targetMode, targetX := "", targetY := "") {
         profileLength
     )
 
-    Loop forwardSteps {
-        Send("{Tab}")
-        Sleep(35)
-    }
+    if !SendTargetingSteps(forwardSteps)
+        return false
 
+    ; Track the expected mode only after all inputs finish. No visual readback.
     tower.targeting := targetMode
 
     if targetMode = "Set Target" {
@@ -135,10 +131,14 @@ SetSpikeFactoryTargeting(tower, targetMode, targetX := "", targetY := "") {
         }
 
         ; This action selected the Spike Factory, so close that panel once.
+        if !IsTowerInputActive()
+            return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before closing the targeting panel")
         SendEscapeAndWait()
         return true
     }
 
+    if !IsTowerInputActive()
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before closing the targeting panel")
     SendEscapeAndWait()
 
     return true
@@ -180,6 +180,9 @@ RetargetSpikeFactory(tower, targetX, targetY) {
 
 
 ClickSpikeFactoryTargetPoint(tower, targetX, targetY) {
+    if !IsTowerInputActive()
+        return SetRunFailureReason("TARGETING FAILED", "BTD6 lost focus before setting the spike target point")
+
     ; PgDn activates the special Set Target action. BTD6 then expects a
     ; screen click on a valid track point inside the Spike Factory's range.
     ClickSpecialTargetPoint(targetX, targetY)
